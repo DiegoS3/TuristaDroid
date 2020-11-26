@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">TuristaDroid</string>
+
+    <!--SignUp-->
+    <string name="tvTitle">Register</string>
+    <string name="txtName">Name</string>
+    <string name="txtNameUser">User name</string>
+    <string name="txtEmail">Email</string>
+    <string name="txtPass">Password</string>
+    <string name="btnRegister">Sign Up</string>
+
 </resources>
