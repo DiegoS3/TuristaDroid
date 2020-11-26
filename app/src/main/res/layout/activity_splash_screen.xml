@@ -19,10 +19,25 @@
         <ImageView
                 android:layout_width="403dp"
                 android:layout_height="281dp"
-                app:srcCompat="@drawable/pines"
+                app:srcCompat="@drawable/pin_1"
                 android:id="@+id/imgPines_Splash"
                 app:layout_constraintTop_toBottomOf="@+id/textTitleSplash" app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintHorizontal_bias="0.5" app:layout_constraintEnd_toEndOf="parent"/>
+        <ImageView
+                android:layout_width="403dp"
+                android:layout_height="281dp"
+                app:srcCompat="@drawable/pin_2"
+                android:id="@+id/imgPines1_Splash"
+                app:layout_constraintTop_toBottomOf="@+id/textTitleSplash" app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintHorizontal_bias="0.5" app:layout_constraintEnd_toEndOf="parent"/>
+        <ImageView
+                android:layout_width="403dp"
+                android:layout_height="281dp"
+                app:srcCompat="@drawable/pin_3"
+                android:id="@+id/imgPines2_Splash"
+                app:layout_constraintTop_toBottomOf="@+id/textTitleSplash" app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintHorizontal_bias="0.5" app:layout_constraintEnd_toEndOf="parent"/>
+
         <TextView
                 android:layout_width="254dp"
                 android:layout_height="125dp" android:id="@+id/textTitleSplash"
