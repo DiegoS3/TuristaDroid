@@ -1,3 +1,7 @@
 <resources>
-    <string name="app_name">TuristaDroid</string>
+    <string name="app_name">Turista Droid</string>
+
+    <!-- SplashScreen -->
+    <string name="developed">Development by Diego &amp; Guille</string>
+
 </resources>
