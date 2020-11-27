@@ -11,7 +11,7 @@
 
     <!--Seleccion_Camara-->
     <string name="tvSelection">Choose your image source</string>
-    <string name="btnCamera">Camera</string>
-    <string name="btnGallery">Gallery</string>
+    <string name="btnCamera">CAMERA</string>
+    <string name="btnGallery">GALLERY</string>
 
 </resources>
