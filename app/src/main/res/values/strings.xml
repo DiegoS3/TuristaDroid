@@ -9,4 +9,9 @@
     <string name="txtPass">Password</string>
     <string name="btnRegister">Sign Up</string>
 
+    <!--Seleccion_Camara-->
+    <string name="tvSelection">Choose your image source</string>
+    <string name="btnCamera">Camera</string>
+    <string name="btnGallery">Gallery</string>
+
 </resources>
