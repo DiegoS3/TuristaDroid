@@ -3,19 +3,12 @@
     <color name="colorPrimary">#6200EE</color>
     <color name="colorPrimaryDark">#3700B3</color>
     <color name="colorAccent">#03DAC5</color>
-<<<<<<< HEAD
     <color name="colorBackground">#242424</color>
     <color name="colorLetter">#CBCBCB</color>
     <color name="colorInputBackground">#5B5B5B</color>
-    <color name="colorLetter2">#BABABA</color>
-||||||| Creacion Proyecto
-=======
 
-    <color name="colorBackground">#242424</color>
-    <color name="colorLetter">#CBCBCB</color>
     <color name="colorLetterInput">#BABABA</color>
     <color name="colorBoxInput">#5B5B5B</color>
     <color name="colorDialog">#A1B8D7</color>
 
->>>>>>> develop
 </resources>

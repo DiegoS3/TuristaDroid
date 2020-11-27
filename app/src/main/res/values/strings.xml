@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TuristaDroid</string>
+    <string name="app_name">Turista Droid</string>
 
     <!--SignUp-->
     <string name="tvTitle">Register</string>
