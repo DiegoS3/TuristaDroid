@@ -1,8 +1,5 @@
 <resources>
-    <string name="app_name">Turista Droid</string>
-
-    <!-- SplashScreen -->
-    <string name="developed">Development by Diego &amp; Guille</string>
+    <string name="app_name">TuristaDroid</string>
 
     <!--SignUp-->
     <string name="tvTitle">Register</string>
@@ -12,9 +9,15 @@
     <string name="txtPass">Password</string>
     <string name="btnRegister">Sign Up</string>
 
+    <!--Seleccion_Camara-->
+    <string name="tvSelection">Choose your image source</string>
+    <string name="btnCamera">CAMERA</string>
+    <string name="btnGallery">GALLERY</string>
+
+    <!-- SplashScreen -->
+    <string name="developed">Development by Diego &amp; Guille</string>
     <!--LogIn-->
     <string name="btnLogin">Log In</string>
     <string name="noAccount">Do you not have an account?</string>
     <string name="registerLogin"><u>Register</u></string>
-
 </resources>

@@ -12,6 +12,8 @@
         <activity android:name=".login.LogInActivity">
         </activity>
         <activity android:name=".splash.SplashScreenActivity">
+        <activity android:name=".signup.SignUp">
+        </activity>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 

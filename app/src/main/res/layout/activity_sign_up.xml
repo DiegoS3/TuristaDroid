@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".signup.SignUp" android:background="@color/colorBackground">
+
+    <ImageView
+            android:layout_width="160dp"
+            android:layout_height="160dp" android:id="@+id/imaUser"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_bias="0.498"
+            app:layout_constraintVertical_bias="0.107" android:background="@drawable/imaUser"/>
+    <TextView
+            android:text="@string/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:id="@+id/tvTitle"
+            android:textColor="@color/colorLetter" app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_bias="0.158"
+            app:layout_constraintVertical_bias="0.407" android:textSize="24sp" android:fontFamily="@font/roboto_bold"/>
+    <EditText
+            android:layout_width="316dp"
+            android:layout_height="44dp"
+            android:inputType="textPersonName"
+            android:ems="10"
+            android:id="@+id/txtName"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="0.536" android:fontFamily="@font/roboto_bold"
+            android:textColor="@color/colorLetterInput" app:layout_constraintVertical_bias="0.499"
+            android:textColorHint="@color/colorLetterInput" android:hint="@string/txtName"
+            android:background="@drawable/box_inputs" android:paddingHorizontal="10dp"/>
+    <EditText
+            android:layout_width="316dp"
+            android:layout_height="44dp"
+            android:inputType="textPersonName"
+            android:ems="10"
+            android:id="@+id/txtNameUser"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="0.536" android:fontFamily="@font/roboto_bold"
+            android:textColor="@color/colorLetterInput" app:layout_constraintVertical_bias="0.592"
+            android:textColorHint="@color/colorLetterInput" android:hint="@string/txtNameUser"
+            android:background="@drawable/box_inputs" android:paddingHorizontal="10dp"/>
+    <EditText
+            android:layout_width="316dp"
+            android:layout_height="44dp"
+            android:inputType="textPersonName|textEmailSubject"
+            android:ems="10"
+            android:id="@+id/txtEmail"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="0.536" android:fontFamily="@font/roboto_bold"
+            android:textColor="@color/colorLetterInput" app:layout_constraintVertical_bias="0.687"
+            android:textColorHint="@color/colorLetterInput" android:hint="@string/txtEmail"
+            android:background="@drawable/box_inputs" android:paddingHorizontal="10dp"/>
+    <EditText
+            android:layout_width="316dp"
+            android:layout_height="44dp"
+            android:inputType="textPassword"
+            android:ems="10"
+            android:id="@+id/txtPass"
+            android:hint="@string/txtPass"
+            android:textColor="@color/colorLetterInput" android:textColorHint="@color/colorLetterInput"
+            android:fontFamily="@font/roboto_bold" android:background="@drawable/box_inputs"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="0.536" app:layout_constraintVertical_bias="0.781"
+            android:paddingHorizontal="10dp"/>
+    <Button
+            android:text="@string/btnRegister"
+            android:layout_width="135dp"
+            android:layout_height="46dp" android:id="@+id/btnRegister"
+            app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintHorizontal_bias="0.498" app:layout_constraintVertical_bias="0.928"
+            android:textColor="@color/colorLetter" android:background="@drawable/box_buttons" android:textSize="18sp"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -4,18 +4,19 @@
 
     <!-- View background color -->
     <solid
-            android:color="@color/colorInputBackground" >
+            android:color="@color/colorDialog" >
     </solid>
 
     <!-- View border color and width -->
     <stroke
             android:width="0dp"
-            android:color="@color/colorPrimary" >
+            android:color="@color/colorBackground">
+
     </stroke>
 
     <!-- The radius makes the corners rounded -->
     <corners
-            android:radius="4dp"   >
+            android:radius="0dp"   >
     </corners>
 
 </shape>
