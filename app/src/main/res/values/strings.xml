@@ -8,6 +8,8 @@
     <string name="txtEmail">Email</string>
     <string name="txtPass">Password</string>
     <string name="btnRegister">Sign Up</string>
+    <string name="errorEmail">This email already exists</string>
+    <string name="errorNameUser">This user name already exists</string>
 
     <!--Seleccion_Camara-->
     <string name="tvSelection">Choose your image source</string>
@@ -26,4 +28,6 @@
     <string name="password_strength_medium">Medium</string>
     <string name="password_strength_strong">Strong</string>
     <string name="password_strength_very_strong">Very Strong</string>
+
+
 </resources>

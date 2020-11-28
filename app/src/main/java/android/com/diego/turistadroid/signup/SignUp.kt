@@ -3,6 +3,7 @@ package android.com.diego.turistadroid.signup
 import android.app.Activity
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.ControllerBbdd
+import android.com.diego.turistadroid.bbdd.User
 import android.com.diego.turistadroid.utilities.PasswordStrength
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.ContentValues
@@ -31,6 +32,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
+import androidx.core.graphics.drawable.toBitmap
+import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import kotlinx.android.synthetic.main.activity_sign_up.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
 
@@ -38,7 +41,13 @@ class SignUp : AppCompatActivity() {
 
     private val GALERIA = 0
     private val CAMARA = 1
-    var foto: Uri? = null
+    private var foto: Uri? = null
+    private var nombre = ""
+    private var usuario = ""
+    private var email = ""
+    private var password = ""
+    private var ima : Bitmap? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +60,30 @@ class SignUp : AppCompatActivity() {
         abrirOpciones()
         validarPassword()
         validarEmail()
+        initSaveDatos()
+        checkUsuario()
+    }
+
+    private fun checkUsuario(){
+        btnRegister.setOnClickListener {
+            try {
+
+                registrarUsuario()
+
+            }catch (ex: RealmPrimaryKeyConstraintException){
+                txtEmail.error = getString(R.string.errorEmail)
+            }
+        }
+    }
+
+    private fun registrarUsuario() {
+        val passCifrada = Utilities.hashString(txtPass.text.toString())
+        val imaString = Utilities.bitmapToBase64(imaUser.drawable.toBitmap())
+        val user = imaString?.let { User(txtEmail.text.toString(), txtName.text.toString(),
+            txtNameUser.text.toString(), passCifrada, it) }
+        user?.let { ControllerBbdd.insertUser(it) }
+        Toast.makeText(applicationContext, "Usuario Registrado", Toast.LENGTH_SHORT).show()
+
     }
 
     private fun updatePasswordStrengthView(password: String) {
@@ -235,6 +268,43 @@ class SignUp : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         ControllerBbdd.close()
+    }
+
+    private fun initSaveDatos(){
+        nombre = txtName.text.toString()
+        usuario = txtNameUser.text.toString()
+        email = txtEmail.text.toString()
+        password = txtPass.text.toString()
+        ima = imaUser.drawable.toBitmap()
+    }
+
+    // Para salvar el estado por ejemplo es usando un Bundle en el ciclo de vida
+    override fun onSaveInstanceState(outState: Bundle) {
+        // Salvamos en un bundle estas variables o estados de la interfaz
+        outState.run {
+            // Actualizamos los datos o los recogemos de la interfaz
+            putString("EMAIL", email)
+            putString("NOMBRE", nombre)
+            putString("USUARIO", usuario)
+            putString("IMAGEN", ima?.let { Utilities.bitmapToBase64(it) })
+            putString("PWD", password)
+        }
+        // Siempre se llama a la superclase para salvar las cosas
+        super.onSaveInstanceState(outState)
+    }
+
+    // Para recuperar el estado al volver al un estado de ciclo de vida de la Interfaz
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        // Recuperamos en un bundle estas variables o estados de la interfaz
+        super.onRestoreInstanceState(savedInstanceState)
+        // Recuperamos del Bundle
+        savedInstanceState.run {
+            email= getString("EMAIL").toString()
+            nombre = getString("NOMBRE").toString()
+            usuario = getString("USUARIO").toString()
+            ima = Utilities.base64ToBitmap(getString("IMAGEN").toString())
+            password = getString("PWD").toString()
+        }
     }
 
 }

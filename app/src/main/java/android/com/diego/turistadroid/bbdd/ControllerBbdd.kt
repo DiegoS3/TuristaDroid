@@ -48,6 +48,14 @@ object ControllerBbdd {
         )
     }
 
+    //Seleccionar usuario por nameUser
+    fun selectByNameUser(nameUser : String): User?{
+        return Realm.getDefaultInstance().copyFromRealm(
+            Realm.getDefaultInstance().where<User>().equalTo("nombreUser", nameUser).findFirst()
+
+        )
+    }
+
     //Actualizar un usuario
     fun updateUser(user: User){
         Realm.getDefaultInstance().executeTransaction{
