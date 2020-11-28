@@ -3,6 +3,7 @@ package android.com.diego.turistadroid.splash
 import android.com.diego.turistadroid.MainActivity
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.login.LogInActivity
+import android.com.diego.turistadroid.signup.SignUp
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -28,7 +29,7 @@ class SplashScreenActivity : AppCompatActivity() {
         initAnimations()
 
         //cargamos la login activity tras pasar X tiempo
-        val main = Intent(this, LogInActivity::class.java)
+        val main = Intent(this, SignUp::class.java)
         Handler(Looper.getMainLooper()).postDelayed({
             run {
                 startActivity(main)

@@ -15,3 +15,4 @@ open class Place (@PrimaryKey var id : Long = 0,
     constructor(nombre: String, fecha: Date, puntuacion: Double, longitud: Double, latitud: Double, imagenes: RealmList<Image>) :
             this((System.currentTimeMillis() / 1000L), nombre, fecha, puntuacion, longitud, latitud, imagenes)
 }
+

@@ -14,3 +14,7 @@ open class User (@PrimaryKey var email : String = "",
                  var facebook : String = "",
                  var instagram : String = "") : RealmObject()
 
+
+
+
+

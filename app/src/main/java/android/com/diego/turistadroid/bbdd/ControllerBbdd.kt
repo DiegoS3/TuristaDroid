@@ -1,3 +1,4 @@
+
 package android.com.diego.turistadroid.bbdd
 
 import android.content.Context
@@ -9,7 +10,7 @@ object ControllerBbdd {
 
     // Variables de
     private const val DATOS_BD = "TURISTA_BD_REALM"
-    private const val DATOS_BD_VERSION = 1L
+    private const val DATOS_BD_VERSION = 2L
     private const val DISTANCIA = 1000
 
     //Iniciamos la base de datos
@@ -53,6 +54,8 @@ object ControllerBbdd {
             it.copyToRealmOrUpdate(user)
         }
     }
+
+
 
     //QUERIES TABLA PLACE
 
@@ -134,3 +137,4 @@ object ControllerBbdd {
         }
     }
 }
+
