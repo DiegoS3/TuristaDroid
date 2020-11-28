@@ -133,4 +133,9 @@ object ControllerBbdd {
             it.deleteAll()
         }
     }
+
+    //Cerrar base de datos
+    fun close(){
+        Realm.getDefaultInstance().close()
+    }
 }
