@@ -20,4 +20,10 @@
     <string name="btnLogin">Log In</string>
     <string name="noAccount">Do you not have an account?</string>
     <string name="registerLogin"><u>Register</u></string>
+
+    <string name="password_strength_caption">Password Strength: {0}</string>
+    <string name="password_strength_weak">Weak</string>
+    <string name="password_strength_medium">Medium</string>
+    <string name="password_strength_strong">Strong</string>
+    <string name="password_strength_very_strong">Very Strong</string>
 </resources>

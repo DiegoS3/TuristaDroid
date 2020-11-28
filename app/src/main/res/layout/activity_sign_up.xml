@@ -71,8 +71,33 @@
             app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintHorizontal_bias="0.536" app:layout_constraintVertical_bias="0.781"
             android:paddingHorizontal="10dp"/>
+
+    <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:indeterminate="false"
+            android:maxHeight="20dip"
+            android:minHeight="20dip"
+            android:progress="0"
+            app:layout_constraintEnd_toStartOf="@+id/password_strength"
+            app:layout_constraintStart_toStartOf="@+id/txtPass"
+            app:layout_constraintTop_toBottomOf="@+id/txtPass"/>
+
+    <TextView
+            android:id="@+id/password_strength"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:text="Weak"
+            app:layout_constraintBottom_toBottomOf="@+id/progressBar"
+            app:layout_constraintEnd_toEndOf="@+id/txtPass"
+            app:layout_constraintTop_toBottomOf="@+id/txtPass"/>
+
     <Button
             android:text="@string/btnRegister"
+            android:enabled="false"
             android:layout_width="135dp"
             android:layout_height="46dp" android:id="@+id/btnRegister"
             app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
