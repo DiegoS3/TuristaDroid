@@ -19,10 +19,13 @@
 
     <!-- SplashScreen -->
     <string name="developed">Development by Diego &amp; Guille</string>
+
     <!--LogIn-->
     <string name="btnLogin">Log In</string>
     <string name="noAccount">Do you not have an account?</string>
     <string name="registerLogin"><u>Register</u></string>
+    <string name="action_emptyfield">There can be no empty fields</string>
+    <string name="errorLogin">Incorrect username or password</string>
 
     <string name="password_strength_caption">Password Strength: {0}</string>
     <string name="password_strength_weak">Weak</string>
