@@ -4,6 +4,7 @@ import android.com.diego.turistadroid.MainActivity
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.ControllerBbdd
 import android.com.diego.turistadroid.bbdd.User
+import android.com.diego.turistadroid.signup.SignUp
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
@@ -25,6 +26,7 @@ class LogInActivity : AppCompatActivity() {
         setContentView(R.layout.activity_log_in)
 
         clickBtn()
+        clickRegister()
 
     }
 
@@ -63,6 +65,16 @@ class LogInActivity : AppCompatActivity() {
 
             }
         }
+    }
+
+    private fun clickRegister(){
+        initRegister()
+    }
+
+    private fun initRegister(){
+
+        val intent = Intent (this, SignUp::class.java)
+        startActivity(intent)
     }
 
     private fun initNavigation(){
