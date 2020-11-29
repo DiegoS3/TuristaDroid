@@ -55,20 +55,22 @@ class LogInActivity : AppCompatActivity() {
             val email = txtUser_Login.text.toString()
             val pwd = Utilities.hashString(txtPwd_Login.text.toString())
 
-            if (email.isEmpty()){ txtUser_Login.error = R.string.action_emptyfield.toString() }
-            if (pwd.isEmpty()){ txtPwd_Login.error = R.string.action_emptyfield.toString()}
+            if (email.isEmpty()){ txtUser_Login.error = getString(R.string.action_emptyfield) }
+            if (pwd.isEmpty()){ txtPwd_Login.error = getString(R.string.action_emptyfield)}
 
             if (email.isNotEmpty() and pwd.isNotEmpty()){
 
                 if (comprobarLogin(email, pwd)){ initNavigation() }
-                else { txtUser_Login.error = R.string.errorLogin.toString() }
+                else { txtUser_Login.error = getString(R.string.errorLogin) }
 
             }
         }
     }
 
     private fun clickRegister(){
-        initRegister()
+        textRegister_LogIn.setOnClickListener {
+            initRegister()
+        }
     }
 
     private fun initRegister(){
