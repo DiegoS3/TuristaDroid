@@ -4,6 +4,7 @@ import android.app.Activity
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.ControllerBbdd
 import android.com.diego.turistadroid.bbdd.User
+import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.utilities.PasswordStrength
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.ContentValues
@@ -47,6 +48,7 @@ class SignUp : AppCompatActivity() {
     private var email = ""
     private var password = ""
     private var ima : Bitmap? = null
+    private var valido = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,12 +68,17 @@ class SignUp : AppCompatActivity() {
 
     private fun checkUsuario(){
         btnRegister.setOnClickListener {
-            try {
+            Log.i("valor de vacios",comprobarVacios().toString())
+            if(comprobarVacios()){
+                try {
 
-                registrarUsuario()
+                    registrarUsuario()
 
-            }catch (ex: RealmPrimaryKeyConstraintException){
-                txtEmail.error = getString(R.string.errorEmail)
+                }catch (ex: RealmPrimaryKeyConstraintException){
+                    txtEmail.error = getString(R.string.errorEmail)
+                }
+            }else{
+                Toast.makeText(applicationContext, getString(R.string.action_emptyfield), Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -83,8 +90,14 @@ class SignUp : AppCompatActivity() {
             txtNameUser.text.toString(), passCifrada, it) }
         user?.let { ControllerBbdd.insertUser(it) }
         Toast.makeText(applicationContext, "Usuario Registrado", Toast.LENGTH_SHORT).show()
-
+        val intent = Intent (this, LogInActivity::class.java)
+        startActivity(intent)
     }
+
+    private fun comprobarVacios(): Boolean{
+        return validarEmail() and txtName.text.isNotEmpty() and txtPass.text.isNotEmpty() and txtNameUser.text.isNotEmpty()
+    }
+
 
     private fun updatePasswordStrengthView(password: String) {
 
@@ -139,7 +152,7 @@ class SignUp : AppCompatActivity() {
         })
     }
 
-    private fun validarEmail(){
+    private fun validarEmail(): Boolean{
 
         txtEmail.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -148,18 +161,20 @@ class SignUp : AppCompatActivity() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
 
                 if (android.util.Patterns.EMAIL_ADDRESS.matcher(txtEmail.text.toString()).matches()) {
-                    btnRegister.isEnabled = true
+                    valido = true
                 } else {
-                    btnRegister.isEnabled = false
+                    valido = false
                     txtEmail.error = "Invalid Email"
                 }
-
             }
 
             override fun afterTextChanged(s: Editable?) {
             }
 
         })
+        Log.i("contraseña bool",valido.toString())
+        return valido
+
 
     }
 
