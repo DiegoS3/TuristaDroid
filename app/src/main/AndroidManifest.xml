@@ -14,6 +14,11 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme">
+        <activity
+                android:name=".navigation_drawer.NavigationDrawer"
+                android:label="@string/title_activity_navigation_drawer"
+                android:theme="@style/AppTheme.NoActionBar">
+        </activity>
         <activity android:name=".login.LogInActivity">
         </activity>
         <activity android:name=".signup.SignUp">

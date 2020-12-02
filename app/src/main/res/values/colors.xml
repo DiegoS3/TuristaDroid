@@ -10,5 +10,6 @@
     <color name="colorLetterInput">#BABABA</color>
     <color name="colorBoxInput">#5B5B5B</color>
     <color name="colorDialog">#A1B8D7</color>
+    <color name="colorBackGround2">#82A1C9</color>
 
 </resources>

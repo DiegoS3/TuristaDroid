@@ -29,7 +29,7 @@ class SplashScreenActivity : AppCompatActivity() {
         initAnimations()
 
         //cargamos la login activity tras pasar X tiempo
-        val main = Intent(this, SignUp::class.java)
+        val main = Intent(this, LogInActivity::class.java)
         Handler(Looper.getMainLooper()).postDelayed({
             run {
                 startActivity(main)

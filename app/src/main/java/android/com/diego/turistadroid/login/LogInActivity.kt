@@ -4,6 +4,7 @@ import android.com.diego.turistadroid.MainActivity
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.ControllerBbdd
 import android.com.diego.turistadroid.bbdd.User
+import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.signup.SignUp
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Intent
@@ -81,7 +82,7 @@ class LogInActivity : AppCompatActivity() {
 
     private fun initNavigation(){
 
-        val intent = Intent (this, MainActivity::class.java)
+        val intent = Intent (this, NavigationDrawer::class.java)
         startActivity(intent)
 
     }
