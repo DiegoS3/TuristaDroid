@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnFloatAddActualPlace"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="165dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:backgroundTint="@color/colorFloatingButton"
+            app:srcCompat="@drawable/ic_add_place"/>
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnFloatAddNewPlace"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="90dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:backgroundTint="@color/colorFloatingButton"
+            app:srcCompat="@drawable/ic_add_actual_place"/>
+    <TextView
+            android:text="@string/btnAddNewPlace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtAddNewPlace"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="107dp"
+            android:textColor="@color/colorLetter"
+            android:fontFamily="@font/roboto_bold"
+            android:layout_toStartOf="@+id/btnFloatAddActualPlace"
+            android:layout_marginEnd="85dp"
+            android:textSize="16sp"/>
+    <TextView
+            android:text="@string/btnAddActualPlace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtAddActualPlace"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="182dp"
+            android:textColor="@color/colorLetter"
+            android:fontFamily="@font/roboto_bold"
+            android:layout_toStartOf="@+id/btnFloatAddActualPlace"
+            android:layout_marginEnd="85dp"
+            android:textSize="16sp"/>
+
+
+</RelativeLayout>

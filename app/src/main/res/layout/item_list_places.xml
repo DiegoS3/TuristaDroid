@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+        xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/cardView_Place"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        app:cardCornerRadius="50dp"
+        app:cardElevation="3dp"
+        android:layout_margin="10dp"
+        android:foreground="?selectableItemBackground"
+        android:clickable="true">
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/gradient"
+            android:id="@+id/relative_Place">
+
+        <TextView
+                android:text="Zurich - Suiza"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/txtCityPlace_Place"
+                android:textColor="@color/colorBackground"
+                android:fontFamily="@font/roboto_bold"
+                android:textSize="20sp"
+                android:layout_marginTop="5dp"
+                android:layout_marginStart="20dp"
+                android:layout_below="@+id/imgPlace_Place"/>
+        <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="120dp"
+                tools:srcCompat="@drawable/ima_default_place"
+                android:id="@+id/imgPlace_Place"
+                android:scaleType="fitXY"/>
+        <TextView
+                android:text="Iglesia de San Martin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/txtTitlePlace_Place"
+                android:layout_marginTop="88dp"
+                android:paddingTop="5dp"
+                android:paddingStart="20dp"
+                android:textColor="@color/colorLetter"
+                android:background="@color/colorBackgroundOpacity"
+                android:textSize="20sp"
+                android:fontFamily="@font/roboto_bold"/>
+        <TextView
+                android:text="4.3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/txtMark_Place"
+                android:layout_marginStart="11dp"
+                android:textSize="36sp"
+                android:fontFamily="@font/roboto_bold"
+                android:textAlignment="center"
+                android:textColor="@color/colorBackground"
+                android:layout_toEndOf="@+id/imgStar_Place"
+                android:layout_marginTop="12dp"
+                android:layout_below="@+id/imgPlace_Place"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="15dp"/>
+        <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:srcCompat="@drawable/ima_star"
+                android:id="@+id/imgStar_Place"
+                android:layout_marginTop="18dp"
+                android:layout_marginStart="110dp"
+                android:layout_below="@+id/imgPlace_Place"
+                android:layout_toEndOf="@+id/txtCityPlace_Place"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="18dp"/>
+        <TextView
+                android:text="22/11/2020"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/txtDatePlace_Place"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="20dp"
+                android:textSize="20sp"
+                android:fontFamily="@font/roboto_bold"
+                android:textColor="@color/colorBackground"
+                android:layout_below="@+id/txtCityPlace_Place"/>
+
+
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>
