@@ -11,19 +11,19 @@
                 android:title="@string/my_places"/>
         <item
                 android:id="@+id/nav_myProfile"
-                android:icon="@drawable/ic_menu_gallery"
+                android:icon="@drawable/ic_my_profile"
                 android:title="@string/my_profile"/>
         <item
                 android:id="@+id/nav_nearMe"
-                android:icon="@drawable/ic_menu_slideshow"
+                android:icon="@drawable/ic_near_me"
                 android:title="@string/near_me"/>
         <item
                 android:id="@+id/nav_lantern"
-                android:icon="@drawable/ic_menu_slideshow"
+                android:icon="@drawable/ic_lantern"
                 android:title="@string/lantern"/>
         <item
                 android:id="@+id/nav_exit"
-                android:icon="@drawable/ic_menu_slideshow"
+                android:icon="@drawable/ic_exit"
                 android:title="@string/exit"/>
     </group>
 </menu>
