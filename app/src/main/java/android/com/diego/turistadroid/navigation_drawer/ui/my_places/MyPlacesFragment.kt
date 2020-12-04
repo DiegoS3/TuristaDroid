@@ -1,4 +1,4 @@
-package android.com.diego.turistadroid.navigation_drawer.ui.home
+package android.com.diego.turistadroid.navigation_drawer.ui.my_places
 
 import android.com.diego.turistadroid.R
 import android.os.Bundle
@@ -10,20 +10,20 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 
-class HomeFragment : Fragment() {
+class MyPlacesFragment : Fragment() {
 
-    private lateinit var homeViewModel: HomeViewModel
+    private lateinit var myPlacesViewModel: MyPlacesViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        homeViewModel =
-            ViewModelProviders.of(this).get(HomeViewModel::class.java)
+        myPlacesViewModel =
+            ViewModelProviders.of(this).get(MyPlacesViewModel::class.java)
         val root = inflater.inflate(R.layout.fragment_home, container, false)
         val textView: TextView = root.findViewById(R.id.text_home)
-        homeViewModel.text.observe(viewLifecycleOwner, Observer {
+        myPlacesViewModel.text.observe(viewLifecycleOwner, Observer {
             textView.text = it
         })
         return root

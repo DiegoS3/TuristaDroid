@@ -7,7 +7,7 @@
 
     <fragment
             android:id="@+id/nav_myPlaces"
-            android:name="android.com.diego.turistadroid.navigation_drawer.ui.home.HomeFragment"
+            android:name="android.com.diego.turistadroid.navigation_drawer.ui.my_places.MyPlacesFragment"
             android:label="@string/menu_home"
             tools:layout="@layout/fragment_home"/>
 
