@@ -78,22 +78,6 @@ object ControllerBbdd {
         }
     }
 
-    //QUERIES TABLA SESSION
-
-    //Insertar una sesion
-    fun insertSession(session: Session){
-        Realm.getDefaultInstance().executeTransaction{
-            it.copyToRealm(session)
-        }
-    }
-
-    //Eliminar una sesion
-    fun deleteSession(email: String){
-        Realm.getDefaultInstance().executeTransaction{
-            it.where<Image>().equalTo("email", email).findFirst()?.deleteFromRealm()
-        }
-    }
-
     //QUERIES GENERALES
 
     //Eliminar las tablas

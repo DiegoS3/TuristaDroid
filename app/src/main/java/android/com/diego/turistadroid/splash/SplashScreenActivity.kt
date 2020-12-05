@@ -2,13 +2,16 @@ package android.com.diego.turistadroid.splash
 
 import android.com.diego.turistadroid.MainActivity
 import android.com.diego.turistadroid.R
+import android.com.diego.turistadroid.bbdd.ControllerSession
 import android.com.diego.turistadroid.login.LogInActivity
+import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.signup.SignUp
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
@@ -27,7 +30,20 @@ class SplashScreenActivity : AppCompatActivity() {
 
         //iniciamos las animaciones
         initAnimations()
+        //comprobarSesion()
+        initLogin()
+    }
 
+    private fun comprobarSesion(){
+        val listaSessions = ControllerSession.selectSessions()
+        if (listaSessions!!.size > 0){
+            initNavigation()
+        }else{
+            initLogin()
+        }
+    }
+
+    private fun initLogin() {
         //cargamos la login activity tras pasar X tiempo
         val main = Intent(this, LogInActivity::class.java)
         Handler(Looper.getMainLooper()).postDelayed({
@@ -37,6 +53,18 @@ class SplashScreenActivity : AppCompatActivity() {
             }
         }, this.TIME)
     }
+
+    private fun initNavigation(){
+        //cargamos la login activity tras pasar X tiempo
+        val main = Intent(this, NavigationDrawer::class.java)
+        Handler(Looper.getMainLooper()).postDelayed({
+            run {
+                startActivity(main)
+                finish()
+            }
+        }, this.TIME)
+    }
+
 
     /**
      * Metodo que contiene otros metodos que inician las animaciones

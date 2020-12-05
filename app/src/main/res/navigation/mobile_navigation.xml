@@ -13,13 +13,13 @@
 
     <fragment
             android:id="@+id/nav_myProfile"
-            android:name="android.com.diego.turistadroid.navigation_drawer.ui.gallery.GalleryFragment"
+            android:name="android.com.diego.turistadroid.navigation_drawer.ui.myprofile.MyProfileFragment"
             android:label="@string/menu_gallery"
             tools:layout="@layout/fragment_gallery"/>
 
     <fragment
             android:id="@+id/nav_nearMe"
-            android:name="android.com.diego.turistadroid.navigation_drawer.ui.slideshow.SlideshowFragment"
+            android:name="android.com.diego.turistadroid.navigation_drawer.ui.nearme.NearMeFragment"
             android:label="@string/menu_slideshow"
             tools:layout="@layout/fragment_slideshow"/>
 </navigation>

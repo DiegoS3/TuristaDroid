@@ -2,13 +2,20 @@ package android.com.diego.turistadroid.navigation_drawer
 
 import android.Manifest
 import android.com.diego.turistadroid.R
+import android.com.diego.turistadroid.bbdd.ControllerSession
 import android.com.diego.turistadroid.login.LogInActivity
+import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
+import android.com.diego.turistadroid.navigation_drawer.ui.myprofile.MyProfileFragment
+import android.com.diego.turistadroid.navigation_drawer.ui.nearme.NearMeFragment
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.Menu
 import android.view.View
 import android.widget.ImageView
@@ -29,6 +36,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_navigation_drawer.*
+import kotlinx.android.synthetic.main.activity_sign_up.*
 
 class NavigationDrawer : AppCompatActivity(){
 
@@ -60,8 +68,14 @@ class NavigationDrawer : AppCompatActivity(){
         //asigno los datos del usuario al navHeader.
         txtNombreNav.text = user.nombre
         txtCorreoNav.text = user.email
-        imaUser_nav.setImageBitmap(Utilities.base64ToBitmap(user.foto))
-        Utilities.redondearFoto(imaUser_nav)
+
+        if (user.foto != ""){
+            imaUser_nav.setImageBitmap(Utilities.base64ToBitmap(user.foto))
+            Utilities.redondearFoto(imaUser_nav)
+        }else{
+            imaUser_nav.setImageResource(R.drawable.ima_user)
+        }
+
 
         val navController = findNavController(R.id.nav_host_fragment)
         // Passing each menu ID as a set of Ids because each
@@ -74,7 +88,7 @@ class NavigationDrawer : AppCompatActivity(){
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        linternaListener(navView)
+        navigationListener(navView)
     }
 
     private fun linterna(){
@@ -102,7 +116,7 @@ class NavigationDrawer : AppCompatActivity(){
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
-    private fun linternaListener(navigationView: NavigationView){
+    private fun navigationListener(navigationView: NavigationView){
         navigationView.setNavigationItemSelectedListener {
             when(it.itemId){
                 R.id.nav_lantern -> {
@@ -111,7 +125,34 @@ class NavigationDrawer : AppCompatActivity(){
                         drawer_layout.closeDrawer(GravityCompat.START)
                     }
                     true
-
+                }
+                R.id.nav_myPlaces -> {
+                    abrirMyPlaces()
+                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }
+                    true
+                }
+                R.id.nav_myProfile -> {
+                    abrirMyProfile()
+                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }
+                    true
+                }
+                R.id.nav_nearMe -> {
+                    abrirNearMe()
+                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }
+                    true
+                }
+                R.id.nav_exit -> {
+                    ejecutarExit()
+                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }
+                    true
                 }
                 else -> {
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
@@ -121,6 +162,35 @@ class NavigationDrawer : AppCompatActivity(){
                 }
             }
         }
+    }
+
+    private fun abrirMyPlaces(){
+        val newFragment = MyPlacesFragment()
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+    }
+
+    private fun abrirMyProfile(){
+        val newFragment = MyProfileFragment()
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+    }
+
+    private fun abrirNearMe(){
+        val newFragment = NearMeFragment()
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+    }
+
+    private fun ejecutarExit(){
+        val intent = Intent (this, LogInActivity::class.java)
+        startActivity(intent)
     }
 
 

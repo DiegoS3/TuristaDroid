@@ -3,6 +3,8 @@ package android.com.diego.turistadroid.login
 import android.com.diego.turistadroid.MainActivity
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.ControllerBbdd
+import android.com.diego.turistadroid.bbdd.ControllerSession
+import android.com.diego.turistadroid.bbdd.Session
 import android.com.diego.turistadroid.bbdd.User
 import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.signup.SignUp
@@ -10,12 +12,14 @@ import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import kotlinx.android.synthetic.main.activity_log_in.*
 
 class LogInActivity : AppCompatActivity() {
 
     private var userSave = ""
     private var pwdSave = ""
+    private var sesion = Session()
     companion object{
         var user = User()
     }
@@ -26,6 +30,7 @@ class LogInActivity : AppCompatActivity() {
         this.supportActionBar?.hide()
         setContentView(R.layout.activity_log_in)
 
+        ControllerSession.deleteSession("7@7.c")
         clickBtn()
         clickRegister()
 
@@ -61,11 +66,18 @@ class LogInActivity : AppCompatActivity() {
 
             if (email.isNotEmpty() and pwd.isNotEmpty()){
 
-                if (comprobarLogin(email, pwd)){ initNavigation() }
+                if (comprobarLogin(email, pwd)){ 
+                    insertarSession(email)
+                    initNavigation() }
                 else { txtUser_Login.error = getString(R.string.errorLogin) }
 
             }
         }
+    }
+    
+    private fun insertarSession(email: String){
+        sesion = Session(email)
+        ControllerSession.insertSession(sesion)
     }
 
     private fun clickRegister(){
@@ -110,4 +122,10 @@ class LogInActivity : AppCompatActivity() {
 
         }
     }
+
+    override fun onRestart() {
+        super.onRestart()
+        ControllerSession.deleteSession(sesion.emailUser)
+    }
+
 }
