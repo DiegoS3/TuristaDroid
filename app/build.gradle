@@ -59,5 +59,10 @@ dependencies {
     implementation 'com.karumi:dexter:6.2.1'
 
 
+    //ViewPager2
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
+
+    //RoundedImageView
+    implementation 'com.makeramen:roundedimageview:2.3.0'
 
 }

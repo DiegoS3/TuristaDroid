@@ -1,19 +1,22 @@
 package android.com.diego.turistadroid.navigation_drawer.ui.myplaces
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.Place
 import android.com.diego.turistadroid.login.LogInActivity
+import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewPlaceFragment
 import android.graphics.Paint
 import android.os.AsyncTask
+import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import kotlinx.android.synthetic.main.fragment_myplaces.*
+
 
 class MyPlacesFragment : Fragment() {
 
@@ -64,7 +67,7 @@ class MyPlacesFragment : Fragment() {
         }
 
         btnFloatAddNewPlace.setOnClickListener{
-            Toast.makeText(context, "Nuevo Lugar", Toast.LENGTH_SHORT).show()
+            initNewPlaceFragment()
         }
 
         btnFloatAddActualPlace.setOnClickListener {
@@ -83,7 +86,17 @@ class MyPlacesFragment : Fragment() {
 
     }
 
-    private fun setAnimation(clicked : Boolean) {
+    private fun initNewPlaceFragment(){
+
+        val newFragment: Fragment = NewPlaceFragment()
+        val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+
+    }
+
+    private fun setAnimation(clicked: Boolean) {
         if (!clicked){
             btnFloatAddActualPlace.visibility = View.VISIBLE
             btnFloatAddNewPlace.visibility = View.VISIBLE
@@ -97,7 +110,7 @@ class MyPlacesFragment : Fragment() {
         }
     }
 
-    private fun setVisibility(clicked : Boolean) {
+    private fun setVisibility(clicked: Boolean) {
 
         //Animaciones
         val rotateOpen = AnimationUtils.loadAnimation(context, R.anim.rotate_open_anim)

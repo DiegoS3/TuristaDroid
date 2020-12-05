@@ -6,51 +6,99 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.com.diego.turistadroid.R
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+import android.com.diego.turistadroid.utilities.slider.SliderAdapter
+import android.com.diego.turistadroid.utilities.slider.SliderItem
+import android.os.Handler
+import androidx.annotation.NonNull
+import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.CompositePageTransformer
+import androidx.viewpager2.widget.MarginPageTransformer
+import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
+import kotlin.math.abs
 
-/**
- * A simple [Fragment] subclass.
- * Use the [NewPlaceFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
+
 class NewPlaceFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private lateinit var viewPager2 : ViewPager2
+    private lateinit var adapter: SliderAdapter
+    private var sliderHandler = Handler()
+    //Lista de imagenes
+    private var sliderItems =  mutableListOf<SliderItem>()
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+
+        val root = inflater.inflate(R.layout.fragment_newplace, container, false)
+        viewPager2 = root.findViewById(R.id.vpImagesPlace_NewPlace)
+
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_new_place, container, false)
+        return root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment NewPlaceFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic fun newInstance(param1: String, param2: String) =
-                NewPlaceFragment().apply {
-                    arguments = Bundle().apply {
-                        putString(ARG_PARAM1, param1)
-                        putString(ARG_PARAM2, param2)
-                    }
-                }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initLista()
+        adapter = SliderAdapter(sliderItems, viewPager2)
+        viewPager2.adapter = adapter
+        viewPager2.clipToPadding = false
+        viewPager2.clipChildren = false
+        viewPager2.offscreenPageLimit = 3
+        viewPager2.getChildAt(0).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
+
+        val compositePageTransformer = CompositePageTransformer()
+        compositePageTransformer.addTransformer(MarginPageTransformer(40))
+        compositePageTransformer.addTransformer { page, position ->
+
+            val r: Float = 1 - abs(position)
+            page.scaleY = 0.85f + r * 0.15f
+
+        }
+
+        viewPager2.setPageTransformer(compositePageTransformer)
+
+        //Metodo para que las iamgenes se pasen solas
+        viewPager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback(){
+
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                sliderHandler.removeCallbacks(sliderRunnable)
+                sliderHandler.postDelayed(sliderRunnable, 3000)
+            }
+
+        })
+
+
     }
+
+    private fun initLista(){
+
+        val image = SliderItem(R.drawable.ima_default_place)
+        sliderItems.add(image)
+        sliderItems.add(image)
+        sliderItems.add(image)
+        sliderItems.add(image)
+
+    }
+
+    private var sliderRunnable = Runnable {
+
+        run {
+            viewPager2.currentItem = viewPager2.currentItem + 1
+        }
+
+    }
+
+    override fun onPause() {
+        super.onPause()
+        sliderHandler.removeCallbacks(sliderRunnable)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        sliderHandler.postDelayed(sliderRunnable, 3000)
+    }
+
 }
