@@ -206,6 +206,17 @@ class NavigationDrawer : AppCompatActivity(){
     }
 
     private fun navigationListener(navigationView: NavigationView){
+    private fun abrirMyPlaces(){
+
+        val newFragment = MyPlacesFragment()
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+
+    }
+
+    private fun linternaListener(navigationView: NavigationView){
         navigationView.setNavigationItemSelectedListener {
             when(it.itemId){
                 R.id.nav_lantern -> {
