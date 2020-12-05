@@ -4,7 +4,9 @@
                 xmlns:tools="http://schemas.android.com/tools"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:id="@+id/fragment_MyPlaces">
+                android:id="@+id/fragment_MyPlaces"
+                android:background="@color/colorBackground">
+
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/placeSwipe_MyPlaces"
             android:layout_width="match_parent"
@@ -40,7 +42,6 @@
                 tools:layout_editor_absoluteY="250dp"/>
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
     <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/btnFloatAddPlace_MyPlaces"
             android:layout_width="wrap_content"
@@ -52,5 +53,56 @@
             android:focusable="true"
             app:backgroundTint="@color/colorLightGradient"
             app:srcCompat="@drawable/ic_add"/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnFloatAddActualPlace"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:layout_marginBottom="5dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:backgroundTint="@color/colorFloatingButton"
+            app:srcCompat="@drawable/ic_add_place"
+            android:layout_above="@+id/btnFloatAddNewPlace"
+            android:visibility="invisible"
+            android:layout_alignEnd="@+id/btnFloatAddNewPlace"/>
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnFloatAddNewPlace"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:layout_marginEnd="-1dp"
+            android:layout_marginBottom="1dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:backgroundTint="@color/colorFloatingButton"
+            app:srcCompat="@drawable/ic_add_actual_place"
+            android:layout_above="@+id/btnFloatAddPlace_MyPlaces"
+            android:visibility="invisible"
+            android:layout_alignEnd="@+id/btnFloatAddPlace_MyPlaces"/>
+    <TextView
+            android:text="@string/btnAddActualPlace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtAddNewPlace"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="110dp"
+            android:textColor="@color/colorLetter"
+            android:fontFamily="@font/roboto_bold"
+            android:visibility="invisible"
+            android:layout_toStartOf="@+id/btnFloatAddNewPlace"
+            android:textSize="16sp"/>
+    <TextView
+            android:text="@string/btnAddNewPlace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtAddActualPlace"
+            android:layout_marginBottom="40dp"
+            android:textColor="@color/colorLetter"
+            android:fontFamily="@font/roboto_bold"
+            android:visibility="invisible"
+            android:layout_toStartOf="@+id/btnFloatAddActualPlace"
+            android:layout_marginEnd="9dp"
+            android:textSize="16sp"
+            android:layout_above="@+id/txtAddNewPlace"/>
 
 </RelativeLayout>

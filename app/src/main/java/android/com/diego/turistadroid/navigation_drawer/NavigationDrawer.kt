@@ -3,6 +3,7 @@ package android.com.diego.turistadroid.navigation_drawer
 import android.Manifest
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.login.LogInActivity
+import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Context
 import android.content.pm.PackageManager
@@ -102,11 +103,29 @@ class NavigationDrawer : AppCompatActivity(){
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
+    private fun abrirMyPlaces(){
+
+        val newFragment = MyPlacesFragment()
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+
+    }
+
     private fun linternaListener(navigationView: NavigationView){
         navigationView.setNavigationItemSelectedListener {
             when(it.itemId){
                 R.id.nav_lantern -> {
                     linterna()
+                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }
+                    true
+
+                }
+                R.id.nav_myPlaces -> {
+                    abrirMyPlaces()
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
                         drawer_layout.closeDrawer(GravityCompat.START)
                     }

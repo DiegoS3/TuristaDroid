@@ -4,25 +4,23 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProviders
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.ControllerBbdd
 import android.com.diego.turistadroid.bbdd.Place
 import android.com.diego.turistadroid.login.LogInActivity
 import android.graphics.Paint
 import android.os.AsyncTask
 import android.util.Log
+import android.view.animation.AnimationUtils
+import android.widget.Toast
 import kotlinx.android.synthetic.main.fragment_myplaces.*
 
 class MyPlacesFragment : Fragment() {
 
-    private val user = LogInActivity.user
-
     // Mis variables
     private var places = mutableListOf<Place>() // Lista
+    private val user = LogInActivity.user //Usuario logeado
+    private var clicked = false
 
     // Interfaz gráfica
     private lateinit var adapter: MyPlacesViewModel //Adaptador de Recycler
@@ -45,7 +43,7 @@ class MyPlacesFragment : Fragment() {
     }
 
     private fun initUI(){
-
+        initFloatingButtons()
     }
 
     /**
@@ -56,6 +54,80 @@ class MyPlacesFragment : Fragment() {
         //datosSwipe.setProgressBackgroundColorSchemeResource(R.color.design_default_color_primary)
         placeSwipe_MyPlaces.setOnRefreshListener {
             cargarDatos()
+        }
+    }
+
+    private fun initFloatingButtons(){
+
+        btnFloatAddPlace_MyPlaces.setOnClickListener{
+            onAddButtonClicked()
+        }
+
+        btnFloatAddNewPlace.setOnClickListener{
+            Toast.makeText(context, "Nuevo Lugar", Toast.LENGTH_SHORT).show()
+        }
+
+        btnFloatAddActualPlace.setOnClickListener {
+            Toast.makeText(context, "Nuevo Lugar Actual", Toast.LENGTH_SHORT).show()
+        }
+
+    }
+
+    private fun onAddButtonClicked() {
+
+        setVisibility(clicked)
+        setAnimation(clicked)
+        setClickable(clicked)
+
+        clicked = !clicked
+
+    }
+
+    private fun setAnimation(clicked : Boolean) {
+        if (!clicked){
+            btnFloatAddActualPlace.visibility = View.VISIBLE
+            btnFloatAddNewPlace.visibility = View.VISIBLE
+            txtAddActualPlace.visibility = View.VISIBLE
+            txtAddNewPlace.visibility = View.VISIBLE
+        }else{
+            btnFloatAddActualPlace.visibility = View.INVISIBLE
+            btnFloatAddNewPlace.visibility = View.INVISIBLE
+            txtAddActualPlace.visibility = View.INVISIBLE
+            txtAddNewPlace.visibility = View.INVISIBLE
+        }
+    }
+
+    private fun setVisibility(clicked : Boolean) {
+
+        //Animaciones
+        val rotateOpen = AnimationUtils.loadAnimation(context, R.anim.rotate_open_anim)
+        val rotateClose = AnimationUtils.loadAnimation(context, R.anim.rotate_close_anim)
+        val fromBottom = AnimationUtils.loadAnimation(context, R.anim.from_bottom_anim)
+        val toBottom = AnimationUtils.loadAnimation(context, R.anim.to_bottom_anim)
+
+        if (!clicked){
+            btnFloatAddActualPlace.startAnimation(fromBottom)
+            btnFloatAddNewPlace.startAnimation(fromBottom)
+            txtAddActualPlace.startAnimation(fromBottom)
+            txtAddNewPlace.startAnimation(fromBottom)
+            btnFloatAddPlace_MyPlaces.startAnimation(rotateOpen)
+
+        }else{
+            btnFloatAddActualPlace.startAnimation(toBottom)
+            btnFloatAddNewPlace.startAnimation(toBottom)
+            txtAddActualPlace.startAnimation(toBottom)
+            txtAddNewPlace.startAnimation(toBottom)
+            btnFloatAddPlace_MyPlaces.startAnimation(rotateClose)
+        }
+    }
+
+    private fun setClickable(clicked: Boolean){
+        if (!clicked){
+            btnFloatAddActualPlace.isClickable = true
+            btnFloatAddNewPlace.isClickable = true
+        }else{
+            btnFloatAddActualPlace.isClickable = false
+            btnFloatAddNewPlace.isClickable = false
         }
     }
 
