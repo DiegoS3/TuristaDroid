@@ -52,11 +52,16 @@
     <string name="lantern">Lantern</string>
     <string name="exit">Exit</string>
 
-
-
-
     <!--My Places-->
     <string name="btnAddNewPlace">Place</string>
     <string name="btnAddActualPlace">Actual Place</string>
+    <string name="newPlace">NEW PLACE</string>
+    <string name="namePlace">Place\'s Name</string>
+    <string name="ubicationPlace">Place\'s Ubication</string>
+    <string name="btnOpenMap">Open Map</string>
+    <string name="btnAddImage">Add Image</string>
+    <string name="btnSavePlace">Save</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>
