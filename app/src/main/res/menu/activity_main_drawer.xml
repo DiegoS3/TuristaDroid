@@ -4,17 +4,26 @@
       tools:showIn="navigation_view">
 
     <group android:checkableBehavior="single">
+
         <item
-                android:id="@+id/nav_home"
-                android:icon="@drawable/ic_menu_camera"
-                android:title="@string/menu_home"/>
+                android:id="@+id/nav_myPlaces"
+                android:icon="@drawable/ic_my_places"
+                android:title="@string/my_places"/>
         <item
-                android:id="@+id/nav_gallery"
-                android:icon="@drawable/ic_menu_gallery"
-                android:title="@string/menu_gallery"/>
+                android:id="@+id/nav_myProfile"
+                android:icon="@drawable/ic_my_profile"
+                android:title="@string/my_profile"/>
         <item
-                android:id="@+id/nav_slideshow"
-                android:icon="@drawable/ic_menu_slideshow"
-                android:title="@string/menu_slideshow"/>
+                android:id="@+id/nav_nearMe"
+                android:icon="@drawable/ic_near_me"
+                android:title="@string/near_me"/>
+        <item
+                android:id="@+id/nav_lantern"
+                android:icon="@drawable/ic_lantern"
+                android:title="@string/lantern"/>
+        <item
+                android:id="@+id/nav_exit"
+                android:icon="@drawable/ic_exit"
+                android:title="@string/exit"/>
     </group>
 </menu>

@@ -45,6 +45,16 @@
     <string name="menu_gallery">Gallery</string>
     <string name="menu_slideshow">Slideshow</string>
 
+    <!-- Navigation Drawer -->
+    <string name="my_places">My Places</string>
+    <string name="my_profile">My Profile</string>
+    <string name="near_me">Near me</string>
+    <string name="lantern">Lantern</string>
+    <string name="exit">Exit</string>
+
+
+
+
     <!--My Places-->
     <string name="btnAddNewPlace">Place</string>
     <string name="btnAddActualPlace">Actual Place</string>

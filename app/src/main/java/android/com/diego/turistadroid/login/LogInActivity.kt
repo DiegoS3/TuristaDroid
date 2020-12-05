@@ -4,6 +4,7 @@ import android.com.diego.turistadroid.MainActivity
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.ControllerBbdd
 import android.com.diego.turistadroid.bbdd.User
+import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.signup.SignUp
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Intent
@@ -55,20 +56,22 @@ class LogInActivity : AppCompatActivity() {
             val email = txtUser_Login.text.toString()
             val pwd = Utilities.hashString(txtPwd_Login.text.toString())
 
-            if (email.isEmpty()){ txtUser_Login.error = R.string.action_emptyfield.toString() }
-            if (pwd.isEmpty()){ txtPwd_Login.error = R.string.action_emptyfield.toString()}
+            if (email.isEmpty()){ txtUser_Login.error = getString(R.string.action_emptyfield) }
+            if (pwd.isEmpty()){ txtPwd_Login.error = getString(R.string.action_emptyfield)}
 
             if (email.isNotEmpty() and pwd.isNotEmpty()){
 
                 if (comprobarLogin(email, pwd)){ initNavigation() }
-                else { txtUser_Login.error = R.string.errorLogin.toString() }
+                else { txtUser_Login.error = getString(R.string.errorLogin) }
 
             }
         }
     }
 
     private fun clickRegister(){
-        initRegister()
+        textRegister_LogIn.setOnClickListener {
+            initRegister()
+        }
     }
 
     private fun initRegister(){
@@ -79,7 +82,7 @@ class LogInActivity : AppCompatActivity() {
 
     private fun initNavigation(){
 
-        val intent = Intent (this, MainActivity::class.java)
+        val intent = Intent (this, NavigationDrawer::class.java)
         startActivity(intent)
 
     }

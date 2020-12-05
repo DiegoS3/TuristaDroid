@@ -1,4 +1,4 @@
-package android.com.diego.turistadroid.navigation_drawer.ui.slideshow
+package android.com.diego.turistadroid.navigation_drawer.ui.my_places
 
 import android.com.diego.turistadroid.R
 import android.os.Bundle
@@ -10,20 +10,20 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 
-class SlideshowFragment : Fragment() {
+class MyPlacesFragment : Fragment() {
 
-    private lateinit var slideshowViewModel: SlideshowViewModel
+    private lateinit var myPlacesViewModel: MyPlacesViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        slideshowViewModel =
-            ViewModelProviders.of(this).get(SlideshowViewModel::class.java)
-        val root = inflater.inflate(R.layout.fragment_slideshow, container, false)
-        val textView: TextView = root.findViewById(R.id.text_slideshow)
-        slideshowViewModel.text.observe(viewLifecycleOwner, Observer {
+        myPlacesViewModel =
+            ViewModelProviders.of(this).get(MyPlacesViewModel::class.java)
+        val root = inflater.inflate(R.layout.fragment_home, container, false)
+        val textView: TextView = root.findViewById(R.id.text_home)
+        myPlacesViewModel.text.observe(viewLifecycleOwner, Observer {
             textView.text = it
         })
         return root

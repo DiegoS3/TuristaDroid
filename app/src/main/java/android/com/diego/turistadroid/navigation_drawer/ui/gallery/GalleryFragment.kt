@@ -1,5 +1,6 @@
 package android.com.diego.turistadroid.navigation_drawer.ui.gallery
 
+import android.com.diego.turistadroid.R
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,7 +9,6 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
-import android.com.diego.turistadroid.R
 
 class GalleryFragment : Fragment() {
 
