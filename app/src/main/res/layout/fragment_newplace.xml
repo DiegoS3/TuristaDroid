@@ -15,7 +15,7 @@
             android:textSize="20sp"
             android:fontFamily="@font/roboto_bold"
             android:textColor="@color/colorLetter"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="18dp"
             android:layout_alignParentTop="true"
             android:layout_alignParentStart="true"
             android:layout_marginStart="48dp" android:layout_alignParentEnd="true" android:layout_marginEnd="199dp"/>
@@ -41,7 +41,9 @@
             android:layout_marginTop="20dp"
             android:layout_below="@+id/textView"
             android:layout_alignParentStart="true"
-            android:layout_marginStart="48dp" android:layout_alignParentEnd="true" android:layout_marginEnd="47dp"/>
+            android:layout_marginStart="48dp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="47dp"/>
 
     <EditText
             android:layout_width="316dp"
@@ -72,29 +74,66 @@
             android:text="@string/btnOpenMap"
             android:layout_width="135dp"
             android:layout_height="46dp"
-            android:id="@+id/btnRegister"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintHorizontal_bias="0.498"
-            app:layout_constraintVertical_bias="0.928"
+            android:id="@+id/btnOpenMap_NewPlace"
             android:textColor="@color/colorLetter"
             android:background="@drawable/box_buttons"
             android:textSize="18sp"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="15dp"
             android:layout_below="@+id/txtUbicationPlace_NewPlace"
             android:layout_alignParentEnd="true"
-            android:layout_marginEnd="138dp"
+            android:layout_marginEnd="100dp"
             android:layout_alignParentStart="true"
-            android:layout_marginStart="139dp"/>
+            android:layout_marginStart="100dp"/>
 
     <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/vpImagesPlace_NewPlace"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@+id/btnRegister"
+            android:paddingTop="60dp"
             android:paddingEnd="80dp"
             android:paddingStart="80dp"/>
+    <Button
+            android:text="@string/btnAddImage"
+            android:layout_width="135dp"
+            android:layout_height="46dp"
+            android:id="@+id/btnAddImage_NewPlace"
+            android:textColor="@color/colorLetter"
+            android:background="@drawable/box_buttons"
+            android:textSize="18sp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="100dp"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="100dp"
+            android:layout_marginTop="170dp"
+            android:layout_below="@+id/btnOpenMap_NewPlace"/>
+
+    <RatingBar
+            android:id="@+id/ratingBarPlace_NewPlace"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:stepSize="0.5"
+            android:layout_marginStart="85dp"
+            android:layout_alignParentEnd="true"
+            android:numStars="5"
+            android:layout_marginEnd="85dp"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="20dp"
+            android:theme="@style/RatingBar"
+            android:layout_below="@+id/btnAddImage_NewPlace"/>
+
+    <Button
+            android:text="@string/btnSavePlace"
+            android:layout_width="135dp"
+            android:layout_height="46dp"
+            android:id="@+id/btnSave_NewPlace"
+            android:textColor="@color/colorLetter"
+            android:background="@drawable/box_buttons"
+            android:textSize="18sp"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="100dp"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="100dp"
+            android:layout_marginTop="10dp"
+            android:layout_below="@+id/ratingBarPlace_NewPlace"/>
 
 </RelativeLayout>

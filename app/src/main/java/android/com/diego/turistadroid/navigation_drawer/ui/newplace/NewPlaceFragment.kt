@@ -9,6 +9,8 @@ import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.utilities.slider.SliderAdapter
 import android.com.diego.turistadroid.utilities.slider.SliderItem
 import android.os.Handler
+import android.util.Log
+import android.widget.RatingBar
 import androidx.annotation.NonNull
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.CompositePageTransformer
@@ -18,9 +20,10 @@ import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import kotlin.math.abs
 
 
-class NewPlaceFragment : Fragment() {
+class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
 
     private lateinit var viewPager2 : ViewPager2
+    private lateinit var ratingBar : RatingBar
     private lateinit var adapter: SliderAdapter
     private var sliderHandler = Handler()
     //Lista de imagenes
@@ -33,6 +36,8 @@ class NewPlaceFragment : Fragment() {
 
         val root = inflater.inflate(R.layout.fragment_newplace, container, false)
         viewPager2 = root.findViewById(R.id.vpImagesPlace_NewPlace)
+        ratingBar = root.findViewById(R.id.ratingBarPlace_NewPlace)
+        ratingBar.onRatingBarChangeListener = this
 
         // Inflate the layout for this fragment
         return root
@@ -99,6 +104,11 @@ class NewPlaceFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         sliderHandler.postDelayed(sliderRunnable, 3000)
+    }
+
+    //Obtener puntuacion del sitio
+    override fun onRatingChanged(ratingBar: RatingBar?, rating: Float, fromUser: Boolean) {
+       Log.i("Star", rating.toString())
     }
 
 }
