@@ -19,5 +19,8 @@
     <color name="colorBackGround2">#82A1C9</color>
     <color name="colorToolBar">#6888B1</color>
 
+    <color name="colorLightStarGradient">#EAE2AD</color>
+    <color name="colorDarkStarGradient">#CCC071</color>
+
 
 </resources>
