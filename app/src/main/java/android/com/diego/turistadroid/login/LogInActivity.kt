@@ -2,10 +2,7 @@ package android.com.diego.turistadroid.login
 
 import android.com.diego.turistadroid.MainActivity
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.ControllerBbdd
-import android.com.diego.turistadroid.bbdd.ControllerSession
-import android.com.diego.turistadroid.bbdd.Session
-import android.com.diego.turistadroid.bbdd.User
+import android.com.diego.turistadroid.bbdd.*
 import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.signup.SignUp
 import android.com.diego.turistadroid.utilities.Utilities
@@ -30,7 +27,7 @@ class LogInActivity : AppCompatActivity() {
         this.supportActionBar?.hide()
         setContentView(R.layout.activity_log_in)
 
-        ControllerSession.deleteSession("8@8.c")
+        ControllerSession.deleteSession("1@1.c")
         clickBtn()
         clickRegister()
 
@@ -49,7 +46,7 @@ class LogInActivity : AppCompatActivity() {
 
     private fun comprobarLogin(email : String, pwd : String) : Boolean{
 
-        user = ControllerBbdd.selectByEmail(email)!!
+        user = ControllerUser.selectByEmail(email)!!
 
         return pwd == user.pwd
 

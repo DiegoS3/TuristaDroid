@@ -41,9 +41,16 @@ import kotlinx.android.synthetic.main.activity_sign_up.*
 class NavigationDrawer : AppCompatActivity(){
 
     private lateinit var appBarConfiguration: AppBarConfiguration
-    private val user = LogInActivity.user
+    private var user = LogInActivity.user
     private var CAMERA_PERMISSION = 2
     private var flashLightStatus: Boolean = false
+
+    companion object{
+        lateinit var imaUser_nav : ImageView
+        lateinit var txtNombreNav : TextView
+        lateinit var txtCorreoNav : TextView
+    }
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,21 +68,12 @@ class NavigationDrawer : AppCompatActivity(){
         val navView: NavigationView = findViewById(R.id.nav_view)
 
         val navHeader: View = navView.getHeaderView(0)
-        val imaUser_nav = navHeader.findViewById<ImageView>(R.id.imgUser_nav)
-        val txtNombreNav = navHeader.findViewById<TextView>(R.id.txtName_nav)
-        val txtCorreoNav = navHeader.findViewById<TextView>(R.id.txtEmail_nav)
+        imaUser_nav = navHeader.findViewById<ImageView>(R.id.imgUser_nav)
+        txtNombreNav = navHeader.findViewById<TextView>(R.id.txtName_nav)
+        txtCorreoNav = navHeader.findViewById<TextView>(R.id.txtEmail_nav)
 
-        //asigno los datos del usuario al navHeader.
-        txtNombreNav.text = user.nombre
-        txtCorreoNav.text = user.email
 
-        if (user.foto != ""){
-            imaUser_nav.setImageBitmap(Utilities.base64ToBitmap(user.foto))
-            Utilities.redondearFoto(imaUser_nav)
-        }else{
-            imaUser_nav.setImageResource(R.drawable.ima_user)
-        }
-
+        asignarDatosUsuario()
 
         val navController = findNavController(R.id.nav_host_fragment)
         // Passing each menu ID as a set of Ids because each
@@ -89,6 +87,20 @@ class NavigationDrawer : AppCompatActivity(){
         navView.setupWithNavController(navController)
 
         navigationListener(navView)
+    }
+
+    fun asignarDatosUsuario(){
+        //asigno los datos del usuario al navHeader.
+        user = LogInActivity.user
+        txtNombreNav.text = user.nombre
+        txtCorreoNav.text = user.email
+
+        if (user.foto != ""){
+            imaUser_nav.setImageBitmap(Utilities.base64ToBitmap(user.foto))
+            Utilities.redondearFoto(imaUser_nav)
+        }else{
+            imaUser_nav.setImageResource(R.drawable.ima_user)
+        }
     }
 
     private fun linterna(){

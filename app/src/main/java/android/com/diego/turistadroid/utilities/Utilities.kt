@@ -1,14 +1,25 @@
 package android.com.diego.turistadroid.utilities
 
+import android.com.diego.turistadroid.R
+import android.com.diego.turistadroid.signup.SignUp
+import android.content.Context
 import android.content.res.Resources
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.os.Build
+import android.text.Editable
+import android.text.TextUtils
+import android.text.TextWatcher
 import android.util.Base64
+import android.util.Log
+import android.widget.EditText
 import android.widget.ImageView
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
+import kotlinx.android.synthetic.main.activity_sign_up.*
 import java.io.ByteArrayOutputStream
 import java.io.UnsupportedEncodingException
 import java.lang.Byte.decode
@@ -63,5 +74,84 @@ object Utilities {
             .digest(input.toByteArray())
             .fold("", { str, it -> str + "%02x".format(it) })
     }
+
+    fun validarEmail(txtEmail: TextView): Boolean{
+
+        txtEmail.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                Log.i("EMAIL WATCHER","pulsado")
+                if (android.util.Patterns.EMAIL_ADDRESS.matcher(txtEmail.text.toString()).matches()) {
+                    SignUp.valido = true
+                } else {
+                    SignUp.valido = false
+                    txtEmail.error = "Invalid Email"
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+            }
+
+        })
+        Log.i("contraseña bool",SignUp.valido.toString())
+        return SignUp.valido
+
+
+    }
+
+    private fun updatePasswordStrengthView(password: String, progressBar: ProgressBar, strengthView: TextView, context: Context) {
+
+        if (TextView.VISIBLE != strengthView.visibility)
+            return
+
+        if (TextUtils.isEmpty(password)) {
+            strengthView.text = ""
+            progressBar.progress = 0
+            return
+        }
+
+        val str = PasswordStrength.calculateStrength(password)
+        strengthView.text = str.getText(context)
+        strengthView.setTextColor(str.color)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            progressBar.progressDrawable.colorFilter = BlendModeColorFilter(str.color, BlendMode.SRC_IN)
+        } else {
+            progressBar.progressDrawable.setColorFilter(str.color, PorterDuff.Mode.SRC_IN)
+        }
+        when {
+            str.getText(context) == "Weak" -> {
+                progressBar.progress = 25
+            }
+            str.getText(context) == "Medium" -> {
+                progressBar.progress = 50
+            }
+            str.getText(context) == "Strong" -> {
+                progressBar.progress = 75
+            }
+            else -> {
+                progressBar.progress = 100
+            }
+        }
+    }
+
+    fun validarPassword(txtPass: EditText, progressBar: ProgressBar, strengthView: TextView, context: Context){
+        txtPass.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                updatePasswordStrengthView(s.toString(), progressBar, strengthView, context)
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+            }
+
+        })
+    }
+
+
 
 }

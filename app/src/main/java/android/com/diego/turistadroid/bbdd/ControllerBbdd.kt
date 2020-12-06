@@ -23,45 +23,6 @@ object ControllerBbdd {
         Realm.setDefaultConfiguration(config)
     }
 
-    //QUERIES TABLA USER
-
-    //Insertar Usuario
-    fun insertUser(user: User){
-        Realm.getDefaultInstance().executeTransaction{
-            it.copyToRealm(user)
-        }
-    }
-
-    //Seleccionar todos los usuarios
-    fun selectUsers(): MutableList<User>?{
-        return Realm.getDefaultInstance().copyFromRealm(
-            Realm.getDefaultInstance().where<User>().findAll()
-        )
-    }
-
-    //Seleccionar usuario por email
-    fun selectByEmail(email : String): User?{
-        return Realm.getDefaultInstance().copyFromRealm(
-            Realm.getDefaultInstance().where<User>().equalTo("email", email).findFirst()
-
-        )
-    }
-
-    //Seleccionar usuario por nameUser
-    fun selectByNameUser(nameUser : String): User?{
-        return Realm.getDefaultInstance().copyFromRealm(
-            Realm.getDefaultInstance().where<User>().equalTo("nombreUser", nameUser).findFirst()
-
-        )
-    }
-
-    //Actualizar un usuario
-    fun updateUser(user: User){
-        Realm.getDefaultInstance().executeTransaction{
-            it.copyToRealmOrUpdate(user)
-        }
-    }
-
     //QUERIES TABLA IMAGE
 
     //Insertar una imagen

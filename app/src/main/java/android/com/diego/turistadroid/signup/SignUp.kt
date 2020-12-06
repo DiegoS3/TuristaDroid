@@ -3,6 +3,7 @@ package android.com.diego.turistadroid.signup
 import android.app.Activity
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.ControllerBbdd
+import android.com.diego.turistadroid.bbdd.ControllerUser
 import android.com.diego.turistadroid.bbdd.User
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.utilities.PasswordStrength
@@ -48,7 +49,10 @@ class SignUp : AppCompatActivity() {
     private var email = ""
     private var password = ""
     private var ima : Bitmap? = null
-    private var valido = false
+    companion object{
+        var valido = false
+    }
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,8 +65,8 @@ class SignUp : AppCompatActivity() {
 
     private fun init(){
         abrirOpciones()
-        validarPassword()
-        validarEmail()
+        Utilities.validarPassword(txtPass, progressBar, password_strength, this)
+        Utilities.validarEmail(txtEmail)
         initSaveDatos()
         checkUsuario()
     }
@@ -73,7 +77,11 @@ class SignUp : AppCompatActivity() {
             if(comprobarVacios()){
                 try {
 
-                    registrarUsuario()
+                    if(ControllerUser.uniqueUser(txtNameUser.text.toString())){
+                        txtNameUser.error = getString(R.string.errorNameUser)
+                    }else{
+                        registrarUsuario()
+                    }
 
                 }catch (ex: RealmPrimaryKeyConstraintException){
                     txtEmail.error = getString(R.string.errorEmail)
@@ -89,96 +97,15 @@ class SignUp : AppCompatActivity() {
         val imaString = Utilities.bitmapToBase64(imaUser.drawable.toBitmap())
         val user = imaString?.let { User(txtEmail.text.toString(), txtName.text.toString(),
             txtNameUser.text.toString(), passCifrada, it) }
-        user?.let { ControllerBbdd.insertUser(it) }
+        user?.let { ControllerUser.insertUser(it) }
         Toast.makeText(applicationContext, "Usuario Registrado", Toast.LENGTH_SHORT).show()
         val intent = Intent (this, LogInActivity::class.java)
         startActivity(intent)
     }
 
     private fun comprobarVacios(): Boolean{
-        return validarEmail() and txtName.text.isNotEmpty() and txtPass.text.isNotEmpty() and txtNameUser.text.isNotEmpty()
+        return Utilities.validarEmail(txtEmail) and txtName.text.isNotEmpty() and txtPass.text.isNotEmpty() and txtNameUser.text.isNotEmpty()
     }
-
-
-    private fun updatePasswordStrengthView(password: String) {
-
-        val progressBar = findViewById<ProgressBar>(R.id.progressBar)
-        val strengthView = findViewById<ProgressBar>(R.id.password_strength) as TextView
-        if (TextView.VISIBLE != strengthView.visibility)
-            return
-
-        if (TextUtils.isEmpty(password)) {
-            strengthView.text = ""
-            progressBar.progress = 0
-            return
-        }
-
-        val str = PasswordStrength.calculateStrength(password)
-        strengthView.text = str.getText(this)
-        strengthView.setTextColor(str.color)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            progressBar.progressDrawable.colorFilter = BlendModeColorFilter(str.color, BlendMode.SRC_IN)
-        } else {
-            progressBar.progressDrawable.setColorFilter(str.color, PorterDuff.Mode.SRC_IN)
-        }
-        when {
-            str.getText(this) == "Weak" -> {
-                progressBar.progress = 25
-            }
-            str.getText(this) == "Medium" -> {
-                progressBar.progress = 50
-            }
-            str.getText(this) == "Strong" -> {
-                progressBar.progress = 75
-            }
-            else -> {
-                progressBar.progress = 100
-            }
-        }
-    }
-
-    private fun validarPassword(){
-        txtPass.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                updatePasswordStrengthView(s.toString())
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-            }
-
-        })
-    }
-
-    private fun validarEmail(): Boolean{
-
-        txtEmail.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-
-                if (android.util.Patterns.EMAIL_ADDRESS.matcher(txtEmail.text.toString()).matches()) {
-                    valido = true
-                } else {
-                    valido = false
-                    txtEmail.error = "Invalid Email"
-                }
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-            }
-
-        })
-        Log.i("contraseña bool",valido.toString())
-        return valido
-
-
-    }
-
 
     private fun abrirOpciones() {
         imaUser.setOnClickListener(){

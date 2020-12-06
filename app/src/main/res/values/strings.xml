@@ -55,6 +55,7 @@
     <!--My Profile -->
     <string name="btnSave">Save</string>
     <string name="myProfileTitle">My Profile</string>
+    <string name="txtNewPassword">New Password</string>
 
     <!--My Places-->
     <string name="btnAddNewPlace">Place</string>
