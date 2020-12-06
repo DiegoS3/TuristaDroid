@@ -4,20 +4,103 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".navigation_drawer.ui.myprofile.MyProfileFragment">
-
-    <TextView
-            android:id="@+id/text_gallery"
+        android:layout_height="650dp"
+        tools:context=".navigation_drawer.ui.myprofile.MyProfileFragment" android:background="@color/colorBackground">
+    <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:textAlignment="center"
-            android:textSize="20sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            android:padding="16dp"
+            tools:ignore="MissingConstraints">
+
+    <EditText
+            android:layout_width="316dp"
+            android:layout_height="42dp"
+            android:inputType="textPassword"
+            android:ems="10"
+            android:id="@+id/txtPassProfile"
+            android:hint="@string/txtPass"
+            android:textColor="@color/colorLetterInput" android:textColorHint="@color/colorLetterInput"
+            android:fontFamily="@font/roboto_bold" android:background="@drawable/box_inputs"
+            android:paddingHorizontal="10dp"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="275dp"
+            android:autofillHints=""
+            />
+        <ImageView
+                android:layout_width="118dp"
+                android:layout_height="118dp" android:id="@+id/imaProfile"
+                android:src="@drawable/ima_user"
+                android:layout_marginStart="125dp"
+                />
+        <ImageView
+            android:layout_width="70dp"
+            android:layout_height="70dp" android:id="@+id/imaFacebook"
+            android:src="@drawable/ic_facebook"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="370dp"
+            />
+    <ImageView
+            android:layout_width="70dp"
+            android:layout_height="70dp" android:id="@+id/imaTwitter"
+            android:src="@drawable/ic_twitter"
+            android:layout_marginStart="275dp"
+            android:layout_marginTop="370dp"
+            />
+    <ImageView
+            android:layout_width="70dp"
+            android:layout_height="70dp" android:id="@+id/imaInstagram"
+            android:src="@drawable/ic_instagram"
+            android:layout_marginStart="150dp"
+            android:layout_marginTop="370dp"
+            />
+    <EditText
+            android:layout_width="316dp"
+            android:layout_height="42dp"
+            android:inputType="textPersonName"
+            android:ems="10"
+            android:id="@+id/txtNameProfile"
+            android:fontFamily="@font/roboto_bold"
+            android:textColor="@color/colorLetterInput"
+            android:textColorHint="@color/colorLetterInput" android:hint="@string/txtName"
+            android:background="@drawable/box_inputs" android:paddingHorizontal="10dp"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="128dp"
+
+            />
+    <EditText
+            android:layout_width="316dp"
+            android:layout_height="42dp"
+            android:inputType="textPersonName"
+            android:ems="10"
+            android:id="@+id/txtNameUserProfile"
+            android:fontFamily="@font/roboto_bold"
+            android:textColor="@color/colorLetterInput"
+            android:textColorHint="@color/colorLetterInput" android:hint="@string/txtNameUser"
+            android:background="@drawable/box_inputs" android:paddingHorizontal="10dp"
+            android:layout_marginStart="30dp"
+            android:layout_marginTop="177dp"
+            />
+        <EditText
+                android:layout_width="316dp"
+                android:layout_height="42dp"
+                android:inputType="textPersonName|textEmailSubject"
+                android:ems="10"
+                android:id="@+id/txtEmailProfile"
+                android:fontFamily="@font/roboto_bold"
+                android:textColor="@color/colorLetterInput"
+                android:textColorHint="@color/colorLetterInput" android:hint="@string/txtEmail"
+                android:background="@drawable/box_inputs" android:paddingHorizontal="10dp"
+                android:layout_marginStart="30dp"
+                android:layout_marginTop="226dp"
+                />
+        <Button
+            android:text="@string/btnSave"
+            android:layout_width="135dp"
+            android:layout_height="46dp" android:id="@+id/btnSave"
+            android:textColor="@color/colorLetter" android:background="@drawable/box_buttons" android:textSize="18sp"
+            android:layout_marginStart="120dp"
+            android:layout_marginTop="465dp"
+            />
+
+    </RelativeLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

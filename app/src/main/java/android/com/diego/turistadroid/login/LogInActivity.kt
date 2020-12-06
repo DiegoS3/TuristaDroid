@@ -30,7 +30,7 @@ class LogInActivity : AppCompatActivity() {
         this.supportActionBar?.hide()
         setContentView(R.layout.activity_log_in)
 
-        ControllerSession.deleteSession("7@7.c")
+        ControllerSession.deleteSession("8@8.c")
         clickBtn()
         clickRegister()
 
@@ -43,6 +43,7 @@ class LogInActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        ControllerSession.deleteSession(sesion.emailUser)
         ControllerBbdd.close()
     }
 

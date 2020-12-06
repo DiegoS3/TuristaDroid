@@ -10,8 +10,10 @@ import android.widget.ImageView
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import java.io.ByteArrayOutputStream
+import java.io.UnsupportedEncodingException
 import java.lang.Byte.decode
 import java.security.MessageDigest
+import kotlin.experimental.and
 
 object Utilities {
 
@@ -61,4 +63,5 @@ object Utilities {
             .digest(input.toByteArray())
             .fold("", { str, it -> str + "%02x".format(it) })
     }
+
 }
