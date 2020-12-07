@@ -7,6 +7,7 @@ import android.app.Activity.RESULT_CANCELED
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.*
 import android.com.diego.turistadroid.login.LogInActivity
+import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
 import android.com.diego.turistadroid.utilities.Fotos
 import android.com.diego.turistadroid.utilities.Utilities
 import android.com.diego.turistadroid.utilities.slider.SliderAdapter
@@ -32,6 +33,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.net.toFile
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.CompositePageTransformer
 import androidx.viewpager2.widget.MarginPageTransformer
@@ -219,6 +221,16 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
 
     }
 
+    private fun initMyPlacesFragment(){
+
+        val newFragment: Fragment = MyPlacesFragment()
+        val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+
+    }
+
     private fun createPlace(){
 
         btnSave_NewPlace.setOnClickListener {
@@ -228,10 +240,15 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
                 val currentDate = Calendar.getInstance().time
                 val namePlace = txtNamePlace_NewPlace.text.toString()
                 val city = txtUbicationPlace_NewPlace.text.toString()
-                val place = Place(namePlace, currentDate, city, mark, 0.0, 0.0)
+                val id = ControllerPlaces.getPlaceIdentity()
+                val place = Place(id, namePlace, currentDate, city, mark, 0.0, 0.0)
                 ControllerPlaces.insertPlace(place)
                 addImagePlace(images, place)
                 user.places.add(place)
+                //Creamos un usuario nuevo con los datos del logeado y le incluimos los lugares
+                val newUser = User(user.email, user.nombre, user.nombreUser, user.pwd, user.foto, user.places)
+                ControllerBbdd.updateUser(newUser)
+                initMyPlacesFragment()
 
             }else{
 

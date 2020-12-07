@@ -10,7 +10,7 @@ object ControllerBbdd {
 
     // Variables de
     private const val DATOS_BD = "TURISTA_BD_REALM"
-    private const val DATOS_BD_VERSION = 3L
+    private const val DATOS_BD_VERSION = 4L
 
     //Iniciamos la base de datos
     fun initRealm(context: Context?) {

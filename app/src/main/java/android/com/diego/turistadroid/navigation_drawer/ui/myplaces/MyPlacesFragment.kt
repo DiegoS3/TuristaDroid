@@ -1,11 +1,11 @@
 package android.com.diego.turistadroid.navigation_drawer.ui.myplaces
 
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.ControllerPlaces
-import android.com.diego.turistadroid.bbdd.Place
+import android.com.diego.turistadroid.bbdd.*
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewPlaceFragment
-import android.graphics.Paint
+import android.com.diego.turistadroid.utilities.Utilities
+import android.graphics.*
 import android.os.AsyncTask
 import android.os.Bundle
 import android.util.Log
@@ -16,8 +16,12 @@ import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_myplaces.*
+import java.util.concurrent.ConcurrentLinkedQueue
 
 
 class MyPlacesFragment : Fragment() {
@@ -51,7 +55,8 @@ class MyPlacesFragment : Fragment() {
     private fun initUI(){
         initFloatingButtons()
         cargarDatos()
-
+        iniciarSwipeRecarga()
+        iniciarSwipeHorizontal()
         // Mostramos las vistas de listas y adaptador asociado
         placeRecycler_MyPlaces.layoutManager = LinearLayoutManager(context)
     }
@@ -65,6 +70,191 @@ class MyPlacesFragment : Fragment() {
         placeSwipe_MyPlaces.setOnRefreshListener {
             cargarDatos()
         }
+    }
+
+    /**
+     * Realiza el swipe horizontal para eliminar o editar un sitio
+     */
+    private fun iniciarSwipeHorizontal() {
+        val simpleItemTouchCallback: ItemTouchHelper.SimpleCallback = object : ItemTouchHelper.SimpleCallback(
+            0, ItemTouchHelper.LEFT or
+                    ItemTouchHelper.RIGHT
+        ) {
+            // Sobreescribimos los métodos
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false
+            }
+
+            // Analizamos el evento según la dirección
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+                // Si pulsamos a la de izquierda o a la derecha
+                // Programamos la accion
+                when (direction) {
+                    ItemTouchHelper.LEFT -> {
+                        // Log.d("Noticias", "Tocado izquierda");
+                        borrarElemento(position)
+                    }
+                    else -> {
+                        //  Log.d("Noticias", "Tocado derecha");
+                        //editarElemento(position)
+                    }
+                }
+            }
+
+            override fun onChildDraw(
+                canvas: Canvas,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean
+            ) {
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    val itemView = viewHolder.itemView
+                    val height = itemView.bottom.toFloat() - itemView.top.toFloat()
+                    val width = height / 3
+                    // Si es dirección a la derecha: izquierda->derecta
+                    // Pintamos de azul y ponemos el icono
+                    if (dX > 0) {
+                        // Pintamos el botón izquierdo
+                        botonIzquierdo(canvas, dX, itemView, width)
+
+                    } else {
+                        // Caso contrario
+                        botonDerecho(canvas, dX, itemView, width)
+                    }
+                }
+                super.onChildDraw(canvas, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
+            }
+        }
+        // Añadimos los eventos al RV
+        val itemTouchHelper = ItemTouchHelper(simpleItemTouchCallback)
+        itemTouchHelper.attachToRecyclerView(placeRecycler_MyPlaces)
+
+    }
+
+    private fun deleteImgPlace(place: Place){
+
+        val list = ConcurrentLinkedQueue<Image>()
+
+        for (img in place.imagenes){
+            list.add(img)
+        }
+
+        list.forEachIndexed { index, image ->
+
+            place.imagenes.remove(image)
+            ControllerImages.deleteImage(image.id)
+
+        }
+    }
+
+
+    private fun restoreImgPlace(place: Place){
+        val list = ConcurrentLinkedQueue<Image>()
+
+        for (img in place.imagenes){
+            list.add(img)
+        }
+
+        list.forEachIndexed { index, image ->
+
+            val id = ControllerImages.getImageIdentity()
+            val imag = Image(id, image.foto)
+            place.imagenes.add(imag)
+            ControllerImages.insertImage(imag)
+
+        }
+
+    }
+
+    private fun restorePlaceBD(place: Place){
+        restoreImgPlace(place)
+        user.places.add(place)
+        val newUser = User(user.email, user.nombre, user.nombreUser, user.pwd, user.foto, user.places)
+        ControllerBbdd.updateUser(newUser)
+        val idPlace = ControllerPlaces.getPlaceIdentity()
+        val newPlace = Place(idPlace, place.nombre, place.fecha, place.city, place.puntuacion, place.longitud, place.latitud, place.imagenes)
+        ControllerPlaces.updatePlace(newPlace)
+    }
+
+    private fun deletePlaceBD(place: Place){
+
+        deleteImgPlace(place)
+        user.places.remove(place)
+        val newUser = User(user.email, user.nombre, user.nombreUser, user.pwd, user.foto, user.places)
+        ControllerBbdd.updateUser(newUser)
+        ControllerPlaces.deletePlace(place.id)
+    }
+
+    private fun borrarElemento(pos : Int){
+        //Acciones
+        val deletedModel : Place = places[pos]
+        adapter.deleteItem(pos)
+        //Lo borramos
+        deletePlaceBD(deletedModel)
+        // Mostramos la barra. Se la da opción al usuario de recuperar lo borrado con el el snackbar
+        val snackbar = Snackbar.make(view!!, getString(R.string.deletePlace), Snackbar.LENGTH_LONG)
+        snackbar.setAction(getString(R.string.recuperarPlace)) { // undo is selected, restore the deleted item
+            adapter.restoreItem(deletedModel, pos)
+            // Lo insertamos
+            restorePlaceBD(deletedModel)
+        }
+        adapter.notifyDataSetChanged()
+        snackbar.setActionTextColor(resources.getColor(R.color.colorToolBar))
+        snackbar.show()
+    }
+
+    /**
+     * Mostramos el elemento inquierdo
+     * @param canvas Canvas
+     * @param dX Float
+     * @param itemView View
+     * @param width Float
+     */
+    private fun botonDerecho(canvas: Canvas, dX: Float, itemView: View, width: Float) {
+        // Pintamos de rojo y ponemos el icono
+        paintSweep.color = resources.getColor(R.color.colorDeletePlace)
+        val background = RectF(
+            itemView.right.toFloat() + dX,
+            itemView.top.toFloat(), itemView.right.toFloat(), itemView.bottom.toFloat()
+        )
+        canvas.drawRect(background, paintSweep)
+        val icon: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.ic_sweep_eliminar)
+        val iconDest = RectF(
+            itemView.right.toFloat() - 2 * width, itemView.top.toFloat() + width, itemView.right
+                .toFloat() - width, itemView.bottom.toFloat() - width
+        )
+        canvas.drawBitmap(icon, null, iconDest, paintSweep)
+    }
+
+    /**
+     * Mostramos el elemento izquierdo
+     * @param canvas Canvas
+     * @param dX Float
+     * @param itemView View
+     * @param width Float
+     */
+    private fun botonIzquierdo(canvas: Canvas, dX: Float, itemView: View, width: Float) {
+        // Pintamos de azul y ponemos el icono
+        paintSweep.color = R.color.colorToolBar
+        val background = RectF(
+            itemView.left.toFloat(), itemView.top.toFloat(), dX,
+            itemView.bottom.toFloat()
+        )
+        canvas.drawRect(background, paintSweep)
+        val icon: Bitmap = BitmapFactory.decodeResource(resources, R.drawable.ic_sweep_detalles)
+        val iconDest = RectF(
+            itemView.left.toFloat() + width, itemView.top.toFloat() + width, itemView.left
+                .toFloat() + 2 * width, itemView.bottom.toFloat() - width
+        )
+        canvas.drawBitmap(icon, null, iconDest, paintSweep)
     }
 
     private fun initFloatingButtons(){
@@ -186,18 +376,17 @@ class MyPlacesFragment : Fragment() {
             if (placeSwipe_MyPlaces.isRefreshing) {
                 placeSwipe_MyPlaces.isRefreshing = false
             }
-            Toast.makeText(context, "Obteniendo datos", Toast.LENGTH_LONG).show()
         }
 
         override fun doInBackground(vararg p0: String?): Void? {
-            Log.d("Datos", "Entrado en doInBackgroud");
+            Log.d("Datos", "Entrado en doInBackgroud")
             try {
                 getDatosFromBD()
-                Log.d("Datos", "Datos pre tamaño: " + places.size.toString());
+                Log.d("Datos", "Datos pre tamaño: " + places.size.toString())
             } catch (e: Exception) {
-                Log.e("T2Plano ", e.message.toString());
+                Log.e("T2Plano ", e.message.toString())
             }
-            Log.d("Datos", "onDoInBackgroud OK");
+            Log.d("Datos", "onDoInBackgroud OK")
             return null
         }
 
@@ -219,9 +408,8 @@ class MyPlacesFragment : Fragment() {
             adapter.notifyDataSetChanged()
             placeRecycler_MyPlaces.setHasFixedSize(true)
             placeSwipe_MyPlaces.isRefreshing = false
-            Log.d("Datos", "onPostExecute OK");
-            Log.d("Datos", "Datos post tam: " + places.size.toString());
-            Toast.makeText(context, "Datos cargados", Toast.LENGTH_LONG).show()
+            Log.d("Datos", "onPostExecute OK")
+            Log.d("Datos", "Datos post tam: " + places.size.toString())
         }
     }
 }
