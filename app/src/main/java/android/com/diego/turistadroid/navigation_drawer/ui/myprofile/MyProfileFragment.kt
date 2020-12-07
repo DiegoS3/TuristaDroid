@@ -59,7 +59,7 @@ class MyProfileFragment : Fragment() {
     private lateinit var imaProfile: ImageView
     private lateinit var txtNameProfile: TextView
     private lateinit var txtNameUserProfile: TextView
-    private lateinit var txtEmailProfile: TextView
+    private lateinit var txtEmailProfile: EditText
     private lateinit var txtPassProfile: EditText
 
 
@@ -79,7 +79,6 @@ class MyProfileFragment : Fragment() {
         txtNameUserProfile = root.findViewById(R.id.txtNameUserProfile)
         txtEmailProfile = root.findViewById(R.id.txtEmailProfile)
         txtPassProfile= root.findViewById(R.id.txtPassProfile)
-
         asignarDatosUsuario()
 
         myProfileViewModel.text.observe(viewLifecycleOwner, Observer {
@@ -93,8 +92,9 @@ class MyProfileFragment : Fragment() {
         Utilities.redondearFoto(imaProfile)
         txtNameProfile.text = user.nombre
         txtNameUserProfile.text = user.nombreUser
-        txtEmailProfile.text = user.email
+        txtEmailProfile.setText(user.email)
     }
+
 
 
     private fun abrirOpciones() {
@@ -258,15 +258,15 @@ class MyProfileFragment : Fragment() {
         val name = txtNameProfile.text.toString()
         val nameUser = txtNameUserProfile.text.toString()
         val pass = Utilities.hashString(txtPassProfile.text.toString())
-        val imagen = Utilities.bitmapToBase64(imaProfile.drawable.toBitmap())!!
+        val imaStr = Utilities.bitmapToBase64(this.FOTO)!!
         val listaSitiosUsuario = user.places
 
         eliminarUser()
 
         val newUser = if (passChanged()) {
-            User(email, name, nameUser, pass, imagen, listaSitiosUsuario)
+             User(email, name, nameUser, pass, imaStr, listaSitiosUsuario)
         }else{
-            User(email, name, nameUser, user.pwd, imagen, listaSitiosUsuario)
+            User(email, name, nameUser, user.pwd, imaStr, listaSitiosUsuario)
         }
         ControllerUser.insertUser(newUser)
         user = newUser
@@ -329,13 +329,40 @@ class MyProfileFragment : Fragment() {
         }
     }
 
+
+    //devuelve true si el campo del email ha sido modificado
+    private fun checkEmailChange(): Boolean{
+        var v = false
+        if(user.email != txtEmailProfile.text.toString()){
+            v = true
+        }
+        return v
+    }
+
+
     private fun comprobarVacios(): Boolean{
-        return Utilities.validarEmail(txtEmailProfile) and txtNameProfile.text.isNotEmpty() and txtNameUserProfile.text.isNotEmpty()
+        var valido = false
+        Log.i("validar email:", Utilities.validarEmail(txtEmailProfile).toString())
+        Log.i("nameProfile:", txtNameProfile.text.isNotEmpty().toString())
+        Log.i("nameUserProfile:", txtNameUserProfile.text.isNotEmpty().toString())
+        Log.i("txtNameProfile:", txtNameProfile.text.toString())
+        Log.i("txtNameUserProfile:", txtNameUserProfile.text.toString())
+        Log.i("txtEmailProfile:", txtEmailProfile.text.toString())
+        if  (checkEmailChange()){
+            if (Utilities.validarEmail(txtEmailProfile) and txtNameProfile.text.isNotEmpty() and txtNameUserProfile.text.isNotEmpty()){
+                valido = true
+            }
+        }else{
+            if (txtNameProfile.text.isNotEmpty() and txtNameUserProfile.text.isNotEmpty()){
+                valido = true
+            }
+        }
+        return valido
     }
 
     override fun onResume() {
         super.onResume()
-        asignarDatosUsuario()
+        //asignarDatosUsuario()
     }
 
 

@@ -18,7 +18,7 @@
             android:inputType="textPassword"
             android:ems="10"
             android:id="@+id/txtPassProfile"
-            android:hint="@string/txtPass"
+            android:hint="@string/txtNewPassword"
             android:textColor="@color/colorLetterInput" android:textColorHint="@color/colorLetterInput"
             android:fontFamily="@font/roboto_bold" android:background="@drawable/box_inputs"
             android:paddingHorizontal="10dp"

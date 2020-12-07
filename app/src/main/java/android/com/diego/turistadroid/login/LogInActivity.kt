@@ -27,7 +27,7 @@ class LogInActivity : AppCompatActivity() {
         this.supportActionBar?.hide()
         setContentView(R.layout.activity_log_in)
 
-        ControllerSession.deleteSession("1@1.c")
+        ControllerSession.deleteSession("pr@pr.c")
         clickBtn()
         clickRegister()
 

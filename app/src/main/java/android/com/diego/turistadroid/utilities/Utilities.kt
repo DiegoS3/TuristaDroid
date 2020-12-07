@@ -19,6 +19,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
+import androidx.core.graphics.drawable.toBitmap
 import kotlinx.android.synthetic.main.activity_sign_up.*
 import java.io.ByteArrayOutputStream
 import java.io.UnsupportedEncodingException
@@ -27,6 +28,8 @@ import java.security.MessageDigest
 import kotlin.experimental.and
 
 object Utilities {
+
+    var valido = false
 
     fun redondearFoto(imagen: ImageView){
         val originalDrawable: Drawable = imagen.drawable
@@ -75,7 +78,7 @@ object Utilities {
             .fold("", { str, it -> str + "%02x".format(it) })
     }
 
-    fun validarEmail(txtEmail: TextView): Boolean{
+    fun validarEmail(txtEmail: EditText): Boolean{
 
         txtEmail.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -84,9 +87,9 @@ object Utilities {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 Log.i("EMAIL WATCHER","pulsado")
                 if (android.util.Patterns.EMAIL_ADDRESS.matcher(txtEmail.text.toString()).matches()) {
-                    SignUp.valido = true
+                    valido = true
                 } else {
-                    SignUp.valido = false
+                    valido = false
                     txtEmail.error = "Invalid Email"
                 }
             }
@@ -95,8 +98,7 @@ object Utilities {
             }
 
         })
-        Log.i("contraseña bool",SignUp.valido.toString())
-        return SignUp.valido
+        return valido
 
 
     }
@@ -150,6 +152,10 @@ object Utilities {
             }
 
         })
+    }
+
+    fun stringFoto(imagen: ImageView): String{
+        return bitmapToBase64(imagen.drawable.toBitmap())!!
     }
 
 
