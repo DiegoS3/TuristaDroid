@@ -56,7 +56,7 @@ class SliderAdapter (
 
             //If you want to display image from the internet,
             //You can put code here using glide or picasso
-            imageView.setImageResource(sliderItem.getImage())
+            imageView.setImageBitmap(sliderItem.getImage())
         }
 
     }

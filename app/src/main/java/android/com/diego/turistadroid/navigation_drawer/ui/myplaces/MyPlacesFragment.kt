@@ -1,6 +1,7 @@
 package android.com.diego.turistadroid.navigation_drawer.ui.myplaces
 
 import android.com.diego.turistadroid.R
+import android.com.diego.turistadroid.bbdd.ControllerPlaces
 import android.com.diego.turistadroid.bbdd.Place
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewPlaceFragment
@@ -15,6 +16,7 @@ import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.fragment_myplaces.*
 
 
@@ -22,6 +24,7 @@ class MyPlacesFragment : Fragment() {
 
     // Mis variables
     private var places = mutableListOf<Place>() // Lista
+    private lateinit var place : Place
     private val user = LogInActivity.user //Usuario logeado
     private var clicked = false
 
@@ -47,6 +50,10 @@ class MyPlacesFragment : Fragment() {
 
     private fun initUI(){
         initFloatingButtons()
+        cargarDatos()
+
+        // Mostramos las vistas de listas y adaptador asociado
+        placeRecycler_MyPlaces.layoutManager = LinearLayoutManager(context)
     }
 
     /**
@@ -83,7 +90,6 @@ class MyPlacesFragment : Fragment() {
         setClickable(clicked)
 
         clicked = !clicked
-
     }
 
     private fun initNewPlaceFragment(){
@@ -154,15 +160,37 @@ class MyPlacesFragment : Fragment() {
 
     fun getDatosFromBD() {
 
-        // Seleccionamos los datos
+        // Seleccionamos los lugares
+        //places = ControllerPlaces.selectPlaces()!!
+        places = user.places
 
-        // Si queremos le añadimos unos datos ficticios
-        // this.datos.addAll(DatosController.initDatos())
+    }
+
+    /**
+     * Evento cli asociado a una fila
+     * @param place Place
+     */
+    private fun eventoClicFila(place: Place) {
+        // Creamos el dialogo y casamos sus elementos
+        //Toast.makeText(context, "PULSADO datos", Toast.LENGTH_LONG).show()
+        //abrirPruebas()
+        //val pruebaFragment = PruebaFragment(NavigationActivity.user, dato)
+        //abrirPrueba(pruebaFragment)
     }
 
     inner class TareaCargarDatos : AsyncTask<String?, Void?, Void?>() {
-        override fun doInBackground(vararg params: String?): Void? {
-            Log.d("Datos", "Entrado en doInBackgroud")
+        /**
+         * Acciones antes de ejecutarse
+         */
+        override fun onPreExecute() {
+            if (placeSwipe_MyPlaces.isRefreshing) {
+                placeSwipe_MyPlaces.isRefreshing = false
+            }
+            Toast.makeText(context, "Obteniendo datos", Toast.LENGTH_LONG).show()
+        }
+
+        override fun doInBackground(vararg p0: String?): Void? {
+            Log.d("Datos", "Entrado en doInBackgroud");
             try {
                 getDatosFromBD()
                 Log.d("Datos", "Datos pre tamaño: " + places.size.toString());
@@ -171,6 +199,29 @@ class MyPlacesFragment : Fragment() {
             }
             Log.d("Datos", "onDoInBackgroud OK");
             return null
+        }
+
+        /**
+         * Procedimiento a realizar al terminar
+         * Cargamos la lista
+         *
+         * @param args
+         */
+        override fun onPostExecute(args: Void?) {
+            Log.d("Datos", "entrando en onPostExecute")
+            adapter = MyPlacesViewModel(places) {
+                eventoClicFila(it)
+                place = it
+            }
+
+            placeRecycler_MyPlaces.adapter = adapter
+            // Avismos que ha cambiado
+            adapter.notifyDataSetChanged()
+            placeRecycler_MyPlaces.setHasFixedSize(true)
+            placeSwipe_MyPlaces.isRefreshing = false
+            Log.d("Datos", "onPostExecute OK");
+            Log.d("Datos", "Datos post tam: " + places.size.toString());
+            Toast.makeText(context, "Datos cargados", Toast.LENGTH_LONG).show()
         }
     }
 }
