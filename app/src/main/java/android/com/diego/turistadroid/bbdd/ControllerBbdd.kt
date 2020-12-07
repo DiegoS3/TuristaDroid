@@ -62,22 +62,6 @@ object ControllerBbdd {
         }
     }
 
-    //QUERIES TABLA IMAGE
-
-    //Insertar una imagen
-    fun insertImage(image: Image){
-        Realm.getDefaultInstance().executeTransaction{
-            it.copyToRealm(image)
-        }
-    }
-
-    //Eliminar una imagen
-    fun deleteImage(id : Long){
-        Realm.getDefaultInstance().executeTransaction{
-            it.where<Image>().equalTo("id", id).findFirst()?.deleteFromRealm()
-        }
-    }
-
     //QUERIES TABLA SESSION
 
     //Insertar una sesion

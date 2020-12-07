@@ -89,9 +89,12 @@
             android:id="@+id/vpImagesPlace_NewPlace"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingTop="60dp"
-            android:paddingEnd="80dp"
-            android:paddingStart="80dp"/>
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="-160dp"
+            android:paddingEnd="150dp"
+            android:paddingStart="150dp"
+            android:layout_below="@+id/btnOpenMap_NewPlace"
+            android:layout_above="@+id/btnAddImage_NewPlace"/>
     <Button
             android:text="@string/btnAddImage"
             android:layout_width="135dp"

@@ -11,6 +11,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.item_list_places.view.*
+import java.text.SimpleDateFormat
 
 class MyPlacesViewModel (
 
@@ -28,14 +29,22 @@ class MyPlacesViewModel (
         )
     }
 
+    private fun cargarImagen(holder: PlaceViewHolder, item : Place ){
+        if (item.imagenes.size > 0){
+            val image = Utilities.base64ToBitmap(item.imagenes[0]!!.foto)
+            holder.imgItemPlace.setImageBitmap(image)
+        }
+    }
+
     override fun onBindViewHolder(holder: PlaceViewHolder, position: Int) {
         val item = listPlaces[position]
-        val image = Utilities.base64ToBitmap(item.imagenes[0]!!.foto)
+        val sdf = SimpleDateFormat("dd/M/yyyy")
+        val fecha = sdf.format(item.fecha)
+        cargarImagen(holder, item)
 
-        holder.imgItemPlace.setImageBitmap(image)
         holder.txtTitleItemPlace.text = item.nombre
         holder.txtCityItemPlace.text = item.city
-        holder.txtDateItemPlace.text = item.fecha.toString()
+        holder.txtDateItemPlace.text = fecha
         holder.txtMarkItemPlace.text = item.puntuacion.toString()
 
         holder.itemView

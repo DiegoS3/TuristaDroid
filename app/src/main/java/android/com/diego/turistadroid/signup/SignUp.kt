@@ -14,8 +14,6 @@ import android.graphics.Bitmap
 import android.graphics.BlendMode
 import android.graphics.BlendModeColorFilter
 import android.graphics.PorterDuff
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -25,14 +23,11 @@ import android.text.TextUtils
 import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
-import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.drawable.RoundedBitmapDrawable
-import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import androidx.core.graphics.drawable.toBitmap
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import kotlinx.android.synthetic.main.activity_sign_up.*
