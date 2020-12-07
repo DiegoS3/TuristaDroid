@@ -40,7 +40,7 @@ object ControllerPlaces {
     }
 
     //Actualizar un lugar
-    fun updateUser(place: Place){
+    fun updatePlace(place: Place){
         Realm.getDefaultInstance().executeTransaction{
             it.copyToRealmOrUpdate(place)
         }
@@ -50,6 +50,16 @@ object ControllerPlaces {
     fun deletePlace(id : Long){
         Realm.getDefaultInstance().executeTransaction{
             it.where<Place>().equalTo("id", id).findFirst()?.deleteFromRealm()
+        }
+    }
+
+    //Generar AutoIncrement ID
+    fun getPlaceIdentity(): Long {
+        val registro = Realm.getDefaultInstance().where<Place>().max("id")
+        return if (registro == null) {
+            1
+        } else {
+            registro.toLong() + 1
         }
     }
 }

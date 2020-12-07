@@ -1,18 +1,17 @@
 package android.com.diego.turistadroid.login
 
-import android.com.diego.turistadroid.MainActivity
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.*
 import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.signup.SignUp
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import com.google.android.material.snackbar.Snackbar
+import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_log_in.*
 
 class LogInActivity : AppCompatActivity() {

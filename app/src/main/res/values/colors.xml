@@ -22,5 +22,7 @@
     <color name="colorLightStarGradient">#EAE2AD</color>
     <color name="colorDarkStarGradient">#CCC071</color>
 
+    <color name="colorDeletePlace">#DA4040</color>
+
 
 </resources>

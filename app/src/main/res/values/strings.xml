@@ -67,8 +67,8 @@
     <string name="btnOpenMap">Open Map</string>
     <string name="btnAddImage">Add Image</string>
     <string name="btnSavePlace">Save</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="deletePlace">Place Removed</string>
+    <string name="recuperarPlace">Undo</string>
 
     <string name="InternetON">Internet connection exists</string>
     <string name="InternetNeed">Internet connection needed</string>

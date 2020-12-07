@@ -36,6 +36,31 @@ class MyPlacesViewModel (
         }
     }
 
+    /**
+     * Elimina un item de la lista
+     *
+     * @param pos
+     */
+    fun deleteItem(pos : Int){
+
+        listPlaces.removeAt(pos)
+        notifyItemRemoved(pos)
+        notifyItemRangeChanged(pos, listPlaces.size)
+
+    }
+    /**
+     * Recupera un Item de la lista
+     *
+     * @param item
+     * @param position
+     */
+    fun restoreItem(item: Place, position: Int) {
+        listPlaces.add(position, item)
+        notifyItemInserted(position)
+        notifyItemRangeChanged(position, listPlaces.size)
+    }
+
+
     override fun onBindViewHolder(holder: PlaceViewHolder, position: Int) {
         val item = listPlaces[position]
         val sdf = SimpleDateFormat("dd/M/yyyy")
