@@ -7,6 +7,9 @@ import android.content.res.Resources
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.location.LocationManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Build
 import android.text.Editable
 import android.text.TextUtils
@@ -17,6 +20,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import androidx.core.graphics.drawable.toBitmap
@@ -154,9 +158,60 @@ object Utilities {
         })
     }
 
-    fun stringFoto(imagen: ImageView): String{
-        return bitmapToBase64(imagen.drawable.toBitmap())!!
+    /**
+     * Comprueba si está conectado a internet por algún medio
+     * @param context Context?
+     * @return Boolean
+     */
+    fun isNetworkAvailable(context: Context?): Boolean {
+        if (context == null) return false
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+            if (capabilities != null) {
+                when {
+                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
+                        Log.i("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
+                        return true
+                    }
+                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
+                        Log.i("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
+                        return true
+                    }
+                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> {
+                        Log.i("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
+                        return true
+                    }
+                }
+            }
+        } else {
+            val activeNetworkInfo = connectivityManager.activeNetworkInfo
+            if (activeNetworkInfo != null && activeNetworkInfo.isConnected) {
+                Log.i("Internet", "ActiveNetworkInfo.isConnected")
+                return true
+            }
+        }
+        Log.i("Internet", "Sin red")
+        return false
     }
+
+    /**
+     * Comprueba si esta el GPS Activo
+     * @param context Context?
+     * @return Boolean
+     */
+    fun isGPSAvaliable(context: Context?): Boolean {
+        val locationManager = context?.getSystemService(AppCompatActivity.LOCATION_SERVICE) as LocationManager
+        val gpsStatus = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        return if (gpsStatus) {
+            Log.i("GPS", "GPS Activado")
+            true
+        } else {
+            Log.i("GPS", "GPS Desactivado")
+            false
+        }
+    }
+
 
 
 

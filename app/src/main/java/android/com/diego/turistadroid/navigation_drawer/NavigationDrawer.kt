@@ -1,12 +1,13 @@
 package android.com.diego.turistadroid.navigation_drawer
 
 import android.Manifest
+import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.ControllerSession
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.myprofile.MyProfileFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.nearme.NearMeFragment
+import android.com.diego.turistadroid.navigation_drawer.ui.nearme.NearMeFragmentt
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Context
 import android.content.Intent
@@ -14,8 +15,7 @@ import android.content.pm.PackageManager
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraManager
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.provider.Settings
 import android.view.Menu
 import android.view.View
 import android.widget.ImageView
@@ -32,11 +32,9 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_navigation_drawer.*
-import kotlinx.android.synthetic.main.activity_sign_up.*
 
 class NavigationDrawer : AppCompatActivity(){
 
@@ -87,6 +85,69 @@ class NavigationDrawer : AppCompatActivity(){
         navView.setupWithNavController(navController)
 
         navigationListener(navView)
+        initPermisos()
+        comprobarConexion()
+    }
+
+    /**
+     * Inicia/ Comprueba los permisos de la App
+     */
+    private fun initPermisos() {
+        if (!(this.application as MyApplication).APP_PERMISOS)
+            (this.application as MyApplication).initPermisos()
+    }
+
+    /**
+     * Comprueba que exista las conexiones para funcionar
+     */
+    private fun comprobarConexion() {
+        // Comprobamos la red
+        comprobarRed()
+        comprobarGPS()
+    }
+
+    /**
+     * Comprueba que haya red, si no llama a activarlo
+     */
+    private fun comprobarRed() {
+        if (Utilities.isNetworkAvailable(applicationContext)) {
+            Toast.makeText(applicationContext, "Existe conexión a internet", Toast.LENGTH_SHORT)
+                .show()
+        } else {
+            val snackbar = Snackbar.make(
+                findViewById(android.R.id.content),
+                "Es necesaria una conexión a internet",
+                Snackbar.LENGTH_INDEFINITE
+            )
+            snackbar.setActionTextColor(getColor(R.color.colorAccent))
+            snackbar.setAction("Conectar") {
+                val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                startActivity(intent)
+            }
+            snackbar.show()
+        }
+    }
+
+    /**
+     * Comprueba que existe GPS si no llama a activarlo
+     */
+    private fun comprobarGPS() {
+        if (Utilities.isGPSAvaliable(applicationContext)) {
+            Toast.makeText(applicationContext, "Existe conexión a GPS", Toast.LENGTH_SHORT)
+                .show()
+        } else {
+            val snackbar = Snackbar.make(
+                findViewById(android.R.id.content),
+                "Es necesaria una conexión a GPS",
+                Snackbar.LENGTH_INDEFINITE
+            )
+            snackbar.setActionTextColor(getColor(R.color.colorAccent))
+            snackbar.setAction("Conectar") {
+                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                startActivity(intent)
+            }
+            snackbar.show()
+        }
     }
 
     fun asignarDatosUsuario(){
