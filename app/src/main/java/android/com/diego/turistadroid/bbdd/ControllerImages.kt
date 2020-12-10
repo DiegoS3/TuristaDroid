@@ -21,6 +21,13 @@ object ControllerImages {
         }
     }
 
+    //Eliminar todos las imagenes
+    fun deleteAllPlaces(){
+        Realm.getDefaultInstance().executeTransaction{
+            it.where<Image>().findAll().deleteAllFromRealm()
+        }
+    }
+
     fun getImageIdentity(): Long {
         val registro = Realm.getDefaultInstance().where<Image>().max("id")
         return if (registro == null) {

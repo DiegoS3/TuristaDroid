@@ -1,15 +1,18 @@
 package android.com.diego.turistadroid.navigation_drawer
 
 import android.Manifest
+import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraManager
 import android.os.Bundle
+import android.provider.Settings
 import android.view.Menu
 import android.view.View
 import android.widget.ImageView
@@ -76,6 +79,7 @@ class NavigationDrawer : AppCompatActivity(){
         navView.setupWithNavController(navController)
 
         linternaListener(navView)
+        initPermisos()
     }
 
     private fun linterna(){
@@ -139,6 +143,67 @@ class NavigationDrawer : AppCompatActivity(){
                     false
                 }
             }
+        }
+    }
+
+    /**
+     * Inicia/ Comprueba los permisos de la App
+     */
+    private fun initPermisos() {
+        if (!(this.application as MyApplication).APP_PERMISOS)
+            (this.application as MyApplication).initPermisos()
+    }
+
+    /*
+    * Comprueba que exista las conexiones para funcionar
+    */
+    private fun comprobarConexion() {
+        // Comprobamos la red
+        comprobarRed()
+        comprobarGPS()
+    }
+
+    /*
+    * Comprueba que haya red, si no llama a activarlo
+    */
+    private fun comprobarRed() {
+        if (Utilities.isNetworkAvailable(applicationContext)) {
+            Toast.makeText(applicationContext, "Existe conexión a internet", Toast.LENGTH_SHORT)
+                .show()
+        } else {
+            val snackbar = Snackbar.make(
+                findViewById(android.R.id.content),
+                "Es necesaria una conexión a internet",
+                Snackbar.LENGTH_INDEFINITE
+            )
+            snackbar.setActionTextColor(getColor(R.color.colorAccent))
+            snackbar.setAction("Conectar") {
+                val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
+                startActivity(intent)
+            }
+            snackbar.show()
+        }
+    }
+
+    /**
+     * Comprueba que existe GPS si no llama a activarlo
+     */
+    private fun comprobarGPS() {
+        if (Utilities.isGPSAvaliable(applicationContext)) {
+            Toast.makeText(applicationContext, "Existe conexión a GPS", Toast.LENGTH_SHORT)
+                .show()
+        } else {
+            val snackbar = Snackbar.make(
+                findViewById(android.R.id.content),
+                "Es necesaria una conexión a GPS",
+                Snackbar.LENGTH_INDEFINITE
+            )
+            snackbar.setActionTextColor(getColor(R.color.colorAccent))
+            snackbar.setAction("Conectar") {
+                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                startActivity(intent)
+            }
+            snackbar.show()
         }
     }
 

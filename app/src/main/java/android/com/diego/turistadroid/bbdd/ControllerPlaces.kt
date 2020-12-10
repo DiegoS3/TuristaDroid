@@ -38,6 +38,12 @@ object ControllerPlaces {
             it.copyToRealmOrUpdate(place)
         }
     }
+    //Eliminar todos las imagenes
+    fun deleteAllPlaces(){
+        Realm.getDefaultInstance().executeTransaction{
+            it.where<Place>().findAll().deleteAllFromRealm()
+        }
+    }
 
     //Eliminar un lugar
     fun deletePlace(id : Long){
