@@ -6,6 +6,7 @@ import android.app.Activity
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.*
 import android.com.diego.turistadroid.login.LogInActivity
+import android.com.diego.turistadroid.navigation_drawer.ui.maps.MapsFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
 import android.com.diego.turistadroid.utilities.Utilities
 import android.com.diego.turistadroid.utilities.slider.SliderAdapter
@@ -124,6 +125,7 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
     private fun init(){
         createPlace()
         abrirOpciones()
+        initMapsFragment()
     }
 
     private var sliderRunnable = Runnable {
@@ -203,7 +205,6 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
     }
 
     private fun addSliderItem(bitmap: Bitmap){
-        //val bitmap = MediaStore.Images.Media.getBitmap(context?.contentResolver!!, uri)
         val image = SliderItem(bitmap)
         addImageBd(bitmap)
         sliderItems.add(image)
@@ -231,6 +232,17 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         transaction.addToBackStack(null)
         transaction.commit()
 
+    }
+
+    private fun initMapsFragment(){
+
+        btnOpenMap_NewPlace.setOnClickListener {
+            val newFragment: Fragment = MapsFragment()
+            val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
+            transaction.replace(R.id.nav_host_fragment, newFragment)
+            transaction.addToBackStack(null)
+            transaction.commit()
+        }
     }
 
     private fun createPlace(){
@@ -270,14 +282,7 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         if (resultCode == Activity.RESULT_OK && requestCode==GALERIA) {
             try {
 
-                val contentURI = data?.data!!
-                val path = getRealPathFromURI(context!!,contentURI)!!
-                val name = getFileName(contentURI)!!
 
-                insertInPrivateStorage(name, path)
-                val bytes = restoreFromPrivateStorage(name, path)
-                val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                addSliderItem(bitmap)
 
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -291,64 +296,7 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         }
     }
 
-    @Throws(IOException::class)
-    private fun restoreFromPrivateStorage(name: String, path: String) : ByteArray{
-        val fos: FileInputStream = context!!.openFileInput(name)
-        val file = File(path)
-        val bytes = getBytesFromFile(file)
-        fos.read(bytes)
-        fos.close()
-        return bytes
-    }
 
-    @Throws(IOException::class)
-    private fun insertInPrivateStorage(name: String, path: String) {
-        val fos: FileOutputStream = context!!.openFileOutput(name, MODE_APPEND)
-        val file = File(path)
-        val bytes = getBytesFromFile(file)
-        fos.write(bytes)
-        fos.close()
-    }
-
-    @Throws(IOException::class)
-    private fun getBytesFromFile(file: File): ByteArray {
-        val stream = file.inputStream()
-        return stream.readBytes()
-    }
-
-    private fun getFileName(uri: Uri): String? {
-        var result: String? = null
-        if (uri.scheme == "content") {
-            val cursor: Cursor? = context!!.contentResolver.query(uri, null, null, null, null)
-            cursor.use { cursor ->
-                if (cursor!!.moveToFirst()) {
-                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
-                }
-            }
-        }
-        if (result == null) {
-            result = uri.path
-            val cut = result!!.lastIndexOf('/')
-            if (cut != -1) {
-                result = result!!.substring(cut + 1)
-            }
-        }
-        return result
-    }
-
-    private fun getRealPathFromURI(context: Context, uri: Uri): String? {
-        val proj = arrayOf(MediaStore.Images.Media.DATA)
-        val cursor: Cursor? = context.contentResolver.query(
-            uri, proj, null, null,
-            null
-        )
-        if (cursor != null) {
-            val column_index: Int = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-            cursor.moveToFirst()
-            return cursor.getString(column_index)
-        }
-        return null
-    }
 
     //obtengo el resultado de pedir los permisos
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
