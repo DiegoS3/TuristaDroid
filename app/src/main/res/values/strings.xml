@@ -69,6 +69,9 @@
     <string name="btnSavePlace">Save</string>
     <string name="deletePlace">Place Removed</string>
     <string name="recuperarPlace">Undo</string>
+    <string name="confirmDelete">Confirm</string>
+    <string name="cancelDelete">Cancel</string>
+    <string name="questionDeletePlace">Sure you want to delete the place?</string>
 
     <string name="InternetON">Internet connection exists</string>
     <string name="InternetNeed">Internet connection needed</string>

@@ -9,6 +9,7 @@ import android.com.diego.turistadroid.signup.SignUp
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.FileUtils
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -76,7 +77,7 @@ class SplashScreenActivity : AppCompatActivity() {
      * Metodo que contiene otros metodos que inician las animaciones
      */
     private fun initAnimations(){
-        
+
         animacionLetras()
         animacionMundo()
         animacionesPines()

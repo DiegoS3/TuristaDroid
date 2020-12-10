@@ -3,25 +3,25 @@ package android.com.diego.turistadroid.navigation_drawer.ui.newplace
 
 import android.Manifest.permission.*
 import android.app.Activity
-import android.app.Activity.RESULT_CANCELED
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.*
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
-import android.com.diego.turistadroid.utilities.Fotos
 import android.com.diego.turistadroid.utilities.Utilities
 import android.com.diego.turistadroid.utilities.slider.SliderAdapter
 import android.com.diego.turistadroid.utilities.slider.SliderItem
 import android.content.ContentValues
 import android.content.Context
+import android.content.Context.MODE_APPEND
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -31,22 +31,20 @@ import android.widget.RatingBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
-import androidx.core.net.toFile
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.CompositePageTransformer
 import androidx.viewpager2.widget.MarginPageTransformer
 import androidx.viewpager2.widget.ViewPager2
-import com.google.android.material.internal.ViewUtils
 import io.realm.RealmList
 import kotlinx.android.synthetic.main.activity_sign_up.*
 import kotlinx.android.synthetic.main.fragment_newplace.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.IOException
-import java.net.URI
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
 
@@ -70,6 +68,10 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
     private val GALERIA = 1
     private val CAMARA = 2
     private var foto: Uri? = null
+    private lateinit var FOTOGALERIA : Bitmap
+    private val IMAGEN_PROPORCION = 600
+    private val IMAGEN_DIR = "/TuristaDroid"
+    private var IMAGEN_COMPRES = 80
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -107,7 +109,7 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         viewPager2.setPageTransformer(compositePageTransformer)
 
         //Metodo para que las imagenes se pasen solas
-        viewPager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback(){
+        viewPager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
 
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
@@ -200,14 +202,14 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         startActivityForResult(intent, GALERIA)
     }
 
-    private fun addSliderItem(uri : Uri){
-        val bitmap = MediaStore.Images.Media.getBitmap(context?.contentResolver!!, uri)
+    private fun addSliderItem(bitmap: Bitmap){
+        //val bitmap = MediaStore.Images.Media.getBitmap(context?.contentResolver!!, uri)
         val image = SliderItem(bitmap)
         addImageBd(bitmap)
         sliderItems.add(image)
     }
 
-    private fun addImageBd(bitmap : Bitmap){
+    private fun addImageBd(bitmap: Bitmap){
         val imgStr = Utilities.bitmapToBase64(bitmap)!!
         val id = ControllerImages.getImageIdentity()
         val img = Image(id, imgStr)
@@ -266,11 +268,86 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK && requestCode==GALERIA) {
-            data?.data?.let { addSliderItem(it) }
+            try {
+
+                val contentURI = data?.data!!
+                val path = getRealPathFromURI(context!!,contentURI)!!
+                val name = getFileName(contentURI)!!
+
+                insertInPrivateStorage(name, path)
+                val bytes = restoreFromPrivateStorage(name, path)
+                val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                addSliderItem(bitmap)
+
+            } catch (e: IOException) {
+                e.printStackTrace()
+                Toast.makeText(context, "¡Fallo Galeria!", Toast.LENGTH_SHORT).show()
+            }
         }
         if (resultCode == Activity.RESULT_OK && requestCode == CAMARA) {
-            foto?.let { addSliderItem(it) }
+            val bitmap = MediaStore.Images.Media.getBitmap(context?.contentResolver!!, foto)
+            //foto?.let { addSliderItem(it) }
+            addSliderItem(bitmap)
         }
+    }
+
+    @Throws(IOException::class)
+    private fun restoreFromPrivateStorage(name: String, path: String) : ByteArray{
+        val fos: FileInputStream = context!!.openFileInput(name)
+        val file = File(path)
+        val bytes = getBytesFromFile(file)
+        fos.read(bytes)
+        fos.close()
+        return bytes
+    }
+
+    @Throws(IOException::class)
+    private fun insertInPrivateStorage(name: String, path: String) {
+        val fos: FileOutputStream = context!!.openFileOutput(name, MODE_APPEND)
+        val file = File(path)
+        val bytes = getBytesFromFile(file)
+        fos.write(bytes)
+        fos.close()
+    }
+
+    @Throws(IOException::class)
+    private fun getBytesFromFile(file: File): ByteArray {
+        val stream = file.inputStream()
+        return stream.readBytes()
+    }
+
+    private fun getFileName(uri: Uri): String? {
+        var result: String? = null
+        if (uri.scheme == "content") {
+            val cursor: Cursor? = context!!.contentResolver.query(uri, null, null, null, null)
+            cursor.use { cursor ->
+                if (cursor!!.moveToFirst()) {
+                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                }
+            }
+        }
+        if (result == null) {
+            result = uri.path
+            val cut = result!!.lastIndexOf('/')
+            if (cut != -1) {
+                result = result!!.substring(cut + 1)
+            }
+        }
+        return result
+    }
+
+    private fun getRealPathFromURI(context: Context, uri: Uri): String? {
+        val proj = arrayOf(MediaStore.Images.Media.DATA)
+        val cursor: Cursor? = context.contentResolver.query(
+            uri, proj, null, null,
+            null
+        )
+        if (cursor != null) {
+            val column_index: Int = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+            cursor.moveToFirst()
+            return cursor.getString(column_index)
+        }
+        return null
     }
 
     //obtengo el resultado de pedir los permisos

@@ -31,6 +31,7 @@ import java.lang.Byte.decode
 import java.security.MessageDigest
 import kotlin.experimental.and
 
+
 object Utilities {
 
     var valido = false
@@ -47,7 +48,10 @@ object Utilities {
         }else if (originalBitmap.width < originalBitmap.height) {
             originalBitmap = Bitmap.createBitmap(originalBitmap, 0, 0, originalBitmap.width, originalBitmap.width);
         }
-        val roundedDrawable: RoundedBitmapDrawable = RoundedBitmapDrawableFactory.create(Resources.getSystem(), originalBitmap)
+        val roundedDrawable: RoundedBitmapDrawable = RoundedBitmapDrawableFactory.create(
+            Resources.getSystem(),
+            originalBitmap
+        )
         roundedDrawable.cornerRadius = originalBitmap.width.toFloat()
         imagen.setImageDrawable(roundedDrawable)
     }
@@ -65,7 +69,6 @@ object Utilities {
         val byteArray = stream.toByteArray()
         return Base64.encodeToString(byteArray, Base64.DEFAULT)
     }
-
 
     /**
      * Convierte una cadena Base64 a Bitmap

@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -21,6 +22,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_myplaces.*
+import kotlinx.android.synthetic.main.layout_confirm_delete_item.view.*
+import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 
@@ -28,7 +31,7 @@ class MyPlacesFragment : Fragment() {
 
     // Mis variables
     private var places = mutableListOf<Place>() // Lista
-    private lateinit var place : Place
+    private lateinit var place: Place
     private val user = LogInActivity.user //Usuario logeado
     private var clicked = false
 
@@ -52,7 +55,7 @@ class MyPlacesFragment : Fragment() {
         initUI()
     }
 
-    private fun initUI(){
+    private fun initUI() {
         initFloatingButtons()
         cargarDatos()
         iniciarSwipeRecarga()
@@ -96,8 +99,7 @@ class MyPlacesFragment : Fragment() {
                 // Programamos la accion
                 when (direction) {
                     ItemTouchHelper.LEFT -> {
-                        // Log.d("Noticias", "Tocado izquierda");
-                        borrarElemento(position)
+                        abrirOpciones(position)
                     }
                     else -> {
                         //  Log.d("Noticias", "Tocado derecha");
@@ -136,30 +138,25 @@ class MyPlacesFragment : Fragment() {
         // Añadimos los eventos al RV
         val itemTouchHelper = ItemTouchHelper(simpleItemTouchCallback)
         itemTouchHelper.attachToRecyclerView(placeRecycler_MyPlaces)
-
     }
 
-    private fun deleteImgPlace(place: Place){
+    private fun deleteImgPlace(place: Place) {
 
         val list = ConcurrentLinkedQueue<Image>()
 
-        for (img in place.imagenes){
+        for (img in place.imagenes) {
             list.add(img)
         }
-
         list.forEachIndexed { index, image ->
-
             place.imagenes.remove(image)
             ControllerImages.deleteImage(image.id)
-
         }
     }
 
-
-    private fun restoreImgPlace(place: Place){
+    private fun restoreImgPlace(place: Place) {
         val list = ConcurrentLinkedQueue<Image>()
 
-        for (img in place.imagenes){
+        for (img in place.imagenes) {
             list.add(img)
         }
 
@@ -171,20 +168,28 @@ class MyPlacesFragment : Fragment() {
             ControllerImages.insertImage(imag)
 
         }
-
     }
 
-    private fun restorePlaceBD(place: Place){
+    private fun restorePlaceBD(place: Place) {
         restoreImgPlace(place)
         user.places.add(place)
         val newUser = User(user.email, user.nombre, user.nombreUser, user.pwd, user.foto, user.places)
         ControllerBbdd.updateUser(newUser)
         val idPlace = ControllerPlaces.getPlaceIdentity()
-        val newPlace = Place(idPlace, place.nombre, place.fecha, place.city, place.puntuacion, place.longitud, place.latitud, place.imagenes)
+        val newPlace = Place(
+            idPlace,
+            place.nombre,
+            place.fecha,
+            place.city,
+            place.puntuacion,
+            place.longitud,
+            place.latitud,
+            place.imagenes
+        )
         ControllerPlaces.updatePlace(newPlace)
     }
 
-    private fun deletePlaceBD(place: Place){
+    private fun deletePlaceBD(place: Place) {
 
         deleteImgPlace(place)
         user.places.remove(place)
@@ -193,26 +198,38 @@ class MyPlacesFragment : Fragment() {
         ControllerPlaces.deletePlace(place.id)
     }
 
-    private fun borrarElemento(pos : Int){
+    private fun borrarElemento(pos: Int) {
         //Acciones
-        val deletedModel : Place = places[pos]
+        val deletedModel: Place = places[pos]
         adapter.deleteItem(pos)
         //Lo borramos
         deletePlaceBD(deletedModel)
-        // Mostramos la barra. Se la da opción al usuario de recuperar lo borrado con el el snackbar
-        val snackbar = Snackbar.make(view!!, getString(R.string.deletePlace), Snackbar.LENGTH_LONG)
-        snackbar.setAction(getString(R.string.recuperarPlace)) { // undo is selected, restore the deleted item
-            adapter.restoreItem(deletedModel, pos)
-            // Lo insertamos
-            restorePlaceBD(deletedModel)
-        }
         adapter.notifyDataSetChanged()
-        snackbar.setActionTextColor(resources.getColor(R.color.colorToolBar))
-        snackbar.show()
+    }
+
+    private fun abrirOpciones(pos: Int) {
+        cargarDatos()
+        val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_confirm_delete_item, null)
+        val mBuilder = AlertDialog.Builder(context!!)
+            .setView(mDialogView).create()
+        val mAlertDialog = mBuilder.show()
+
+        //Listener para confirmar eliminar el lugar
+        mDialogView.txtConfirm.setOnClickListener {
+            borrarElemento(pos)
+            mBuilder.dismiss()
+        }
+
+        //Listener para confirmar cancelar el lugar
+        mDialogView.txtCancel.setOnClickListener {
+
+            mBuilder.dismiss()
+        }
+
     }
 
     /**
-     * Mostramos el elemento inquierdo
+     * Mostramos el elemento derecho
      * @param canvas Canvas
      * @param dX Float
      * @param itemView View
@@ -243,7 +260,7 @@ class MyPlacesFragment : Fragment() {
      */
     private fun botonIzquierdo(canvas: Canvas, dX: Float, itemView: View, width: Float) {
         // Pintamos de azul y ponemos el icono
-        paintSweep.color = R.color.colorToolBar
+        paintSweep.color = resources.getColor(R.color.colorToolBar)
         val background = RectF(
             itemView.left.toFloat(), itemView.top.toFloat(), dX,
             itemView.bottom.toFloat()
@@ -257,20 +274,19 @@ class MyPlacesFragment : Fragment() {
         canvas.drawBitmap(icon, null, iconDest, paintSweep)
     }
 
-    private fun initFloatingButtons(){
+    private fun initFloatingButtons() {
 
-        btnFloatAddPlace_MyPlaces.setOnClickListener{
+        btnFloatAddPlace_MyPlaces.setOnClickListener {
             onAddButtonClicked()
         }
 
-        btnFloatAddNewPlace.setOnClickListener{
-            initNewPlaceFragment()
-        }
-
-        btnFloatAddActualPlace.setOnClickListener {
+        btnFloatAddNewPlace.setOnClickListener {
             Toast.makeText(context, "Nuevo Lugar Actual", Toast.LENGTH_SHORT).show()
         }
 
+        btnFloatAddActualPlace.setOnClickListener {
+            initNewPlaceFragment()
+        }
     }
 
     private fun onAddButtonClicked() {
@@ -282,7 +298,7 @@ class MyPlacesFragment : Fragment() {
         clicked = !clicked
     }
 
-    private fun initNewPlaceFragment(){
+    private fun initNewPlaceFragment() {
 
         val newFragment: Fragment = NewPlaceFragment()
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
@@ -293,12 +309,12 @@ class MyPlacesFragment : Fragment() {
     }
 
     private fun setAnimation(clicked: Boolean) {
-        if (!clicked){
+        if (!clicked) {
             btnFloatAddActualPlace.visibility = View.VISIBLE
             btnFloatAddNewPlace.visibility = View.VISIBLE
             txtAddActualPlace.visibility = View.VISIBLE
             txtAddNewPlace.visibility = View.VISIBLE
-        }else{
+        } else {
             btnFloatAddActualPlace.visibility = View.INVISIBLE
             btnFloatAddNewPlace.visibility = View.INVISIBLE
             txtAddActualPlace.visibility = View.INVISIBLE
@@ -314,14 +330,14 @@ class MyPlacesFragment : Fragment() {
         val fromBottom = AnimationUtils.loadAnimation(context, R.anim.from_bottom_anim)
         val toBottom = AnimationUtils.loadAnimation(context, R.anim.to_bottom_anim)
 
-        if (!clicked){
+        if (!clicked) {
             btnFloatAddActualPlace.startAnimation(fromBottom)
             btnFloatAddNewPlace.startAnimation(fromBottom)
             txtAddActualPlace.startAnimation(fromBottom)
             txtAddNewPlace.startAnimation(fromBottom)
             btnFloatAddPlace_MyPlaces.startAnimation(rotateOpen)
 
-        }else{
+        } else {
             btnFloatAddActualPlace.startAnimation(toBottom)
             btnFloatAddNewPlace.startAnimation(toBottom)
             txtAddActualPlace.startAnimation(toBottom)
@@ -330,11 +346,11 @@ class MyPlacesFragment : Fragment() {
         }
     }
 
-    private fun setClickable(clicked: Boolean){
-        if (!clicked){
+    private fun setClickable(clicked: Boolean) {
+        if (!clicked) {
             btnFloatAddActualPlace.isClickable = true
             btnFloatAddNewPlace.isClickable = true
-        }else{
+        } else {
             btnFloatAddActualPlace.isClickable = false
             btnFloatAddNewPlace.isClickable = false
         }
