@@ -7,7 +7,6 @@ import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.myprofile.MyProfileFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.nearme.NearMeFragment
-import android.com.diego.turistadroid.navigation_drawer.ui.nearme.NearMeFragmentt
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Context
 import android.content.Intent

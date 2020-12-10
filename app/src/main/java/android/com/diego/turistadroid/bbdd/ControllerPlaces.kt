@@ -23,6 +23,13 @@ object ControllerPlaces {
         )
     }
 
+    //Eliminar todos los lugares
+    fun deleteAllPlaces(){
+        Realm.getDefaultInstance().executeTransaction{
+            it.where<Place>().findAll().deleteAllFromRealm()
+        }
+    }
+
     //Seleccionar lugares cerca de mi
     fun selectNearby(longitud : Double, latitud : Double): MutableList<Place>?{
         return Realm.getDefaultInstance().copyFromRealm(

@@ -51,7 +51,7 @@ class MyProfileFragment : Fragment() {
     private val CAMARA = 2
     private lateinit var IMAGEN_NOMBRE: String
     private lateinit var IMAGEN_URI: Uri
-    private val IMAGEN_DIR = "/MisLugares"
+    private val IMAGEN_DIR = "/TuristaDroid"
     private val IMAGEN_PROPORCION = 600
     private lateinit var FOTO: Bitmap
     private var IMAGEN_COMPRES = 80

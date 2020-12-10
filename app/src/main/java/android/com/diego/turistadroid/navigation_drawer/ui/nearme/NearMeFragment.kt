@@ -2,12 +2,14 @@ package android.com.diego.turistadroid.navigation_drawer.ui.nearme
 
 import android.app.AlertDialog
 import android.com.diego.turistadroid.R
+import android.com.diego.turistadroid.bbdd.ControllerBbdd
 import android.com.diego.turistadroid.bbdd.ControllerPlaces
 import android.com.diego.turistadroid.bbdd.Image
 import android.com.diego.turistadroid.bbdd.Place
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.utilities.Utilities
 import android.graphics.*
+import android.location.Location
 import androidx.fragment.app.Fragment
 
 import android.os.Bundle
@@ -46,9 +48,10 @@ class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     }
 
     private fun anadirLugares(){
-        ControllerPlaces.deletePlace(1)
+        ControllerPlaces.deleteAllPlaces()
+        ControllerBbdd.deleteAllPlaces()
         val fecha = Calendar.getInstance().time
-        val img = Image(3, Utilities.bitmapToBase64(BitmapFactory.decodeResource(context!!.resources ,R.drawable.ima_default_place))!!)
+        val img = Image(1, Utilities.bitmapToBase64(BitmapFactory.decodeResource(context!!.resources ,R.drawable.ima_default_place))!!)
         val lugar = Place(1, "nombre", fecha, "ciudad", 4.3,  -3.940906,38.981782)
         lugar.imagenes.add(img)
         ControllerPlaces.insertPlace(lugar)
@@ -79,6 +82,20 @@ class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         mMap = googleMap
         configurarIUMapa()
         puntosEnMapa()
+        mMap.setOnMapClickListener { latLng ->
+            mMap.clear()
+            Log.i("Mapa", "Pulsado")
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng))
+
+            val location = LatLng(latLng.latitude, latLng.longitude)
+            placeMarker(location)
+            Log.i("Mapa", location.longitude.toString()+" "+ location.latitude.toString() )
+        }
+    }
+
+    private fun placeMarker(location: LatLng){
+        val markerOptions = MarkerOptions().position(location)
+        mMap.addMarker(markerOptions)
     }
 
     /**
@@ -86,14 +103,14 @@ class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLi
      */
     private fun configurarIUMapa() {
         Log.i("Mapa", "Configurando IU Mapa")
-        mMap.mapType = GoogleMap.MAP_TYPE_HYBRID
+        mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
         val uiSettings: UiSettings = mMap.uiSettings
         uiSettings.isScrollGesturesEnabled = true
         uiSettings.isTiltGesturesEnabled = true
         uiSettings.isCompassEnabled = true
         uiSettings.isZoomControlsEnabled = true
         uiSettings.isMapToolbarEnabled = true
-        // mMap.setMinZoomPreference(12.0f)
+        //mMap.setMinZoomPreference(14.0f)
     }
 
     fun puntosEnMapa() {

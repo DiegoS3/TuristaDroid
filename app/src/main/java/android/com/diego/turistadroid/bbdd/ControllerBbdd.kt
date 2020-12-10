@@ -39,6 +39,15 @@ object ControllerBbdd {
         }
     }
 
+    //Eliminar todos las imagenes
+    fun deleteAllPlaces(){
+        Realm.getDefaultInstance().executeTransaction{
+            it.where<Image>().findAll().deleteAllFromRealm()
+        }
+    }
+
+
+
     //QUERIES GENERALES
 
     //Eliminar las tablas
