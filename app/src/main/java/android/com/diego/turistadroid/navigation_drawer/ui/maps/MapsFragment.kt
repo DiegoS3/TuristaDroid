@@ -1,6 +1,7 @@
 package android.com.diego.turistadroid.navigation_drawer.ui.maps
 
 import android.com.diego.turistadroid.R
+import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewPlaceFragment
 import android.graphics.*
 import android.os.Bundle
 import android.util.Log
@@ -8,14 +9,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
 import kotlinx.android.synthetic.main.fragment_maps.*
+import kotlinx.android.synthetic.main.fragment_newplace.*
 import java.util.*
 
 class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private lateinit var mMap: GoogleMap
+    companion object{
+        lateinit var location: LatLng
+        var maps = false
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,13 +42,13 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickList
 
     private fun initUI() {
         initMapa()
+        saveLocation()
     }
 
     /**
      * Inicia el Mapa
      */
     private fun initMapa() {
-        Log.i("Mapa", "Iniciando Mapa")
         val mapFragment = (childFragmentManager
             .findFragmentById(R.id.miMapa) as SupportMapFragment?)!!
         mapFragment.getMapAsync(this)
@@ -54,13 +61,10 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickList
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         mMap.setOnMapClickListener { latLng ->
+
             mMap.clear()
-            Log.i("Mapa", "Pulsado")
-
-
-            val location = LatLng(latLng.latitude, latLng.longitude)
+            location = LatLng(latLng.latitude, latLng.longitude)
             placeMarker(location)
-            Log.i("Mapa", location.longitude.toString()+" "+ location.latitude.toString() )
         }
     }
 
@@ -71,5 +75,22 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickList
 
     override fun onMarkerClick(marker: Marker): Boolean {
         return false
+    }
+
+    private fun initNewPlaceFragment() {
+
+        val newFragment: Fragment = NewPlaceFragment()
+        val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+
+    }
+
+    private fun saveLocation(){
+        btnSelectLocation_NewPlace.setOnClickListener {
+             maps = true
+             initNewPlaceFragment()
+        }
     }
 }

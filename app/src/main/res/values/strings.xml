@@ -62,6 +62,7 @@
     <string name="btnAddNewPlace">Place</string>
     <string name="btnAddActualPlace">Actual Place</string>
     <string name="newPlace">NEW PLACE</string>
+    <string name="newActualPlace">NEW ACTUAL PLACE</string>
     <string name="namePlace">Place\'s Name</string>
     <string name="ubicationPlace">Place\'s Ubication</string>
     <string name="btnOpenMap">Open Map</string>
@@ -72,6 +73,9 @@
     <string name="confirmDelete">Confirm</string>
     <string name="cancelDelete">Cancel</string>
     <string name="questionDeletePlace">Sure you want to delete the place?</string>
+    <string name="savePoint">Select this location</string>
+    <string name="notFoundUbication">Ubication not found</string>
+
 
     <string name="InternetON">Internet connection exists</string>
     <string name="InternetNeed">Internet connection needed</string>

@@ -1,7 +1,6 @@
 package android.com.diego.turistadroid.navigation_drawer.ui.newplace
 
-
-import android.Manifest.permission.*
+import android.Manifest
 import android.app.Activity
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.*
@@ -17,6 +16,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.location.Address
 import android.location.Geocoder
+import android.location.Location
 import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
@@ -36,9 +36,10 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.CompositePageTransformer
 import androidx.viewpager2.widget.MarginPageTransformer
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
 import io.realm.RealmList
-import kotlinx.android.synthetic.main.activity_sign_up.*
+import kotlinx.android.synthetic.main.fragment_new_actual_place.*
 import kotlinx.android.synthetic.main.fragment_newplace.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
 import java.io.IOException
@@ -46,11 +47,11 @@ import java.util.*
 import kotlin.math.abs
 
 
-class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
+class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
 
     private lateinit var tarea: CityAsyncTask
-    private lateinit var viewPager2 : ViewPager2
     private lateinit var txtUbication : EditText
+    private lateinit var viewPager2 : ViewPager2
     private lateinit var ratingBar : RatingBar
     private lateinit var btnAddImage : Button
     private lateinit var adapter: SliderAdapter
@@ -59,7 +60,6 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
     //Lista de imagenes
     private var sliderItems =  mutableListOf<SliderItem>()
     private var images = RealmList<Image>()
-    private lateinit var location : LatLng
 
     //Usuario logeado
     private var user = LogInActivity.user
@@ -74,14 +74,14 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         savedInstanceState: Bundle?
     ): View? {
 
-        val root = inflater.inflate(R.layout.fragment_newplace, container, false)
-        txtUbication = root.findViewById(R.id.txtUbicationPlace_NewPlace)
-        viewPager2 = root.findViewById(R.id.vpImagesPlace_NewPlace)
-        ratingBar = root.findViewById(R.id.ratingBarPlace_NewPlace)
-        btnAddImage = root.findViewById(R.id.btnAddImage_NewPlace)
+        // Inflate the layout for this fragment
+        val root = inflater.inflate(R.layout.fragment_new_actual_place, container, false)
+        txtUbication = root.findViewById(R.id.txtUbicationPlace_NewActualPlace)
+        viewPager2 = root.findViewById(R.id.vpImagesPlace_NewActualPlace)
+        ratingBar = root.findViewById(R.id.ratingBarPlace_NewActualPlace)
+        btnAddImage = root.findViewById(R.id.btnAddImage_NewActualPlace)
         ratingBar.onRatingBarChangeListener = this
 
-        // Inflate the layout for this fragment
         return root
     }
 
@@ -89,18 +89,12 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         super.onViewCreated(view, savedInstanceState)
 
         init()
-        if (MapsFragment.maps){
-            this.location = MapsFragment.location
-            Log.i("LocationMap", location.toString())
-            cargarCiudad(location.latitude, location.longitude)
-        }
     }
 
     private fun init(){
-        createPlace()
-        abrirOpciones()
-        initMapsFragment()
+        getCurrentLocation()
         initViewPager()
+        abrirOpciones()
     }
 
     private fun initViewPager(){
@@ -130,30 +124,7 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
                 sliderHandler.removeCallbacks(sliderRunnable)
                 sliderHandler.postDelayed(sliderRunnable, 3000)
             }
-
         })
-    }
-
-    private var sliderRunnable = Runnable {
-
-        run {
-            viewPager2.currentItem = viewPager2.currentItem + 1
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        sliderHandler.removeCallbacks(sliderRunnable)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        sliderHandler.postDelayed(sliderRunnable, 3000)
-    }
-
-    //Obtener puntuacion del sitio
-    override fun onRatingChanged(ratingBar: RatingBar?, rating: Float, fromUser: Boolean) {
-       mark = rating.toDouble()
     }
 
     private fun abrirOpciones() {
@@ -161,7 +132,7 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
             val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_seleccion_camara, null)
             val mBuilder = AlertDialog.Builder(context!!)
                 .setView(mDialogView).create()
-            val mAlertDialog = mBuilder.show()
+            mBuilder.show()
 
             //Listener para abrir la camara
             mDialogView.txtCamara.setOnClickListener {
@@ -178,10 +149,12 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
     }
 
     //muestro la camara
-    private fun abrirCamara() = if (ActivityCompat.checkSelfPermission(context!!, CAMERA) == PackageManager.PERMISSION_DENIED ||
-        ActivityCompat.checkSelfPermission(context!!, WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
+    private fun abrirCamara() = if (ActivityCompat.checkSelfPermission(context!!,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_DENIED ||
+        ActivityCompat.checkSelfPermission(context!!, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
         val permisosCamara =
-            arrayOf(CAMERA, WRITE_EXTERNAL_STORAGE)
+            arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
         requestPermissions(permisosCamara, CAMARA)
     }else{
         mostrarCamara()
@@ -199,7 +172,7 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
 
     //pido los permisos para abrir la galeria
     private fun abrirGaleria(){
-        val permiso = arrayOf(READ_EXTERNAL_STORAGE)
+        val permiso = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
         requestPermissions(permiso, GALERIA)
     }
     //muetsro la galeria
@@ -239,28 +212,17 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
 
     }
 
-    private fun initMapsFragment(){
+    private fun createPlace(latitude: Double, longitude : Double){
 
-        btnOpenMap_NewPlace.setOnClickListener {
-            val newFragment: Fragment = MapsFragment()
-            val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
-            transaction.replace(R.id.nav_host_fragment, newFragment)
-            transaction.addToBackStack(null)
-            transaction.commit()
-        }
-    }
+        btnSave_NewActualPlace.setOnClickListener {
 
-    private fun createPlace(){
-
-        btnSave_NewPlace.setOnClickListener {
-
-            if (comprobarVacios()){
+            if (txtNamePlace_NewActualPlace.text.isNotEmpty()){
 
                 val currentDate = Calendar.getInstance().time
                 val namePlace = txtNamePlace_NewPlace.text.toString()
-                val id = ControllerPlaces.getPlaceIdentity()
                 val city = txtUbication.text.toString()
-                val place = Place(id, namePlace, currentDate, city, mark, location.longitude, location.latitude)
+                val id = ControllerPlaces.getPlaceIdentity()
+                val place = Place(id, namePlace, currentDate, city, mark, longitude, latitude)
                 ControllerPlaces.insertPlace(place)
                 addImagePlace(images, place)
                 user.places.add(place)
@@ -275,10 +237,6 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
 
             }
         }
-    }
-
-    private fun comprobarVacios() : Boolean{
-        return txtNamePlace_NewPlace.text.isNotEmpty() and txtUbicationPlace_NewPlace.text.isNotEmpty()
     }
 
     //si el usuario selecciona una imagen, la almacenamos en la lista
@@ -296,7 +254,6 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         }
         if (resultCode == Activity.RESULT_OK && requestCode == CAMARA) {
             val bitmap = MediaStore.Images.Media.getBitmap(context?.contentResolver!!, foto)
-            //foto?.let { addSliderItem(it) }
             addSliderItem(bitmap)
         }
     }
@@ -323,6 +280,54 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
                         .show()
             }
         }
+    }
+
+    private var sliderRunnable = Runnable {
+
+        run {
+            viewPager2.currentItem = viewPager2.currentItem + 1
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        sliderHandler.removeCallbacks(sliderRunnable)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        sliderHandler.postDelayed(sliderRunnable, 3000)
+    }
+
+    //Obtener puntuacion del sitio
+    override fun onRatingChanged(ratingBar: RatingBar?, rating: Float, fromUser: Boolean) {
+        mark = rating.toDouble()
+    }
+
+    private fun getCurrentLocation(){
+
+        val locationRequest = LocationRequest()
+        locationRequest.interval = 500
+        locationRequest.fastestInterval = 200
+        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+
+        LocationServices.getFusedLocationProviderClient(activity!!)
+            .requestLocationUpdates(locationRequest, object : LocationCallback(){
+                override fun onLocationResult(locationResult: LocationResult) {
+                    super.onLocationResult(locationResult)
+                    LocationServices.getFusedLocationProviderClient(activity!!).removeLocationUpdates(this)
+
+                    if (locationResult.locations.size > 0){
+                        //Obtenemos la ultima posicion conocida
+                        val latestLocationIndex = locationResult.locations.size - 1
+                        val latitude = locationResult.locations[latestLocationIndex].latitude //LATITUD
+                        val longitude = locationResult.locations[latestLocationIndex].longitude //LONGITUD
+
+                        cargarCiudad(latitude, longitude)
+                        createPlace(latitude, longitude)
+                    }
+                }
+            }, Looper.getMainLooper())
     }
 
     private fun cargarCiudad(latitude: Double, longiude : Double){
@@ -359,6 +364,6 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
 
             return result
         }
-
     }
 }
+
