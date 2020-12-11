@@ -3,6 +3,7 @@ package android.com.diego.turistadroid.navigation_drawer.ui.myplaces
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.*
 import android.com.diego.turistadroid.login.LogInActivity
+import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewActualPlaceFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewPlaceFragment
 import android.com.diego.turistadroid.utilities.Utilities
 import android.graphics.*
@@ -281,13 +282,14 @@ class MyPlacesFragment : Fragment() {
         }
 
         btnFloatAddNewPlace.setOnClickListener {
-            Toast.makeText(context, "Nuevo Lugar Actual", Toast.LENGTH_SHORT).show()
+            initNewActualPlaceFragment()
         }
 
         btnFloatAddActualPlace.setOnClickListener {
             initNewPlaceFragment()
         }
     }
+
 
     private fun onAddButtonClicked() {
 
@@ -301,6 +303,16 @@ class MyPlacesFragment : Fragment() {
     private fun initNewPlaceFragment() {
 
         val newFragment: Fragment = NewPlaceFragment()
+        val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+
+    }
+
+    private fun initNewActualPlaceFragment() {
+
+        val newFragment: Fragment = NewActualPlaceFragment()
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
