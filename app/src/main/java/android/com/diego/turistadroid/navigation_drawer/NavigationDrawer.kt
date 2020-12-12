@@ -3,10 +3,14 @@ package android.com.diego.turistadroid.navigation_drawer
 import android.Manifest
 import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
+import android.com.diego.turistadroid.bbdd.ControllerSession
+import android.com.diego.turistadroid.bbdd.ControllerUser
+import android.com.diego.turistadroid.bbdd.User
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.myprofile.MyProfileFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.nearme.NearMeFragment
+import android.com.diego.turistadroid.splash.SplashScreenActivity
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Context
 import android.content.Intent
@@ -38,7 +42,7 @@ import kotlinx.android.synthetic.main.activity_navigation_drawer.*
 class NavigationDrawer : AppCompatActivity(){
 
     private lateinit var appBarConfiguration: AppBarConfiguration
-    private var user = LogInActivity.user
+    private lateinit var user: User
     private var CAMERA_PERMISSION = 2
     private var flashLightStatus: Boolean = false
     private lateinit var toolbar: Toolbar
@@ -72,7 +76,7 @@ class NavigationDrawer : AppCompatActivity(){
         txtNombreNav = navHeader.findViewById<TextView>(R.id.txtName_nav)
         txtCorreoNav = navHeader.findViewById<TextView>(R.id.txtEmail_nav)
 
-
+        userSwitch()
         asignarDatosUsuario()
 
         val navController = findNavController(R.id.nav_host_fragment)
@@ -89,6 +93,17 @@ class NavigationDrawer : AppCompatActivity(){
         navigationListener(navView)
         initPermisos()
         comprobarConexion()
+
+    }
+
+    private fun userSwitch(){
+        user = if(SplashScreenActivity.login) {
+            LogInActivity.user
+        }else{
+            val listaSesion = ControllerSession.selectSessions()!!
+            val emailSesion = listaSesion[0].emailUser
+            ControllerUser.selectByEmail(emailSesion)!!
+        }
     }
 
     /**
@@ -154,7 +169,6 @@ class NavigationDrawer : AppCompatActivity(){
 
     fun asignarDatosUsuario(){
         //asigno los datos del usuario al navHeader.
-        user = LogInActivity.user
         txtNombreNav.text = user.nombre
         txtCorreoNav.text = user.email
 
@@ -267,6 +281,7 @@ class NavigationDrawer : AppCompatActivity(){
     }
 
     private fun ejecutarExit(){
+        ControllerSession.deleteSession(user.email)
         val intent = Intent (this, LogInActivity::class.java)
         startActivity(intent)
     }
@@ -312,10 +327,13 @@ class NavigationDrawer : AppCompatActivity(){
         }else{
             Toast.makeText(this, "This device has no flash", Toast.LENGTH_SHORT).show();
         }
-
-
-
-
     }
+
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        ControllerSession.deleteSession(user.email)
+    }
+
 }
 

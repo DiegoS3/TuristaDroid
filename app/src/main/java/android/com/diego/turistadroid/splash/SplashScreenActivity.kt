@@ -20,6 +20,9 @@ import android.widget.TextView
 class SplashScreenActivity : AppCompatActivity() {
 
     private val TIME : Long = 5000
+    companion object{
+        var login = false
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,15 +33,18 @@ class SplashScreenActivity : AppCompatActivity() {
 
         //iniciamos las animaciones
         initAnimations()
-        //comprobarSesion()
-        initLogin()
+        comprobarSesion()
+        //initLogin()
     }
 
     private fun comprobarSesion(){
-        val listaSessions = ControllerSession.selectSessions()
-        if (listaSessions!!.size > 0){
+        //ControllerSession.deleteAllSessions()
+        val listaSessions = ControllerSession.selectSessions()!!
+        Log.i("sesiones:",listaSessions.size.toString())
+        if (listaSessions.size > 0){
             initNavigation()
         }else{
+            login = true
             initLogin()
         }
     }

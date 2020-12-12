@@ -27,4 +27,11 @@ object ControllerSession {
             it.where<Session>().equalTo("emailUser", email).findFirst()?.deleteFromRealm()
         }
     }
+
+    //Eliminar todos las sesiones
+    fun deleteAllSessions(){
+        Realm.getDefaultInstance().executeTransaction{
+            it.where<Session>().findAll().deleteAllFromRealm()
+        }
+    }
 }

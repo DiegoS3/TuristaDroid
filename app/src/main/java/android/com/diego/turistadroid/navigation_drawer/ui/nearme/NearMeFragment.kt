@@ -38,7 +38,6 @@ class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     private lateinit var mMap: GoogleMap
     private lateinit var locationCallback: LocationCallback
     private var primera = true
-    private var markerItemView: View? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -291,35 +290,13 @@ class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         uiSettings.isTiltGesturesEnabled = true
         uiSettings.isCompassEnabled = true
         uiSettings.isZoomControlsEnabled = true
-        uiSettings.isMapToolbarEnabled = true
+        uiSettings.isMapToolbarEnabled = false
         mMap.setMinZoomPreference(15.0f)
     }
 
     fun puntosEnMapa() {
-        // Obtenemos los lugares
-        //val listaLugares = ControllerPlaces.selectPlaces()
-        // Por cada lugar, añadimos su marcador
-        // Ademamas vamos a calcular la langitud y la latitud media
-        //listaLugares?.forEach {
-        //    añadirMarcador(it)
-        //}
-        // Actualiazmos la camara para que los cubra a todos
-        //actualizarCamara(listaLugares)
-        // Añadimos los eventos
         mMap.setOnMarkerClickListener(this)
 
-    }
-
-    /**
-     * Actauliza la camara para que lso cubra a todos
-     * @param listaLugares MutableList<Lugar>?
-     */
-    private fun actualizarCamara(listaLugares: MutableList<Place>?) {
-        val bc = LatLngBounds.Builder()
-        for (item in listaLugares!!) {
-            bc.include(LatLng(item.latitud, item.longitud))
-        }
-        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bc.build(), 120))
     }
 
     private fun marcadoresLugares(latLng: LatLng) {
@@ -331,25 +308,6 @@ class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLi
             placeMarker(location, listaPlaces[i])
             i++
         }
-    }
-
-    /**
-     * Creamos el marcador
-     * @param lugar Lugar
-     */
-    private fun añadirMarcador(lugar: Place) {
-        val posicion = LatLng(lugar.latitud, lugar.longitud)
-        val pin: Bitmap = crearPin(lugar.imagenes[0]!!.foto)!!
-        val marker = mMap.addMarker(
-            MarkerOptions() // Posición
-                .position(posicion) // Título
-                .title(lugar.nombre) // Subtitulo
-                .snippet(lugar.city + " del " + lugar.fecha) // Color o tipo d icono
-                .anchor(0.5f, 0.907f)
-                .icon(BitmapDescriptorFactory.fromBitmap(pin))
-        )
-        // Le aádo como tag el lugar para recuperarlo
-        marker.tag = lugar
     }
 
     /**
@@ -365,90 +323,6 @@ class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         infoWindow()
         return false
     }
-
-    /**
-     * Muestra un dialogo del lugar
-     * @param lugar Lugar
-     */
-    private fun mostrarDialogo(lugar: Place) {
-        val builder = AlertDialog.Builder(context)
-        val inflater = requireActivity().layoutInflater
-        val vista = inflater.inflate(R.layout.info_place_near_me, null)
-        builder.setView(vista)
-        builder.show()
-        // Le ponemos las cosas
-        //val imagen = vista.findViewById(R.id.mapaLugarImagen) as ImageView
-        //imagen.setImageBitmap(Utilities.base64ToBitmap(lugar.imagenes[0]!!.foto))
-        //val nombre = vista.findViewById(R.id.mapaLugarTextNombre) as TextView
-        //nombre.text = lugar.nombre
-        //val tipo = vista.findViewById(R.id.mapaLugarTextTipo) as TextView
-        //tipo.text = lugar.city
-        //val fecha = vista.findViewById(R.id.mapaLugarTextFecha) as TextView
-        //fecha.text = lugar.fecha.toString()
-        //builder
-        //    .setView(vista)
-        //    .setIcon(R.drawable.ic_location)
-        //    .setTitle("Lugar")
-            // Add action buttons
-        //    .setPositiveButton(R.string.btnSave) { _, _ ->
-        //        null
-        //    }
-        //.setNegativeButton(R.string.cancelar, null)
-        // setNeutralButton("Maybe", neutralButtonClick)
-        //builder.show()
-    }
-
-    /**
-     * Crea un pin personalizado usando la id de la foto
-     * @param imagenID String
-     * @return Bitmap?
-     */
-    private fun crearPin(imagenID: String): Bitmap? {
-        //val fotografia = lugar.imagenes[0]!!.foto
-        var result: Bitmap? = null
-        try {
-            result = Bitmap.createBitmap(dp(62f), dp(76f), Bitmap.Config.ARGB_8888)
-            result.eraseColor(Color.TRANSPARENT)
-            val canvas = Canvas(result)
-            val drawable = ContextCompat.getDrawable(context!!, R.drawable.pin_1)
-            drawable?.setBounds(0, 0, dp(62f), dp(76f))
-            drawable?.draw(canvas)
-            val roundPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-            val bitmapRect = RectF()
-            canvas.save()
-            val bitmap = Utilities.base64ToBitmap(imagenID)
-            //Bitmap bitmap = BitmapFactory.decodeFile(path.toString()); /*generate bitmap here if your image comes from any url*/
-            if (bitmap != null) {
-                val shader = BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-                val matrix = Matrix()
-                val scale = dp(52f) / bitmap.width.toFloat()
-                matrix.postTranslate(dp(5f).toFloat(), dp(5f).toFloat())
-                matrix.postScale(scale, scale)
-                roundPaint.shader = shader
-                shader.setLocalMatrix(matrix)
-                bitmapRect[dp(5f).toFloat(), dp(5f).toFloat(), dp(52f + 5).toFloat()] = dp(52f + 5).toFloat()
-                canvas.drawRoundRect(bitmapRect, dp(26f).toFloat(), dp(26f).toFloat(), roundPaint)
-            }
-            canvas.restore()
-            try {
-                canvas.setBitmap(null)
-            } catch (e: Exception) {
-            }
-        } catch (t: Throwable) {
-            t.printStackTrace()
-        }
-        return result
-    }
-
-    // Densidad de pantalla
-    fun dp(value: Float): Int {
-        return if (value == 0f) {
-            0
-        } else
-            Math.ceil((resources.displayMetrics.density * value).toDouble()).toInt()
-    }
-
-
 
 
     private fun infoWindow(){
