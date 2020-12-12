@@ -29,6 +29,7 @@ import android.widget.EditText
 import android.widget.RatingBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
@@ -39,6 +40,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.gms.maps.model.LatLng
 import io.realm.RealmList
 import kotlinx.android.synthetic.main.activity_sign_up.*
+import kotlinx.android.synthetic.main.app_bar_main.view.*
 import kotlinx.android.synthetic.main.fragment_newplace.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
 import java.io.IOException
@@ -46,7 +48,7 @@ import java.util.*
 import kotlin.math.abs
 
 
-class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
+class NewPlaceFragment () : Fragment(), RatingBar.OnRatingBarChangeListener {
 
     private lateinit var tarea: CityAsyncTask
     private lateinit var viewPager2 : ViewPager2
@@ -75,11 +77,13 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
     ): View? {
 
         val root = inflater.inflate(R.layout.fragment_newplace, container, false)
+
         txtUbication = root.findViewById(R.id.txtUbicationPlace_NewPlace)
         viewPager2 = root.findViewById(R.id.vpImagesPlace_NewPlace)
         ratingBar = root.findViewById(R.id.ratingBarPlace_NewPlace)
         btnAddImage = root.findViewById(R.id.btnAddImage_NewPlace)
         ratingBar.onRatingBarChangeListener = this
+
 
         // Inflate the layout for this fragment
         return root
@@ -161,7 +165,7 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
             val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_seleccion_camara, null)
             val mBuilder = AlertDialog.Builder(context!!)
                 .setView(mDialogView).create()
-            val mAlertDialog = mBuilder.show()
+            mBuilder.show()
 
             //Listener para abrir la camara
             mDialogView.txtCamara.setOnClickListener {
@@ -359,6 +363,5 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
 
             return result
         }
-
     }
 }

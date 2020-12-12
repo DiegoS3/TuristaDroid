@@ -29,6 +29,7 @@ import android.widget.EditText
 import android.widget.RatingBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
@@ -39,6 +40,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
 import io.realm.RealmList
+import kotlinx.android.synthetic.main.app_bar_main.view.*
 import kotlinx.android.synthetic.main.fragment_new_actual_place.*
 import kotlinx.android.synthetic.main.fragment_newplace.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
@@ -76,6 +78,7 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
 
         // Inflate the layout for this fragment
         val root = inflater.inflate(R.layout.fragment_new_actual_place, container, false)
+
         txtUbication = root.findViewById(R.id.txtUbicationPlace_NewActualPlace)
         viewPager2 = root.findViewById(R.id.vpImagesPlace_NewActualPlace)
         ratingBar = root.findViewById(R.id.ratingBarPlace_NewActualPlace)
