@@ -10,7 +10,7 @@
         android:layout_margin="10dp"
         android:foreground="?selectableItemBackground"
         android:clickable="true">
-    <RelativeLayout
+       <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/gradient"
@@ -18,7 +18,7 @@
 
         <TextView
                 android:text="Zurich - Suiza"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/txtCityPlace_Place"
                 android:textColor="@color/colorBackground"
@@ -66,14 +66,13 @@
                 app:srcCompat="@drawable/ima_star"
                 android:id="@+id/imgStar_Place"
                 android:layout_marginTop="18dp"
-                android:layout_marginStart="100dp"
                 android:layout_below="@+id/imgPlace_Place"
-                android:layout_toEndOf="@+id/txtCityPlace_Place"
                 android:layout_alignParentBottom="true"
-                android:layout_marginBottom="18dp"/>
+                android:layout_marginBottom="18dp" android:layout_alignParentStart="true"
+                android:layout_marginStart="210dp"/>
         <TextView
                 android:text="22/11/2020"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/txtDatePlace_Place"
                 android:layout_marginTop="10dp"

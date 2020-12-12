@@ -1,26 +1,37 @@
 package android.com.diego.turistadroid.navigation_drawer.ui.myplaces
 
-import android.animation.Animator
-import android.animation.Animator.AnimatorListener
-import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.Manifest
+import android.app.Activity
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.Place
+import android.com.diego.turistadroid.bbdd.*
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.utilities.Utilities
 import android.com.diego.turistadroid.utilities.slider.SliderAdapter
 import android.com.diego.turistadroid.utilities.slider.SliderItem
+import android.content.ContentValues
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.location.Address
+import android.location.Geocoder
+import android.net.Uri
+import android.os.AsyncTask
+import android.os.Bundle
 import android.os.Handler
+import android.provider.MediaStore
 import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.Button
-import android.widget.EditText
 import android.widget.RatingBar
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.CompositePageTransformer
 import androidx.viewpager2.widget.MarginPageTransformer
@@ -30,17 +41,26 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import io.realm.RealmList
+import kotlinx.android.synthetic.main.activity_log_in.*
 import kotlinx.android.synthetic.main.fragment_my_place_detail.*
 import kotlinx.android.synthetic.main.fragment_myplaces.*
+import kotlinx.android.synthetic.main.fragment_new_actual_place.*
 import kotlinx.android.synthetic.main.item_list_places.*
+import kotlinx.android.synthetic.main.layout_change_name_place.view.*
+import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
+import java.io.IOException
+import java.util.*
 import kotlin.math.abs
 
 class MyPlaceDetailFragment(
 
     private var editable : Boolean,
-    private var lugar : Place
+    private var lugar : Place,
+    private var indexPlace : Int? = null,
+    private var fragmentAnterior : MyPlacesFragment? = null
 
-    ) : Fragment(), OnMapReadyCallback {
+    ) : Fragment(), OnMapReadyCallback, RatingBar.OnRatingBarChangeListener {
 
     //Componentes Interfaz
     private lateinit var btnSave : Button
@@ -59,6 +79,8 @@ class MyPlaceDetailFragment(
     private var sliderHandler = Handler()
     //Lista de imagenes
     private var sliderItems =  mutableListOf<SliderItem>()
+    private var listaImagenes = mutableListOf<Image>()
+    private var images = RealmList<Image>()
 
     //Usuario logeado
     private var user = LogInActivity.user
@@ -68,6 +90,16 @@ class MyPlaceDetailFragment(
     private var moreOrShareClick = false
     private var mark : Float = 0f
     private lateinit var mMap : GoogleMap //Mapa Google Maps
+    private lateinit var location : LatLng //Localizacion
+    private lateinit var tarea: CityAsyncTask
+
+    //Actualizar Lugar
+    private var newNamePlace = ""
+
+    // Variables para la camara
+    private val GALERIA = 1
+    private val CAMARA = 2
+    private var foto: Uri? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -87,9 +119,12 @@ class MyPlaceDetailFragment(
     private fun init(){
         initMapa()
         initMode()
+        initChangeName()
         initViewPager()
         lugaresUsuario()
         showDetailsPlace()
+        abrirOpciones()
+        updatePlace()
     }
 
     private fun lugaresUsuario(){
@@ -97,6 +132,8 @@ class MyPlaceDetailFragment(
             if (this.lugar.id == item.id){
                 mark = item.puntuacion.toFloat()
                 Log.i("Puntuacion", mark.toString())
+            }else{
+                mark = 0f
             }
         }
     }
@@ -111,6 +148,7 @@ class MyPlaceDetailFragment(
     private fun imagenesLugar(){
         for (item in this.lugar.imagenes){
             val img = Utilities.base64ToBitmap(item.foto)!!
+            listaImagenes.add(item)
             addSliderItem(img)
         }
     }
@@ -122,11 +160,11 @@ class MyPlaceDetailFragment(
         floatBtnMore = view.findViewById(R.id.btnFloatShowShare_DetailsPlaces)
         floatBtnShare = view.findViewById(R.id.btnFloatSharePlace_DetailsPlace)
         floatBtnQr = view.findViewById(R.id.btnFloatQRPlace_DetailsPlace)
-        floatBtnGoTo = view.findViewById(R.id.btnFloatGoToPlace_DetailsPlace)
         floatBtnTwitter = view.findViewById(R.id.btnFloatShareTwitter_DetailsPlace)
         floatBtnEmail = view.findViewById(R.id.btnFloatShareEmail_DetailsPlace)
         floatBtnInsta = view.findViewById(R.id.btnFloatShareInstagram_DetailsPlace)
         ratingBar = view.findViewById(R.id.ratingBarPlace_DetailsPlace)
+        ratingBar.onRatingBarChangeListener = this
 
     }
 
@@ -136,6 +174,8 @@ class MyPlaceDetailFragment(
 
             btnSave.visibility = View.VISIBLE
             floatBtnMore.isClickable = false
+            txtTitlePlace_DetailsPlace.isClickable = true
+            viewPager2.isClickable = true
             notClickable()
 
         }else{
@@ -199,6 +239,74 @@ class MyPlaceDetailFragment(
         }
     }
 
+    private fun setNewName(name : String){
+        this.newNamePlace = name
+        txtTitlePlace_DetailsPlace.text = name
+    }
+
+    private fun initChangeName(){
+        txtTitlePlace_DetailsPlace.setOnClickListener {
+            val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_change_name_place, null)
+            val mBuilder = AlertDialog.Builder(context!!)
+                .setView(mDialogView).create()
+            mBuilder.show()
+
+            //Listener para confirmar el cambio de nombre
+            mDialogView.btnConfirmNamePlace_EditPlace.setOnClickListener {
+                setNewName(mDialogView.txtNewNamePlace_EditPlace.text.toString())
+                mBuilder.dismiss()
+            }
+
+            //Listener para cancelar el cambio de nombre
+            mDialogView.btnCancelNamePlace_EditPlace.setOnClickListener {
+                mBuilder.dismiss()
+            }
+        }
+    }
+
+    //Obtener puntuacion del sitio
+    override fun onRatingChanged(ratingBar: RatingBar?, rating: Float, fromUser: Boolean) {
+        mark = rating
+    }
+
+    private fun updatePlace(){
+        btnSave.setOnClickListener {
+            if (txtTitlePlace_DetailsPlace.text.isNotEmpty()){
+
+                if (txtUbicationPlace_DetailsPlace.equals(getString(R.string.notFoundUbication))){
+                    Toast.makeText(context, getString(R.string.ubicationError), Toast.LENGTH_SHORT).show()
+                }else {
+
+                    val namePlace = txtTitlePlace_DetailsPlace.text.toString()
+                    val city = txtUbicationPlace_DetailsPlace.text.toString()
+                    val place = if (this::location.isInitialized){
+                        Place(this.lugar.id, namePlace, this.lugar.fecha, city, mark.toDouble(), location.longitude, location.latitude)
+                    }else{
+                        Place(this.lugar.id, namePlace, this.lugar.fecha, city, mark.toDouble(), this.lugar.longitud, this.lugar.latitud)
+                    }
+                    addImagePlace(images, place)
+                    ControllerPlaces.updatePlace(place)
+                    this.fragmentAnterior?.actualizarPlaceAdapter(place, this.indexPlace!!)
+                    initMyPlacesFragment()
+                }
+
+            }else{
+
+                Toast.makeText(context, getString(R.string.action_emptyfield), Toast.LENGTH_SHORT).show()
+
+            }
+        }
+    }
+
+    private fun initMyPlacesFragment(){
+
+        val newFragment: Fragment = MyPlacesFragment()
+        val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.commit()
+
+    }
+
     private fun onMoreButtonClicked() {
         if (moreOrShareClick){
             setVisibility(clicked)
@@ -257,14 +365,12 @@ class MyPlaceDetailFragment(
                 floatBtnGoTo.visibility = View.VISIBLE
                 floatBtnQr.visibility = View.VISIBLE
                 txtSharePlace_Details.visibility = View.VISIBLE
-                txtGoToPlace_Details.visibility = View.VISIBLE
                 txtQRPlace_Details.visibility = View.VISIBLE
             } else {
                 floatBtnShare.visibility = View.INVISIBLE
                 floatBtnGoTo.visibility = View.INVISIBLE
                 floatBtnQr.visibility = View.INVISIBLE
                 txtSharePlace_Details.visibility = View.INVISIBLE
-                txtGoToPlace_Details.visibility = View.INVISIBLE
                 txtQRPlace_Details.visibility = View.INVISIBLE
             }
         }else{
@@ -303,7 +409,6 @@ class MyPlaceDetailFragment(
                 floatBtnGoTo.startAnimation(fromBottom)
                 floatBtnQr.startAnimation(fromBottom)
                 txtSharePlace_Details.startAnimation(fromBottom)
-                txtGoToPlace_Details.startAnimation(fromBottom)
                 txtQRPlace_Details.startAnimation(fromBottom)
                 floatBtnMore.startAnimation(rotateOpen)
 
@@ -312,7 +417,6 @@ class MyPlaceDetailFragment(
                 floatBtnGoTo.startAnimation(toBottom)
                 floatBtnQr.startAnimation(toBottom)
                 txtSharePlace_Details.startAnimation(toBottom)
-                txtGoToPlace_Details.startAnimation(toBottom)
                 txtQRPlace_Details.startAnimation(toBottom)
                 floatBtnMore.startAnimation(rotateClose)
             }
@@ -334,7 +438,6 @@ class MyPlaceDetailFragment(
                 txtShareEmail_Details.startAnimation(toBottomShare)
             }
         }
-
     }
 
     private fun addSliderItem(bitmap: Bitmap){
@@ -347,6 +450,14 @@ class MyPlaceDetailFragment(
         run {
             viewPager2.currentItem = viewPager2.currentItem + 1
         }
+    }
+
+    private fun addImageBd(bitmap: Bitmap){
+        val imgStr = Utilities.bitmapToBase64(bitmap)!!
+        val id = ControllerImages.getImageIdentity()
+        val img = Image(id, imgStr)
+        images.add(img)
+        ControllerImages.insertImage(img)
     }
 
     override fun onPause() {
@@ -371,11 +482,21 @@ class MyPlaceDetailFragment(
 
     }
 
+    private fun addImagePlace(list: MutableList<Image>, place: Place){
+
+        for (imgPlace in this.lugar.imagenes){ place.imagenes.add(imgPlace)}
+        for (imagen in list){ place.imagenes.add(imagen) }
+    }
+
     private fun moveCamera(){
         val latitud = this.lugar.latitud
         val longitud = this.lugar.longitud
         val location = LatLng(latitud, longitud)
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(location))
+        if (editable) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15f))
+        }else{
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(location))
+        }
         placeMarker(location)
     }
 
@@ -390,13 +511,24 @@ class MyPlaceDetailFragment(
         uiSettings.isTiltGesturesEnabled = boolean
         uiSettings.isCompassEnabled = boolean
         uiSettings.isZoomControlsEnabled = boolean
-        uiSettings.isMapToolbarEnabled = boolean
-        mMap.setMinZoomPreference(15.0f)
+        uiSettings.isMapToolbarEnabled = false
+        if (editable){
+            mMap.setMinZoomPreference(10.0f)
+        }else{
+            mMap.setMinZoomPreference(15.0f)
+        }
     }
 
     private fun initMapaSwitchEditable(){
         if (editable){
             configurarIUMapa(true)
+            mMap.setOnMapClickListener { latLng ->
+
+                mMap.clear()
+                location = LatLng(latLng.latitude, latLng.longitude)
+                placeMarker(location)
+                cargarCiudad(latLng.latitude, latLng.longitude)
+            }
         }else{
             configurarIUMapa(false)
         }
@@ -406,5 +538,141 @@ class MyPlaceDetailFragment(
         mMap = googleMap
         initMapaSwitchEditable()
         moveCamera()
+
+    }
+
+    private fun abrirOpciones() {
+        viewPager2.setOnClickListener(){
+            val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_seleccion_camara, null)
+            val mBuilder = AlertDialog.Builder(context!!)
+                .setView(mDialogView).create()
+            mBuilder.show()
+
+            //Listener para abrir la camara
+            mDialogView.txtCamara.setOnClickListener {
+                abrirCamara()
+                mBuilder.dismiss()
+            }
+
+            //Listener para abrir la galeria
+            mDialogView.txtGaleria.setOnClickListener {
+                abrirGaleria()
+                mBuilder.dismiss()
+            }
+        }
+    }
+
+    //muestro la camara
+    private fun abrirCamara() = if (ActivityCompat.checkSelfPermission(context!!,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_DENIED ||
+        ActivityCompat.checkSelfPermission(context!!, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
+        val permisosCamara =
+            arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        requestPermissions(permisosCamara, CAMARA)
+    }else{
+        mostrarCamara()
+    }
+
+    //abre la camara y hace la foto
+    private fun mostrarCamara(){
+        val value = ContentValues()
+        value.put(MediaStore.Images.Media.TITLE, "Nueva Imagen")
+        foto = context?.contentResolver!!.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, value)
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, foto)
+        startActivityForResult(intent, CAMARA)
+    }
+
+    //pido los permisos para abrir la galeria
+    private fun abrirGaleria(){
+        val permiso = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+        requestPermissions(permiso, GALERIA)
+    }
+    //muetsro la galeria
+    private fun mostrarGaleria(){
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.type = "image/*"
+        startActivityForResult(intent, GALERIA)
+    }
+
+    //si el usuario selecciona una imagen, la almacenamos en la lista
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK && requestCode==GALERIA) {
+            try {
+
+
+
+            } catch (e: IOException) {
+                e.printStackTrace()
+                Toast.makeText(context, "¡Fallo Galeria!", Toast.LENGTH_SHORT).show()
+            }
+        }
+        if (resultCode == Activity.RESULT_OK && requestCode == CAMARA) {
+            val bitmap = MediaStore.Images.Media.getBitmap(context?.contentResolver!!, foto)
+            addSliderItem(bitmap)
+            addImageBd(bitmap)
+        }
+    }
+
+    //obtengo el resultado de pedir los permisos
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        when(requestCode){
+            GALERIA -> {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    mostrarGaleria()
+                else
+                    Toast.makeText(
+                        context,
+                        "No tienes permiso para acceder a la galería",
+                        Toast.LENGTH_SHORT
+                    ).show()
+            }
+            CAMARA -> {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    abrirCamara()
+                else
+                    Toast.makeText(context, "No tienes permiso para acceder a la cámara", Toast.LENGTH_SHORT)
+                        .show()
+            }
+        }
+    }
+
+    private fun cargarCiudad(latitude: Double, longiude : Double){
+
+        tarea = CityAsyncTask(latitude, longiude)
+        tarea.execute()
+    }
+
+    inner class CityAsyncTask(latitude: Double, longiude : Double) : AsyncTask<String, String, String>() {
+
+        private var latitud = latitude
+        private var longitud = longiude
+
+        override fun doInBackground(vararg params: String?): String {
+
+            var result = ""
+            val geocoder = Geocoder(context!!, Locale.getDefault())
+            try {
+                val addresses : List<Address> = geocoder.getFromLocation(latitud, longitud, 1)
+                when {
+                    (addresses[0].locality != null) and (addresses[0].countryName != null) -> {
+                        txtUbicationPlace_DetailsPlace.text = addresses[0].locality + " - " + addresses[0].countryName
+                    }
+                    (addresses[0].locality == null) and (addresses[0].countryName != null) -> {
+                        txtUbicationPlace_DetailsPlace.text = addresses[0].countryName
+                    }
+                    else -> {
+                        txtUbicationPlace_DetailsPlace.text = getString(R.string.notFoundUbication)
+                    }
+                }
+                result = addresses[0].toString()
+            }catch (e : IOException){}
+            catch (e : Exception) {}
+
+            return result
+        }
     }
 }
