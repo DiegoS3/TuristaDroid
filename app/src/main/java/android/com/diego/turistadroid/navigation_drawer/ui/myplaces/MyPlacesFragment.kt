@@ -55,11 +55,11 @@ class MyPlacesFragment : Fragment() {
 
     private fun initUI() {
         initFloatingButtons()
-        cargarDatos()
         iniciarSwipeRecarga()
         iniciarSwipeHorizontal()
         // Mostramos las vistas de listas y adaptador asociado
         placeRecycler_MyPlaces.layoutManager = LinearLayoutManager(context)
+        cargarDatos()
     }
 
     /**
@@ -100,9 +100,8 @@ class MyPlacesFragment : Fragment() {
                         abrirOpciones(position)
                     }
                     else -> {
-                        //  Log.d("Noticias", "Tocado derecha");
-                        //editarElemento(position)
-                        initDetailsPlaceFragment()
+                        editarElemento(position)
+                        cargarDatos()
                     }
                 }
             }
@@ -206,8 +205,8 @@ class MyPlacesFragment : Fragment() {
         adapter.notifyDataSetChanged()
     }
 
-    private fun editarElemento(pos : Int){
-        initNewPlaceFragment()
+    private fun editarElemento(pos: Int){
+        initDetailsPlaceFragment(true, places[pos])
     }
 
     private fun abrirOpciones(pos: Int) {
@@ -291,7 +290,6 @@ class MyPlacesFragment : Fragment() {
         }
     }
 
-
     private fun onAddButtonClicked() {
 
         setVisibility(clicked)
@@ -317,18 +315,17 @@ class MyPlacesFragment : Fragment() {
         transaction.addToBackStack(null)
         transaction.commit()
     }
-    private fun initDetailsPlaceFragment() {
 
-        val newFragment: Fragment = MyPlaceDetailFragment()
+    private fun initDetailsPlaceFragment(boolean: Boolean, place: Place) {
+
+        val newFragment: Fragment = MyPlaceDetailFragment(boolean, place)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
         transaction.commit()
     }
 
-
-
-    private fun setAnimation(clicked: Boolean) {
+    private fun setVisibility(clicked: Boolean) {
         if (!clicked) {
             btnFloatAddActualPlace.visibility = View.VISIBLE
             btnFloatAddNewPlace.visibility = View.VISIBLE
@@ -342,7 +339,7 @@ class MyPlacesFragment : Fragment() {
         }
     }
 
-    private fun setVisibility(clicked: Boolean) {
+    private fun setAnimation(clicked: Boolean) {
 
         //Animaciones
         val rotateOpen = AnimationUtils.loadAnimation(context, R.anim.rotate_open_anim)
@@ -394,7 +391,7 @@ class MyPlacesFragment : Fragment() {
      * @param place Place
      */
     private fun eventoClicFila(place: Place) {
-        initDetailsPlaceFragment()
+        initDetailsPlaceFragment(false, place)
     }
 
     inner class TareaCargarDatos : AsyncTask<String?, Void?, Void?>() {

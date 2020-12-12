@@ -3,8 +3,8 @@
              xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
+             android:theme="@style/AppTheme.NoActionBar"
              xmlns:app="http://schemas.android.com/apk/res-auto"
-             android:theme="@style/Theme.MaterialComponents"
              tools:context=".navigation_drawer.ui.myplaces.MyPlaceDetailFragment">
     <RelativeLayout
             android:layout_width="match_parent"
@@ -13,24 +13,24 @@
 
         <TextView
                 android:text="Iglesia de San Martin"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/txtTitlePlace_DetailsPlace"
                 android:fontFamily="@font/roboto_bold"
                 android:textColor="@color/colorLetter"
-                android:layout_marginStart="62dp"
+                android:paddingStart="40dp"
                 android:layout_marginTop="10dp"
                 android:textSize="30sp"
-        />
+                tools:ignore="RtlSymmetry"/>
         <TextView
                 android:text="Zurich - Suiza"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/txtUbicationPlace_DetailsPlace"
                 android:fontFamily="@font/roboto_bold"
                 android:textColor="@color/colorLetter"
                 android:layout_marginTop="50dp"
-                android:layout_marginStart="142dp"
+                android:paddingStart="120dp"
                 android:textSize="20sp"
         />
         <androidx.cardview.widget.CardView
@@ -42,10 +42,10 @@
                 android:layout_marginTop="10dp"
                 android:layout_below="@+id/txtUbicationPlace_DetailsPlace"
                 app:cardElevation="12dp"
-                android:layout_marginStart="30dp"
+                android:layout_marginStart="5dp"
         >
             <fragment
-                    android:layout_height="200dp"
+                    android:layout_height="180dp"
                     android:layout_width="350dp"
                     android:id="@+id/mapPlace_DetailsPlace"
                     android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -55,7 +55,7 @@
         <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/vpImagesPlace_DetailsPlace"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
+                android:layout_height="180dp"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="-210dp"
                 android:paddingEnd="150dp"
@@ -64,14 +64,14 @@
         <RatingBar
                 android:id="@+id/ratingBarPlace_DetailsPlace"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="50dp"
                 android:stepSize="0.5"
                 android:layout_marginStart="60dp"
                 android:layout_alignParentEnd="true"
                 android:numStars="5"
                 android:layout_marginEnd="60dp"
                 android:layout_alignParentStart="true"
-                android:layout_marginTop="225dp"
+                android:layout_marginTop="220dp"
                 android:theme="@style/RatingBar"
                 android:layout_below="@+id/vpImagesPlace_DetailsPlace"/>
 
@@ -83,6 +83,7 @@
                 android:textColor="@color/colorLetter"
                 android:background="@drawable/box_buttons"
                 android:textSize="18sp"
+                android:visibility="invisible"
                 android:layout_alignParentEnd="true"
                 android:layout_marginEnd="100dp"
                 android:layout_alignParentStart="true"
@@ -93,24 +94,29 @@
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/btnFloatShowShare_DetailsPlaces"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                app:fabCustomSize="60dp"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentBottom="true"
                 android:clickable="true"
                 android:focusable="true"
                 app:backgroundTint="@color/colorLightGradient"
+                android:visibility="invisible"
                 app:srcCompat="@drawable/ic_show_details"
                 android:layout_marginTop="16dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="16dp"/>
-        <com.google.android.material.button.MaterialButton
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                app:fabCustomSize="40dp"
                 app:srcCompat="@drawable/ic_share_button"
                 android:layout_alignParentBottom="true"
-                app:cornerRadius="20dp"
-                android:background="@color/colorFloatingButton"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="invisible"
+                android:backgroundTint="@color/colorFloatingButton"
                 android:layout_marginBottom="24dp"
                 android:id="@+id/btnFloatSharePlace_DetailsPlace"
                 android:layout_marginEnd="5dp"
@@ -123,18 +129,23 @@
                 android:layout_alignParentBottom="true"
                 android:layout_marginBottom="34dp"
                 android:textColor="@color/colorLetter"
+                android:visibility="invisible"
                 android:fontFamily="@font/roboto_bold"
                 android:textSize="14sp"
                 android:layout_toStartOf="@+id/btnFloatShowShare_DetailsPlaces"
-                android:layout_marginEnd="5dp"/>
-        <com.google.android.material.button.MaterialButton
+                android:layout_marginEnd="15dp"/>
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                app:fabCustomSize="40dp"
                 app:srcCompat="@drawable/ic_go_to"
                 android:layout_alignParentBottom="true"
+                android:visibility="invisible"
                 app:cornerRadius="20dp"
+                android:clickable="true"
+                android:focusable="true"
                 android:id="@+id/btnFloatGoToPlace_DetailsPlace"
-                android:background="@color/colorFloatingButton"
+                android:backgroundTint="@color/colorFloatingButton"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="24dp"
                 android:layout_marginEnd="5dp"
@@ -146,21 +157,26 @@
                 android:id="@+id/txtGoToPlace_Details"
                 android:layout_alignParentBottom="true"
                 android:layout_marginBottom="34dp"
+                android:visibility="invisible"
                 android:textColor="@color/colorLetter"
                 android:fontFamily="@font/roboto_bold"
                 android:textSize="14sp"
                 android:layout_marginEnd="10dp"
                 android:layout_toStartOf="@+id/btnFloatSharePlace_DetailsPlace"/>
-        <com.google.android.material.button.MaterialButton
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                app:srcCompat="@drawable/ic_go_to"
+                app:fabCustomSize="40dp"
+                app:srcCompat="@drawable/ic_qr"
                 android:layout_alignParentBottom="true"
                 app:cornerRadius="20dp"
+                android:clickable="true"
+                android:focusable="true"
                 android:id="@+id/btnFloatQRPlace_DetailsPlace"
-                android:background="@color/colorFloatingButton"
+                android:backgroundTint="@color/colorFloatingButton"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="24dp"
+                android:visibility="invisible"
                 android:layout_marginEnd="5dp"
                 android:layout_toStartOf="@+id/txtQRPlace_Details"/>
         <TextView
@@ -172,98 +188,92 @@
                 android:layout_marginBottom="34dp"
                 android:textColor="@color/colorLetter"
                 android:fontFamily="@font/roboto_bold"
+                android:visibility="invisible"
                 android:textSize="14sp"
                 android:layout_marginEnd="10dp"
                 android:layout_toStartOf="@+id/btnFloatGoToPlace_DetailsPlace"/>
-        <com.google.android.material.button.MaterialButton
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                app:fabCustomSize="40dp"
                 app:srcCompat="@drawable/ic_email_float_btn"
                 app:cornerRadius="20dp"
-                android:background="@color/colorFloatingButton"
+                android:backgroundTint="@color/colorFloatingButton"
                 android:id="@+id/btnFloatShareEmail_DetailsPlace"
-                android:layout_marginStart="252dp"
+                android:visibility="invisible"
+                android:layout_marginStart="187dp"
+                android:clickable="true"
+                android:focusable="true"
                 android:layout_above="@+id/btnFloatSharePlace_DetailsPlace"
-                android:layout_marginBottom="15dp"/>
+                android:layout_marginBottom="15dp"
+                android:layout_alignParentStart="true"/>
         <TextView
                 android:text="@string/emailButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/txtShareEmail_Details"
-                android:layout_alignParentBottom="true"
-                android:layout_marginBottom="90dp"
                 android:textColor="@color/colorLetter"
                 android:fontFamily="@font/roboto_bold"
                 android:textSize="14sp"
-                android:layout_above="@id/txtSharePlace_Details"
+                android:visibility="invisible"
                 android:layout_toEndOf="@+id/btnFloatShareEmail_DetailsPlace"
                 android:layout_marginStart="5dp"
-        />
-        <com.google.android.material.button.MaterialButton
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                app:srcCompat="@drawable/ic_facebook_float_btn"
-                app:cornerRadius="20dp"
-                android:background="@color/colorFloatingButton"
-                android:id="@+id/btnFloatShareFacebook_DetailsPlace"
-                android:layout_marginStart="252dp"
-                android:layout_above="@+id/btnFloatShareEmail_DetailsPlace"
-                android:layout_marginBottom="15dp"/>
-        <TextView
-                android:text="@string/facebooklButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/txtShareFacebook_Details"
-                android:textColor="@color/colorLetter"
-                android:fontFamily="@font/roboto_bold"
-                android:textSize="14sp"
-                android:layout_above="@id/txtShareEmail_Details"
-                android:layout_toEndOf="@+id/btnFloatShareEmail_DetailsPlace"
-                android:layout_marginStart="5dp"
+                android:layout_alignParentEnd="true"
+                android:layout_above="@+id/txtSharePlace_Details"
                 android:layout_marginBottom="35dp"/>
-        <com.google.android.material.button.MaterialButton
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                app:fabCustomSize="40dp"
                 app:srcCompat="@drawable/ic_insta_float_btn"
-                app:cornerRadius="20dp"
-                android:background="@color/colorFloatingButton"
+                android:clickable="true"
+                android:visibility="invisible"
+                android:focusable="true"
+                android:backgroundTint="@color/colorFloatingButton"
                 android:id="@+id/btnFloatShareInstagram_DetailsPlace"
-                android:layout_marginStart="252dp"
-                android:layout_above="@+id/btnFloatShareFacebook_DetailsPlace"
-                android:layout_marginBottom="15dp"/>
+                android:layout_marginStart="187dp"
+                android:layout_above="@+id/btnFloatShareEmail_DetailsPlace"
+                android:layout_marginBottom="15dp" android:layout_alignParentStart="true"/>
         <TextView
                 android:text="@string/instagramButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/txtShareInstagram_Details"
                 android:textColor="@color/colorLetter"
+                android:visibility="invisible"
                 android:fontFamily="@font/roboto_bold"
                 android:textSize="14sp"
-                android:layout_above="@id/txtShareFacebook_Details"
+                android:layout_above="@id/txtShareEmail_Details"
                 android:layout_toEndOf="@+id/btnFloatShareInstagram_DetailsPlace"
                 android:layout_marginStart="5dp"
                 android:layout_marginBottom="38dp"/>
-        <com.google.android.material.button.MaterialButton
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                app:fabCustomSize="40dp"
                 app:srcCompat="@drawable/ic_twitter_float_btn"
-                app:cornerRadius="20dp"
-                android:background="@color/colorFloatingButton"
+                android:clickable="true"
+                android:focusable="true"
+                android:backgroundTint="@color/colorFloatingButton"
+                android:visibility="invisible"
                 android:id="@+id/btnFloatShareTwitter_DetailsPlace"
-                android:layout_marginStart="252dp"
+                android:layout_marginStart="187dp"
                 android:layout_above="@+id/btnFloatShareInstagram_DetailsPlace"
-                android:layout_marginBottom="15dp"/>
+                android:layout_marginBottom="15dp" android:layout_alignParentStart="true"/>
         <TextView
                 android:text="@string/twitterButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/txtShareTwitter_Details"
+                android:visibility="invisible"
                 android:textColor="@color/colorLetter"
                 android:fontFamily="@font/roboto_bold"
                 android:textSize="14sp"
                 android:layout_above="@id/txtShareInstagram_Details"
                 android:layout_toEndOf="@+id/btnFloatShareTwitter_DetailsPlace"
                 android:layout_marginStart="5dp"
-                android:layout_marginBottom="35dp"/>
+                android:layout_marginBottom="35dp" android:layout_alignParentEnd="true"
+                android:layout_marginEnd="64dp"/>
     </RelativeLayout>
 </FrameLayout>

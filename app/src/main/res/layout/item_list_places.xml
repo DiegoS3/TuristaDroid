@@ -23,7 +23,7 @@
                 android:id="@+id/txtCityPlace_Place"
                 android:textColor="@color/colorBackground"
                 android:fontFamily="@font/roboto_bold"
-                android:textSize="20sp"
+                android:textSize="16sp"
                 android:layout_marginTop="5dp"
                 android:layout_marginStart="20dp"
                 android:layout_below="@+id/imgPlace_Place"/>
@@ -66,7 +66,7 @@
                 app:srcCompat="@drawable/ima_star"
                 android:id="@+id/imgStar_Place"
                 android:layout_marginTop="18dp"
-                android:layout_marginStart="130dp"
+                android:layout_marginStart="100dp"
                 android:layout_below="@+id/imgPlace_Place"
                 android:layout_toEndOf="@+id/txtCityPlace_Place"
                 android:layout_alignParentBottom="true"
@@ -78,7 +78,7 @@
                 android:id="@+id/txtDatePlace_Place"
                 android:layout_marginTop="10dp"
                 android:layout_marginStart="20dp"
-                android:textSize="20sp"
+                android:textSize="16sp"
                 android:fontFamily="@font/roboto_bold"
                 android:textColor="@color/colorBackground"
                 android:layout_below="@+id/txtCityPlace_Place"/>

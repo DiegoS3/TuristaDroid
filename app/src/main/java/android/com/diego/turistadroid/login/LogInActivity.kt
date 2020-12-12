@@ -24,7 +24,8 @@ class LogInActivity : AppCompatActivity() {
         // Ocultamos la barra de action
         this.supportActionBar?.hide()
         setContentView(R.layout.activity_log_in)
-
+        txtUser_Login.setText("d@d.d")
+        txtPwd_Login.setText("d")
         clickBtn()
         clickRegister()
 
