@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+        xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/cardView_Place"
+        android:layout_width="140dp"
+        android:layout_height="65dp"
+        app:cardElevation="3dp"
+        android:layout_margin="10dp"
+        android:foreground="?selectableItemBackground"
+        android:clickable="true">
+
+    <ImageView
+            android:id="@+id/imaPlace_infoWindow"
+            android:layout_width="140dp"
+            android:layout_height="65dp"
+            android:scaleType="fitXY"
+            android:src="@drawable/ima_default_place"/>
+
+
+    <TextView
+            android:id="@+id/namePlace_infoWindow"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:textStyle="bold"
+            android:textColor="@color/colorLetter"
+            android:textSize="12sp"
+            android:background="@color/colorBackgroundOpacity"
+            android:paddingStart="10dp"
+            android:paddingTop="5dp"
+            android:layout_marginTop="35dp"
+            android:text="Iglesia de San Martin" tools:ignore="RtlSymmetry"/>
+
+</androidx.cardview.widget.CardView>

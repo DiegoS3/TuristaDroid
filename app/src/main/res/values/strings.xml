@@ -59,5 +59,7 @@
     <!--My Places-->
     <string name="btnAddNewPlace">Place</string>
     <string name="btnAddActualPlace">Actual Place</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>
