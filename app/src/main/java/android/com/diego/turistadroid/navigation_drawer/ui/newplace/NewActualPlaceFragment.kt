@@ -222,7 +222,7 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
             if (txtNamePlace_NewActualPlace.text.isNotEmpty()){
 
                 val currentDate = Calendar.getInstance().time
-                val namePlace = txtNamePlace_NewPlace.text.toString()
+                val namePlace = txtNamePlace_NewActualPlace.text.toString()
                 val city = txtUbication.text.toString()
                 val id = ControllerPlaces.getPlaceIdentity()
                 val place = Place(id, namePlace, currentDate, city, mark, longitude, latitude)
