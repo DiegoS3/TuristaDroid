@@ -5,7 +5,6 @@ import android.com.diego.turistadroid.bbdd.*
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewActualPlaceFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewPlaceFragment
-import android.com.diego.turistadroid.utilities.Utilities
 import android.graphics.*
 import android.os.AsyncTask
 import android.os.Bundle
@@ -14,17 +13,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
-import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_myplaces.*
 import kotlinx.android.synthetic.main.layout_confirm_delete_item.view.*
-import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 
@@ -46,6 +42,7 @@ class MyPlacesFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_myplaces, container, false)
     }
@@ -105,6 +102,7 @@ class MyPlacesFragment : Fragment() {
                     else -> {
                         //  Log.d("Noticias", "Tocado derecha");
                         //editarElemento(position)
+                        initDetailsPlaceFragment()
                     }
                 }
             }
@@ -208,12 +206,16 @@ class MyPlacesFragment : Fragment() {
         adapter.notifyDataSetChanged()
     }
 
+    private fun editarElemento(pos : Int){
+        initNewPlaceFragment()
+    }
+
     private fun abrirOpciones(pos: Int) {
         cargarDatos()
         val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_confirm_delete_item, null)
         val mBuilder = AlertDialog.Builder(context!!)
             .setView(mDialogView).create()
-        val mAlertDialog = mBuilder.show()
+        mBuilder.show()
 
         //Listener para confirmar eliminar el lugar
         mDialogView.txtConfirm.setOnClickListener {
@@ -223,7 +225,6 @@ class MyPlacesFragment : Fragment() {
 
         //Listener para confirmar cancelar el lugar
         mDialogView.txtCancel.setOnClickListener {
-
             mBuilder.dismiss()
         }
 
@@ -296,7 +297,6 @@ class MyPlacesFragment : Fragment() {
         setVisibility(clicked)
         setAnimation(clicked)
         setClickable(clicked)
-
         clicked = !clicked
     }
 
@@ -307,7 +307,6 @@ class MyPlacesFragment : Fragment() {
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
         transaction.commit()
-
     }
 
     private fun initNewActualPlaceFragment() {
@@ -317,8 +316,17 @@ class MyPlacesFragment : Fragment() {
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
         transaction.commit()
-
     }
+    private fun initDetailsPlaceFragment() {
+
+        val newFragment: Fragment = MyPlaceDetailFragment()
+        val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+    }
+
+
 
     private fun setAnimation(clicked: Boolean) {
         if (!clicked) {
@@ -377,11 +385,8 @@ class MyPlacesFragment : Fragment() {
     }
 
     fun getDatosFromBD() {
-
         // Seleccionamos los lugares
-        //places = ControllerPlaces.selectPlaces()!!
         places = user.places
-
     }
 
     /**
@@ -389,11 +394,7 @@ class MyPlacesFragment : Fragment() {
      * @param place Place
      */
     private fun eventoClicFila(place: Place) {
-        // Creamos el dialogo y casamos sus elementos
-        //Toast.makeText(context, "PULSADO datos", Toast.LENGTH_LONG).show()
-        //abrirPruebas()
-        //val pruebaFragment = PruebaFragment(NavigationActivity.user, dato)
-        //abrirPrueba(pruebaFragment)
+        initDetailsPlaceFragment()
     }
 
     inner class TareaCargarDatos : AsyncTask<String?, Void?, Void?>() {
