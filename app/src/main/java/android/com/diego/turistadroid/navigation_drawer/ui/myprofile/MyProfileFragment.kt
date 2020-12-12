@@ -13,7 +13,6 @@ import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
@@ -30,13 +29,11 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
-import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toFile
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
-import kotlinx.android.synthetic.main.activity_sign_up.*
 import kotlinx.android.synthetic.main.fragment_gallery.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
 import java.io.IOException
@@ -62,6 +59,9 @@ class MyProfileFragment : Fragment() {
     private lateinit var txtEmailProfile: EditText
     private lateinit var txtPassProfile: EditText
 
+    private lateinit var imaInstagram: ImageView
+    private lateinit var imaTwitter: ImageView
+
 
 
     override fun onCreateView(
@@ -75,16 +75,50 @@ class MyProfileFragment : Fragment() {
         //val textView: TextView = root.findViewById(R.string.myProfileTitle)
 
         imaProfile = root.findViewById(R.id.imaProfile)
-        txtNameProfile= root.findViewById(R.id.txtNameProfile)
+        txtNameProfile= root.findViewById(R.id.txtUserName)
         txtNameUserProfile = root.findViewById(R.id.txtNameUserProfile)
         txtEmailProfile = root.findViewById(R.id.txtEmailProfile)
         txtPassProfile= root.findViewById(R.id.txtPassProfile)
+
+        imaInstagram = root.findViewById(R.id.imaInstagram)
+        imaTwitter = root.findViewById(R.id.imaTwitter)
         asignarDatosUsuario()
+        abrirRedes()
 
         myProfileViewModel.text.observe(viewLifecycleOwner, Observer {
             //textView.text = it
         })
         return root
+    }
+
+
+
+    private fun abrirRedes(){
+        imaInstagram.setOnClickListener {
+            onClickInstagram(it)
+        }
+        imaTwitter.setOnClickListener {
+            onClickTwitter(it)
+        }
+    }
+
+    fun onClickInstagram(view: View){
+        val str = "https://www.instagram.com/"+user.instagram
+        Log.i("instagram: ", user.instagram)
+
+        Toast.makeText(context, "instagram: "+user.instagram, Toast.LENGTH_SHORT).show()
+        val uri = Uri.parse(str)
+        val intent = Intent(Intent.ACTION_VIEW,uri)
+        startActivity(intent)
+    }
+
+    fun onClickTwitter(view: View){
+        val str = "https://www.twitter.com/"+user.twitter
+        Log.i("twitter: ", user.twitter)
+        Toast.makeText(context, "twitter: "+user.twitter, Toast.LENGTH_SHORT).show()
+        val uri = Uri.parse(str)
+        val intent = Intent(Intent.ACTION_VIEW,uri)
+        startActivity(intent)
     }
 
     private fun asignarDatosUsuario(){

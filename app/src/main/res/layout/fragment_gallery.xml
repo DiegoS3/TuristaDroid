@@ -4,12 +4,13 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="650dp"
+        android:layout_height="wrap_content"
         tools:context=".navigation_drawer.ui.myprofile.MyProfileFragment" android:background="@color/colorBackground">
     <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="850dp"
             android:padding="16dp"
+            android:background="@color/colorBackground"
             tools:ignore="MissingConstraints">
 
     <EditText
@@ -59,31 +60,24 @@
                 />
         <ImageView
             android:layout_width="70dp"
-            android:layout_height="70dp" android:id="@+id/imaFacebook"
-            android:src="@drawable/ic_facebook"
-            android:layout_marginStart="30dp"
-            android:layout_marginTop="370dp"
-            />
-    <ImageView
-            android:layout_width="70dp"
             android:layout_height="70dp" android:id="@+id/imaTwitter"
             android:src="@drawable/ic_twitter"
-            android:layout_marginStart="275dp"
+            android:layout_marginStart="200dp"
             android:layout_marginTop="370dp"
             />
-    <ImageView
-            android:layout_width="70dp"
-            android:layout_height="70dp" android:id="@+id/imaInstagram"
-            android:src="@drawable/ic_instagram"
-            android:layout_marginStart="150dp"
-            android:layout_marginTop="370dp"
-            />
+        <ImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp" android:id="@+id/imaInstagram"
+                android:src="@drawable/ic_instagram"
+                android:layout_marginStart="100dp"
+                android:layout_marginTop="370dp"
+        />
     <EditText
             android:layout_width="316dp"
             android:layout_height="42dp"
             android:inputType="textPersonName"
             android:ems="10"
-            android:id="@+id/txtNameProfile"
+            android:id="@+id/txtUserName"
             android:fontFamily="@font/roboto_bold"
             android:textColor="@color/colorLetterInput"
             android:textColorHint="@color/colorLetterInput" android:hint="@string/txtName"

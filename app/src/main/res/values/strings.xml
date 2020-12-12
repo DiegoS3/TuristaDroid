@@ -10,6 +10,9 @@
     <string name="btnRegister">Sign Up</string>
     <string name="errorEmail">This email already exists</string>
     <string name="errorNameUser">This user name already exists</string>
+    <string name="inputSocialMedia">Enter your username</string>
+    <string name="btnOk">Save</string>
+    <string name="btnCancel">Cancel</string>
 
     <!--Seleccion_Camara-->
     <string name="tvSelection">Choose your image source</string>

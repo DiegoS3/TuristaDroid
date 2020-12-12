@@ -8,14 +8,30 @@
         tools:context=".signup.SignUp" android:background="@color/colorBackground">
 
     <ImageView
-            android:layout_width="160dp"
-            android:layout_height="160dp" android:id="@+id/imaUser"
+            android:layout_width="50dp"
+            android:layout_height="50dp" android:id="@+id/imaInstagramSignUp"
+            android:src="@drawable/ic_instagram"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_bias="0.382"
+            app:layout_constraintVertical_bias="0.846"/>
+    <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp" android:id="@+id/imaTwitterSignUp"
+            android:src="@drawable/ic_twitter"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_bias="0.617"
+            app:layout_constraintVertical_bias="0.846"/>
+    <ImageView
+            android:layout_width="145dp"
+            android:layout_height="145dp" android:id="@+id/imaUser"
             android:src="@drawable/ima_user"
             android:layout_centerInParent="true"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_bias="0.498"
-            app:layout_constraintVertical_bias="0.107"/>
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0.067"/>
     <TextView
             android:text="@string/tvTitle"
             android:layout_width="wrap_content"
@@ -23,7 +39,7 @@
             android:textColor="@color/colorLetter" app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_bias="0.158"
-            app:layout_constraintVertical_bias="0.407" android:textSize="24sp" android:fontFamily="@font/roboto_bold"/>
+            app:layout_constraintVertical_bias="0.33" android:textSize="24sp" android:fontFamily="@font/roboto_bold"/>
     <EditText
             android:layout_width="316dp"
             android:layout_height="44dp"
@@ -33,7 +49,7 @@
             app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintHorizontal_bias="0.536" android:fontFamily="@font/roboto_bold"
-            android:textColor="@color/colorLetterInput" app:layout_constraintVertical_bias="0.499"
+            android:textColor="@color/colorLetterInput" app:layout_constraintVertical_bias="0.418"
             android:textColorHint="@color/colorLetterInput" android:hint="@string/txtName"
             android:background="@drawable/box_inputs" android:paddingHorizontal="10dp"/>
     <EditText
@@ -45,7 +61,7 @@
             app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintHorizontal_bias="0.536" android:fontFamily="@font/roboto_bold"
-            android:textColor="@color/colorLetterInput" app:layout_constraintVertical_bias="0.592"
+            android:textColor="@color/colorLetterInput" app:layout_constraintVertical_bias="0.515"
             android:textColorHint="@color/colorLetterInput" android:hint="@string/txtNameUser"
             android:background="@drawable/box_inputs" android:paddingHorizontal="10dp"/>
     <EditText
@@ -57,7 +73,7 @@
             app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintHorizontal_bias="0.536" android:fontFamily="@font/roboto_bold"
-            android:textColor="@color/colorLetterInput" app:layout_constraintVertical_bias="0.687"
+            android:textColor="@color/colorLetterInput" app:layout_constraintVertical_bias="0.611"
             android:textColorHint="@color/colorLetterInput" android:hint="@string/txtEmail"
             android:background="@drawable/box_inputs" android:paddingHorizontal="10dp"/>
     <EditText
@@ -71,9 +87,8 @@
             android:fontFamily="@font/roboto_bold" android:background="@drawable/box_inputs"
             app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintHorizontal_bias="0.536" app:layout_constraintVertical_bias="0.781"
+            app:layout_constraintHorizontal_bias="0.536" app:layout_constraintVertical_bias="0.706"
             android:paddingHorizontal="10dp"/>
-
     <ProgressBar
             android:id="@+id/progressBar"
             style="?android:attr/progressBarStyleHorizontal"
@@ -103,6 +118,6 @@
             android:layout_height="46dp" android:id="@+id/btnRegister"
             app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintHorizontal_bias="0.498" app:layout_constraintVertical_bias="0.928"
+            app:layout_constraintVertical_bias="0.971"
             android:textColor="@color/colorLetter" android:background="@drawable/box_buttons" android:textSize="18sp"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

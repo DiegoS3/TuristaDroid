@@ -11,7 +11,6 @@ open class User (@PrimaryKey var email : String = "",
                  var foto : String = "",
                  var places : RealmList<Place> = RealmList(),
                  var twitter : String = "",
-                 var facebook : String = "",
                  var instagram : String = "") : RealmObject()
 
 

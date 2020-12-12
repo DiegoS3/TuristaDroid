@@ -4,39 +4,33 @@ import android.app.Activity
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.ControllerBbdd
 import android.com.diego.turistadroid.bbdd.ControllerUser
+import android.com.diego.turistadroid.bbdd.Place
 import android.com.diego.turistadroid.bbdd.User
 import android.com.diego.turistadroid.login.LogInActivity
-import android.com.diego.turistadroid.utilities.PasswordStrength
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BlendMode
-import android.graphics.BlendModeColorFilter
-import android.graphics.PorterDuff
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.text.Editable
-import android.text.TextUtils
-import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
-import android.widget.ImageView
-import android.widget.ProgressBar
-import android.widget.TextView
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.drawable.RoundedBitmapDrawable
-import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import androidx.core.graphics.drawable.toBitmap
+import io.realm.RealmList
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import kotlinx.android.synthetic.main.activity_sign_up.*
+import kotlinx.android.synthetic.main.layout_input_instagram.*
+import kotlinx.android.synthetic.main.layout_input_instagram.view.*
+import kotlinx.android.synthetic.main.layout_input_twitter.*
+import kotlinx.android.synthetic.main.layout_input_twitter.view.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
 
 class SignUp : AppCompatActivity() {
@@ -49,17 +43,18 @@ class SignUp : AppCompatActivity() {
     private var email = ""
     private var password = ""
     private var ima : Bitmap? = null
+    private var instagram = ""
+    private var twitter = ""
+
     companion object{
         var valido = false
     }
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         this.supportActionBar?.hide()
         setContentView(R.layout.activity_sign_up)
-
         init()
     }
 
@@ -68,7 +63,52 @@ class SignUp : AppCompatActivity() {
         Utilities.validarPassword(txtPass, progressBar, password_strength, this)
         Utilities.validarEmail(txtEmail)
         initSaveDatos()
+        redes()
         checkUsuario()
+
+    }
+
+    private fun setInsta(insta: String){
+        this.instagram = insta
+        Log.i("insta2:",instagram)
+    }
+
+    private fun setTwitter(twit: String){
+        this.twitter = twit
+        Log.i("twitter2:",twitter)
+    }
+
+    private fun redes(){
+        imaInstagramSignUp.setOnClickListener {
+            val mDialogView = LayoutInflater.from(this).inflate(R.layout.layout_input_instagram, null)
+            val mBuilder = AlertDialog.Builder(this)
+                .setView(mDialogView).create()
+            mBuilder.show()
+
+            mDialogView.btnOkInsta.setOnClickListener {
+                instagram = mDialogView.txtUserNameInstagram.text.toString()
+                setInsta(instagram)
+                Log.i("insta:",instagram)
+                mBuilder.dismiss()
+
+            }
+
+        }
+        imaTwitterSignUp.setOnClickListener {
+            val mDialogView = LayoutInflater.from(this).inflate(R.layout.layout_input_twitter, null)
+            val mBuilder = AlertDialog.Builder(this)
+                .setView(mDialogView).create()
+            mBuilder.show()
+
+            mDialogView.btnOkTwitter.setOnClickListener {
+                twitter = mDialogView.txtUserNameTwitter.text.toString()
+                setTwitter(twitter)
+                Log.i("twitter:",twitter)
+                mBuilder.dismiss()
+
+            }
+            Log.i("twitter2:",twitter)
+        }
     }
 
     private fun checkUsuario(){
@@ -95,8 +135,11 @@ class SignUp : AppCompatActivity() {
     private fun registrarUsuario() {
         val passCifrada = Utilities.hashString(txtPass.text.toString())
         val imaString = Utilities.bitmapToBase64(imaUser.drawable.toBitmap())
+        val listaPlaces = RealmList<Place>()
+
+
         val user = imaString?.let { User(txtEmail.text.toString(), txtName.text.toString(),
-            txtNameUser.text.toString(), passCifrada, it) }
+            txtNameUser.text.toString(), passCifrada, it, listaPlaces, twitter, instagram ) }
         user?.let { ControllerUser.insertUser(it) }
         Toast.makeText(applicationContext, "Usuario Registrado", Toast.LENGTH_SHORT).show()
         val intent = Intent (this, LogInActivity::class.java)

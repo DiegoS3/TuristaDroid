@@ -27,7 +27,7 @@ class LogInActivity : AppCompatActivity() {
         this.supportActionBar?.hide()
         setContentView(R.layout.activity_log_in)
 
-        ControllerSession.deleteSession("pr@pr.c")
+        ControllerSession.deleteSession("x@x.c")
         clickBtn()
         clickRegister()
         sdf()
@@ -35,8 +35,8 @@ class LogInActivity : AppCompatActivity() {
     }
 
     private fun sdf(){
-        txtUser_Login.setText("pr@pr.c")
-        txtPwd_Login.setText("pr")
+        txtUser_Login.setText("x@x.c")
+        txtPwd_Login.setText("x")
     }
 
     override fun onStop() {
