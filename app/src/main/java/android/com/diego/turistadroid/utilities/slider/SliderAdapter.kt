@@ -50,12 +50,9 @@ class SliderAdapter (
     class SliderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         
         var imageView: RoundedImageView = itemView.imgSlide
-        
 
         fun setImage(sliderItem: SliderItem){
 
-            //If you want to display image from the internet,
-            //You can put code here using glide or picasso
             imageView.setImageBitmap(sliderItem.getImage())
         }
 

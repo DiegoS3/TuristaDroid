@@ -53,6 +53,11 @@ class MyPlacesFragment : Fragment() {
         initUI()
     }
 
+    override fun onResume() {
+        super.onResume()
+        cargarDatos()
+    }
+
     private fun initUI() {
         initFloatingButtons()
         iniciarSwipeRecarga()
@@ -101,7 +106,6 @@ class MyPlacesFragment : Fragment() {
                     }
                     else -> {
                         editarElemento(position)
-                        cargarDatos()
                     }
                 }
             }
@@ -205,8 +209,13 @@ class MyPlacesFragment : Fragment() {
         adapter.notifyDataSetChanged()
     }
 
+    fun actualizarPlaceAdapter(place: Place, pos: Int){
+        adapter.updateItem(place, pos)
+        adapter.notifyDataSetChanged()
+    }
+
     private fun editarElemento(pos: Int){
-        initDetailsPlaceFragment(true, places[pos])
+        initDetailsPlaceFragment(true, places[pos], pos)
     }
 
     private fun abrirOpciones(pos: Int) {
@@ -316,9 +325,9 @@ class MyPlacesFragment : Fragment() {
         transaction.commit()
     }
 
-    private fun initDetailsPlaceFragment(boolean: Boolean, place: Place) {
+    private fun initDetailsPlaceFragment(boolean: Boolean, place: Place, pos: Int?) {
 
-        val newFragment: Fragment = MyPlaceDetailFragment(boolean, place)
+        val newFragment: Fragment = MyPlaceDetailFragment(boolean, place, pos, this)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
@@ -384,6 +393,7 @@ class MyPlacesFragment : Fragment() {
     fun getDatosFromBD() {
         // Seleccionamos los lugares
         places = user.places
+        //places = ControllerPlaces.selectPlaces()!!
     }
 
     /**
@@ -391,7 +401,7 @@ class MyPlacesFragment : Fragment() {
      * @param place Place
      */
     private fun eventoClicFila(place: Place) {
-        initDetailsPlaceFragment(false, place)
+        initDetailsPlaceFragment(false, place, null)
     }
 
     inner class TareaCargarDatos : AsyncTask<String?, Void?, Void?>() {

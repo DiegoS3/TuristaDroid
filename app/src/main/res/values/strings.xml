@@ -82,6 +82,8 @@
     <string name="facebooklButton">FACEBOOK</string>
     <string name="twitterButton">TWITTER</string>
     <string name="instagramButton">INSTAGRAM</string>
+    <string name="newNamePlace">New Place\'s Name</string>
+    <string name="ubicationError">Ubication not valid</string>
 
 
     <string name="InternetON">Internet connection exists</string>

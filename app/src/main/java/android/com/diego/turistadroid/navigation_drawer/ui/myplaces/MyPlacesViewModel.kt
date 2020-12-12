@@ -48,6 +48,19 @@ class MyPlacesViewModel (
         notifyItemRangeChanged(pos, listPlaces.size)
 
     }
+
+    /**
+     * Recupera un Item de la lista
+     *
+     * @param item
+     * @param position
+     */
+    fun updateItem(item: Place, position: Int) {
+        listPlaces[position] = item
+        notifyItemInserted(position)
+        notifyItemRangeChanged(position, listPlaces.size)
+    }
+
     /**
      * Recupera un Item de la lista
      *
