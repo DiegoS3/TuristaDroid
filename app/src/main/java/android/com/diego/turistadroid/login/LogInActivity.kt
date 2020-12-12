@@ -30,7 +30,13 @@ class LogInActivity : AppCompatActivity() {
         ControllerSession.deleteSession("pr@pr.c")
         clickBtn()
         clickRegister()
+        sdf()
 
+    }
+
+    private fun sdf(){
+        txtUser_Login.setText("pr@pr.c")
+        txtPwd_Login.setText("pr")
     }
 
     override fun onStop() {
@@ -121,8 +127,8 @@ class LogInActivity : AppCompatActivity() {
         }
     }
 
-    override fun onRestart() {
-        super.onRestart()
+    override fun onBackPressed() {
+        super.onBackPressed()
         ControllerSession.deleteSession(sesion.emailUser)
     }
 

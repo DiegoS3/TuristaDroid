@@ -41,6 +41,7 @@ class NavigationDrawer : AppCompatActivity(){
     private var user = LogInActivity.user
     private var CAMERA_PERMISSION = 2
     private var flashLightStatus: Boolean = false
+    private lateinit var toolbar: Toolbar
 
     companion object{
         lateinit var imaUser_nav : ImageView
@@ -53,8 +54,10 @@ class NavigationDrawer : AppCompatActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_navigation_drawer)
-        val toolbar: Toolbar = findViewById(R.id.toolbar)
+        toolbar = findViewById(R.id.toolbar)
+
         setSupportActionBar(toolbar)
+        toolbar.title = getString(R.string.my_places)
 
         /*val fab: FloatingActionButton = findViewById(R.id.btnFloatAddPlace_MyPlaces)
         fab.setOnClickListener { view ->
@@ -201,6 +204,7 @@ class NavigationDrawer : AppCompatActivity(){
                 R.id.nav_myPlaces -> {
                     abrirMyPlaces()
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        toolbar.title = getString(R.string.my_places)
                         drawer_layout.closeDrawer(GravityCompat.START)
                     }
                     true
@@ -208,6 +212,7 @@ class NavigationDrawer : AppCompatActivity(){
                 R.id.nav_myProfile -> {
                     abrirMyProfile()
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        toolbar.title = getString(R.string.my_profile)
                         drawer_layout.closeDrawer(GravityCompat.START)
                     }
                     true
@@ -215,6 +220,7 @@ class NavigationDrawer : AppCompatActivity(){
                 R.id.nav_nearMe -> {
                     abrirNearMe()
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        toolbar.title = getString(R.string.near_me)
                         drawer_layout.closeDrawer(GravityCompat.START)
                     }
                     true

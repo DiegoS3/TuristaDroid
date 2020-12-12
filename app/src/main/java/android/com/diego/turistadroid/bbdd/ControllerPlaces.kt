@@ -5,7 +5,7 @@ import io.realm.kotlin.where
 
 object ControllerPlaces {
 
-    private const val DISTANCIA = 1000
+    private const val DISTANCIA = 0.014000
 
     //QUERIES TABLA PLACE
 
@@ -31,7 +31,7 @@ object ControllerPlaces {
     }
 
     //Seleccionar lugares cerca de mi
-    fun selectNearby(longitud : Double, latitud : Double): MutableList<Place>?{
+    fun selectNearby(latitud : Double, longitud : Double): MutableList<Place>?{
         return Realm.getDefaultInstance().copyFromRealm(
             Realm.getDefaultInstance().where<Place>().between("longitud", (longitud - DISTANCIA), (longitud + DISTANCIA)).and()
                 .between("latitud", (latitud - DISTANCIA), (latitud + DISTANCIA)).findAll()

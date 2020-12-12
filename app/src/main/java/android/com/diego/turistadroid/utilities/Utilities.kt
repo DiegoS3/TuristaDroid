@@ -35,6 +35,9 @@ object Utilities {
 
     var valido = false
 
+    var latiud = 0.0
+    var longitud = 0.0
+
     fun redondearFoto(imagen: ImageView){
         val originalDrawable: Drawable = imagen.drawable
         var originalBitmap: Bitmap = (originalDrawable as BitmapDrawable).bitmap
