@@ -1,5 +1,6 @@
 package android.com.diego.turistadroid.utilities
 
+import android.com.diego.turistadroid.R
 import android.content.Context
 import android.content.res.Resources
 import android.graphics.*
@@ -57,6 +58,7 @@ object Utilities {
         return bitmap
     }
 
+    //Vibracion movil
     fun vibratePhone(context: Context?) {
         val vibrator = context!!.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         if (Build.VERSION.SDK_INT >= 26) {
@@ -71,6 +73,7 @@ object Utilities {
     var latiud = 0.0
     var longitud = 0.0
 
+    //Redondear foto
     fun redondearFoto(imagen: ImageView){
         val originalDrawable: Drawable = imagen.drawable
         var originalBitmap: Bitmap = (originalDrawable as BitmapDrawable).bitmap
@@ -113,6 +116,7 @@ object Utilities {
         return BitmapFactory.decodeByteArray(imageAsBytes, 0, imageAsBytes.size)
     }
 
+    //Parse bitmap to uri
     fun getImageUri(inContext: Context, inImage: Bitmap): Uri? {
         val bytes = ByteArrayOutputStream()
         inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
@@ -120,6 +124,7 @@ object Utilities {
         return Uri.parse(path)
     }
 
+    //Sha-256 pwd
     fun hashString(input: String): String {
         return MessageDigest
             .getInstance("SHA-256")
@@ -127,7 +132,8 @@ object Utilities {
             .fold("", { str, it -> str + "%02x".format(it) })
     }
 
-    fun validarEmail(txtEmail: EditText): Boolean{
+    //validar email
+    fun validarEmail(txtEmail: EditText, context: Context?): Boolean{
 
         txtEmail.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -139,19 +145,16 @@ object Utilities {
                     valido = true
                 } else {
                     valido = false
-                    txtEmail.error = "Invalid Email"
+                    txtEmail.error = context!!.getString(R.string.invalidEmail)
                 }
             }
-
             override fun afterTextChanged(s: Editable?) {
             }
-
         })
         return valido
-
-
     }
 
+    //Actualizar progressbar y textview segun pwd
     private fun updatePasswordStrengthView(password: String, progressBar: ProgressBar, strengthView: TextView, context: Context) {
 
         if (TextView.VISIBLE != strengthView.visibility)
@@ -188,6 +191,7 @@ object Utilities {
         }
     }
 
+    //Validar pwd
     fun validarPassword(txtPass: EditText, progressBar: ProgressBar, strengthView: TextView, context: Context){
         txtPass.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
@@ -256,8 +260,4 @@ object Utilities {
             false
         }
     }
-
-
-
-
 }

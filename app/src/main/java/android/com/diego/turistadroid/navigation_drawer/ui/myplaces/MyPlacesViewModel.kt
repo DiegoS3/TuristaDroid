@@ -29,6 +29,7 @@ class MyPlacesViewModel (
         )
     }
 
+    //Caramos las imagenes
     private fun cargarImagen(holder: PlaceViewHolder, item : Place ){
         if (item.imagenes.size > 0){
             val image = Utilities.base64ToBitmap(item.imagenes[0]!!.foto)

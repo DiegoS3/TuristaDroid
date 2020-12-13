@@ -126,6 +126,7 @@ class MyPlaceDetailFragment(
         init()
     }
 
+    //Metodos del fragment
     private fun init(){
         initMapa()
         initMode()
@@ -140,6 +141,12 @@ class MyPlaceDetailFragment(
         onImportButton()
     }
 
+    /**
+     *
+     * Metodo que compprueba en la lista de lugares si el lugar coincide con el
+     * del usuario para mostrar la puntuacion que el usuario le ha dado a dicho lugar
+     *
+     */
     private fun lugaresUsuario(){
         for (item in user.places){
             if (this.lugar.id == item.id){
@@ -151,6 +158,9 @@ class MyPlaceDetailFragment(
         }
     }
 
+    /**
+     * Mostramos los detalles del lugar en el layout
+     */
     private fun showDetailsPlace(){
         txtTitlePlace_DetailsPlace.text = this.lugar.nombre
         txtUbicationPlace_DetailsPlace.text = this.lugar.city
@@ -158,6 +168,9 @@ class MyPlaceDetailFragment(
         imagenesLugar()
     }
 
+    /**
+     * Cargamos las diferentes imagenes en el viewPager
+     */
     private fun imagenesLugar(){
         for (item in this.lugar.imagenes){
             val img = Utilities.base64ToBitmap(item.foto)!!
@@ -166,6 +179,9 @@ class MyPlaceDetailFragment(
         }
     }
 
+    /**
+     * Detectamos los diferentes componentes del layaout
+     */
     private fun initUI(view: View){
 
         viewPager2 = view.findViewById(R.id.vpImagesPlace_DetailsPlace)
@@ -182,10 +198,14 @@ class MyPlaceDetailFragment(
 
     }
 
+    /**
+     * Segun como hayamos entrado en el fragment los mostrara
+     * con unos componentes u otros
+     */
     private fun initMode(){
 
         when {
-            editable -> {
+            editable -> { //Modo Editar Lugar
 
                 btnSave.visibility = View.VISIBLE
                 floatBtnMore.isClickable = false
@@ -194,7 +214,7 @@ class MyPlaceDetailFragment(
                 notClickable()
 
             }
-            import -> {
+            import -> { //Modo Importar Lugar
 
                 btnImport.visibility = View.VISIBLE
                 floatBtnMore.isClickable = true
@@ -206,7 +226,7 @@ class MyPlaceDetailFragment(
                 initFloatingButtons()
 
             }
-            else -> {
+            else -> { //Modo Visualizar Lugar
                 ratingBar.setIsIndicator(true)
                 ratingBar.focusable = View.NOT_FOCUSABLE
                 floatBtnMore.visibility = View.VISIBLE
@@ -218,15 +238,17 @@ class MyPlaceDetailFragment(
     }
 
     /**
-     * Inicia el Mapa
+     * Iniciamos el Mapa
      */
     private fun initMapa() {
-        Log.i("Mapa", "Iniciando Mapa")
         val mapFragment = (childFragmentManager
             .findFragmentById(R.id.mapPlace_DetailsPlace) as SupportMapFragment?)!!
         mapFragment.getMapAsync(this)
     }
 
+    /**
+     * Iniciamos el slider de las imagenes del lugar
+     */
     private fun initViewPager(){
         adapter = SliderAdapter(sliderItems, viewPager2)
         viewPager2.adapter = adapter
@@ -257,6 +279,7 @@ class MyPlaceDetailFragment(
         })
     }
 
+    //Inicia funcionalidad del boton mostrar mas botones y compartir en redes
     private fun initFloatingButtons(){
         floatBtnMore.setOnClickListener {
             moreOrShareClick = true
@@ -269,11 +292,13 @@ class MyPlaceDetailFragment(
         }
     }
 
+    //Para poder recuperar el nuevo nombre del lugar creado en el dialog
     private fun setNewName(name: String){
         this.newNamePlace = name
         txtTitlePlace_DetailsPlace.text = name
     }
 
+    //Creacion del dialog cambiar nombre al hacer clic en el TextView
     private fun initChangeName(){
         txtTitlePlace_DetailsPlace.setOnClickListener {
             val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_change_name_place, null)
@@ -299,10 +324,12 @@ class MyPlaceDetailFragment(
         mark = rating
     }
 
+    //metodo que actualiza un sitio al hacer click en el boton guardar
     private fun updatePlace(){
         btnSave.setOnClickListener {
-            if (txtTitlePlace_DetailsPlace.text.isNotEmpty()){
+            if (txtTitlePlace_DetailsPlace.text.isNotEmpty()){//Comprobamos que tenga un nombre
 
+                //Comprobamos que la ubicacion sea valida
                 if (txtUbicationPlace_DetailsPlace.equals(getString(R.string.notFoundUbication))){
                     Toast.makeText(context, getString(R.string.ubicationError), Toast.LENGTH_SHORT).show()
                 }else {
@@ -310,7 +337,7 @@ class MyPlaceDetailFragment(
                     val namePlace = txtTitlePlace_DetailsPlace.text.toString()
                     val city = txtUbicationPlace_DetailsPlace.text.toString()
                     val place = if (this::location.isInitialized){
-                        Place(
+                        Place( //Nuevo lugar en caso de nueva localizacion
                             this.lugar.id,
                             namePlace,
                             this.lugar.fecha,
@@ -320,7 +347,7 @@ class MyPlaceDetailFragment(
                             location.latitude
                         )
                     }else{
-                        Place(
+                        Place(//Nuevo lugar en caso de no poner nueva localizacion
                             this.lugar.id,
                             namePlace,
                             this.lugar.fecha,
@@ -330,20 +357,21 @@ class MyPlaceDetailFragment(
                             this.lugar.latitud
                         )
                     }
-                    addImagePlace(images, place)
-                    ControllerPlaces.updatePlace(place)
-                    this.fragmentAnterior?.actualizarPlaceAdapter(place, this.indexPlace!!)
-                    initMyPlacesFragment()
+                    addImagePlace(images, place) //Añadir imagenes al lugar
+                    ControllerPlaces.updatePlace(place) //Actaulizamos
+                    this.fragmentAnterior?.actualizarPlaceAdapter(place, this.indexPlace!!)//Actualizamos el adaptador
+                    initMyPlacesFragment()//Volvemos al anterior fragmen
                 }
 
             }else{
-
+                //Campos vacios
                 Toast.makeText(context, getString(R.string.action_emptyfield), Toast.LENGTH_SHORT).show()
 
             }
         }
     }
 
+    //inciar fragment Mis Lugares
     private fun initMyPlacesFragment(){
 
         val newFragment: Fragment = MyPlacesFragment()
@@ -353,18 +381,20 @@ class MyPlaceDetailFragment(
 
     }
 
+    //Al hacer click en el boton importar insertamos un nuevo lugar en la BD
     private fun onImportButton(){
         btnImport.setOnClickListener {
-            val currentDate = Calendar.getInstance().time
-            val id = ControllerPlaces.getPlaceIdentity()
+            val currentDate = Calendar.getInstance().time //Fecha actual
+            val id = ControllerPlaces.getPlaceIdentity() //Generamos un nuevo id autoIncrement
             val place = Place(id, this.lugar.nombre, currentDate, this.lugar.city, this.lugar.puntuacion, this.lugar.longitud, this.lugar.latitud)
             addImagePlaceImport(this.lugar)
             ControllerPlaces.insertPlace(place)
-            this.fragmentAnterior?.insertarPlaceAdapter(place)
+            this.fragmentAnterior?.insertarPlaceAdapter(place)//Actualizamos adapter
             initMyPlacesFragment()
         }
     }
 
+    //Metedos que se activan segun el FAB que hayamos pulsado
     private fun onMoreButtonClicked() {
         if (moreOrShareClick){
             setVisibility(clicked)
@@ -380,9 +410,10 @@ class MyPlaceDetailFragment(
 
     }
 
+    //Metodo que activa la funcion de clickable de un FAB
     private fun setClickable(clicked: Boolean) {
 
-        if (moreOrShareClick){
+        if (moreOrShareClick){//Pulsado boton Mostrar Mas
             if (!clicked) {
                 floatBtnShare.isClickable = true
                 floatBtnQr.isClickable = true
@@ -390,7 +421,7 @@ class MyPlaceDetailFragment(
                 floatBtnShare.isClickable = false
                 floatBtnQr.isClickable = false
             }
-        }else{
+        }else{//Pulsado boton Compartir
             if (!clickedShare) {
                 floatBtnMore.isClickable = false
                 floatBtnTwitter.isClickable = true
@@ -405,6 +436,7 @@ class MyPlaceDetailFragment(
         }
     }
 
+    //metodo que desactiva la funcion de isClickable
     private fun notClickable(){
         floatBtnShare.isClickable = false
         floatBtnQr.isClickable = false
@@ -413,6 +445,7 @@ class MyPlaceDetailFragment(
         floatBtnInsta.isClickable = false
     }
 
+    //Modificamos la visibilidad
     private fun setVisibility(clicked: Boolean) {
         if (moreOrShareClick) {
             if (!clicked) {
@@ -445,6 +478,7 @@ class MyPlaceDetailFragment(
         }
     }
 
+    //Añadimos animaciones
     private fun setAnimation(clicked: Boolean) {
 
         //Animaciones
@@ -491,11 +525,13 @@ class MyPlaceDetailFragment(
         }
     }
 
+    //Añadir imagen a la lista del slider
     private fun addSliderItem(bitmap: Bitmap){
         val image = SliderItem(bitmap)
         sliderItems.add(image)
     }
 
+    //Hilo que mueve el slider
     private var sliderRunnable = Runnable {
 
         run {
@@ -503,24 +539,33 @@ class MyPlaceDetailFragment(
         }
     }
 
+    //Añadimos imagen a la Base de Datos
     private fun addImageBd(bitmap: Bitmap){
         val imgStr = Utilities.bitmapToBase64(bitmap)!!
         val id = ControllerImages.getImageIdentity()
         val img = Image(id, imgStr)
-        images.add(img)
+        images.add(img)//Anadimos imagen en la lista que luego tendra el lugar
         ControllerImages.insertImage(img)
     }
 
+    //Pausamos el hilo
     override fun onPause() {
         super.onPause()
         sliderHandler.removeCallbacks(sliderRunnable)
     }
 
+    //Activamos el hilo
     override fun onResume() {
         super.onResume()
         sliderHandler.postDelayed(sliderRunnable, 3000)
     }
 
+    /**
+     * Metodo que crea un nuevo pin
+     *
+     * @param location Localizacion en la que pincha/seEncuentra el usuario
+     *
+     */
     private fun placeMarker(location: LatLng){
         val icon = BitmapDescriptorFactory.fromBitmap(
             BitmapFactory.decodeResource(
@@ -533,19 +578,23 @@ class MyPlaceDetailFragment(
 
     }
 
+    //Al hacer click en el boton del QR
     private fun onClickQRBtn(){
         floatBtnQr.setOnClickListener {
             shareOnQR()
         }
     }
 
+    //MEtodo que crea un QR
     private fun shareOnQR(){
         val builder = AlertDialog.Builder(context!!)
         val inflater = requireActivity().layoutInflater
         val vista = inflater.inflate(R.layout.layout_share_qr_code, null)
 
+        //Creamos un lugar sin las iamgenes
         val lugarSinImagenes = Place(lugar.id, lugar.nombre, lugar.fecha, lugar.city, lugar.puntuacion, lugar.longitud, lugar.latitud)
 
+        //Generamos el QR
         val code = generateQRCode(Gson().toJson(lugarSinImagenes))
         val qrCodeImageView = vista.findViewById(R.id.imagenCodigoQR) as ImageView
         qrCodeImageView.setImageBitmap(code)
@@ -581,7 +630,9 @@ class MyPlaceDetailFragment(
         Log.i("QR", "Foto salvada")
     }
 
+    //Compartir un lugar en redes sociales, mediante intent,  segun la que pulse
     private fun sharePlaceOnSocialNetwork(){
+        //Twitter
         floatBtnTwitter.setOnClickListener {
 
             val img = Utilities.base64ToBitmap(this.lugar.imagenes[0]!!.foto)
@@ -598,6 +649,7 @@ class MyPlaceDetailFragment(
             }
         }
 
+        //Instagram
         floatBtnInsta.setOnClickListener {
             val img = Utilities.base64ToBitmap(this.lugar.imagenes[0]!!.foto)
             val uri = Utilities.getImageUri(context!!, img!!)
@@ -612,6 +664,7 @@ class MyPlaceDetailFragment(
             }
         }
 
+        //Email
         floatBtnEmail.setOnClickListener {
             val img = Utilities.base64ToBitmap(this.lugar.imagenes[0]!!.foto)
             val uri = Utilities.getImageUri(context!!, img!!)
@@ -624,22 +677,23 @@ class MyPlaceDetailFragment(
         }
     }
 
+    //Anadimos Imagenes del lugar importado
     private fun addImagePlaceImport(place: Place){
 
         for (imgPlace in this.lugar.imagenes){
             val img = Utilities.base64ToBitmap(imgPlace.foto)!!
             addImageBd(img)
             place.imagenes.add(imgPlace)}
-
     }
 
-
+    //Añadimos imagenes del lugar
     private fun addImagePlace(list: MutableList<Image>, place: Place){
 
         for (imgPlace in this.lugar.imagenes){ place.imagenes.add(imgPlace)}
         for (imagen in list){ place.imagenes.add(imagen) }
     }
 
+    //Centramos la camara
     private fun moveCamera(){
         val latitud = this.lugar.latitud
         val longitud = this.lugar.longitud
@@ -653,7 +707,8 @@ class MyPlaceDetailFragment(
     }
 
     /**
-    * Configuración por defecto del modo de mapa
+    * Configuración  del modo de mapa segun la forma
+     * en la que entramos al fragment
     */
     private fun configurarIUMapa(boolean: Boolean) {
         Log.i("Mapa", "Configurando IU Mapa")
@@ -671,6 +726,7 @@ class MyPlaceDetailFragment(
         }
     }
 
+    //Permitir crear puntos en caso de ser modo Editable
     private fun initMapaSwitchEditable(){
         if (editable){
             configurarIUMapa(true)
@@ -686,13 +742,14 @@ class MyPlaceDetailFragment(
         }
     }
 
+    //Mapa listo
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         initMapaSwitchEditable()
         moveCamera()
-
     }
 
+    //Abrimos un dialog con las opciones para abrir camara o galeria
     private fun abrirOpciones() {
         viewPager2.setOnClickListener(){
             val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_seleccion_camara, null)
@@ -759,7 +816,6 @@ class MyPlaceDetailFragment(
 
             } catch (e: IOException) {
                 e.printStackTrace()
-                Toast.makeText(context, "¡Fallo Galeria!", Toast.LENGTH_SHORT).show()
             }
         }
         if (resultCode == Activity.RESULT_OK && requestCode == CAMARA) {
@@ -776,29 +832,22 @@ class MyPlaceDetailFragment(
             GALERIA -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
                     mostrarGaleria()
-                else
-                    Toast.makeText(
-                        context,
-                        "No tienes permiso para acceder a la galería",
-                        Toast.LENGTH_SHORT
-                    ).show()
             }
             CAMARA -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
                     abrirCamara()
-                else
-                    Toast.makeText(context, "No tienes permiso para acceder a la cámara", Toast.LENGTH_SHORT)
-                        .show()
             }
         }
     }
 
+    //Metodo en el que inicializamos la Tarea para detectar la ciudad
     private fun cargarCiudad(latitude: Double, longiude: Double){
 
         tarea = CityAsyncTask(latitude, longiude)
         tarea.execute()
     }
 
+    //Clase ASyncrona que detecta segun el marcador la ciudad en la que se encuentra
     inner class CityAsyncTask(latitude: Double, longiude: Double) : AsyncTask<String, String, String>() {
 
         private var latitud = latitude
@@ -809,6 +858,7 @@ class MyPlaceDetailFragment(
             var result = ""
             val geocoder = Geocoder(context!!, Locale.getDefault())
             try {
+                //Contiene la direccion completa incluido pais, ciudad...
                 val addresses : List<Address> = geocoder.getFromLocation(latitud, longitud, 1)
                 when {
                     (addresses[0].locality != null) and (addresses[0].countryName != null) -> {

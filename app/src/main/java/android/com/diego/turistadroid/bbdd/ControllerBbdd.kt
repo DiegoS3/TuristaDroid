@@ -23,31 +23,6 @@ object ControllerBbdd {
         Realm.setDefaultConfiguration(config)
     }
 
-    //QUERIES TABLA IMAGE
-
-    //Insertar una imagen
-    fun insertImage(image: Image){
-        Realm.getDefaultInstance().executeTransaction{
-            it.copyToRealm(image)
-        }
-    }
-
-    //Eliminar una imagen
-    fun deleteImage(id : Long){
-        Realm.getDefaultInstance().executeTransaction{
-            it.where<Image>().equalTo("id", id).findFirst()?.deleteFromRealm()
-        }
-    }
-
-    //Eliminar todos las imagenes
-    fun deleteAllPlaces(){
-        Realm.getDefaultInstance().executeTransaction{
-            it.where<Image>().findAll().deleteAllFromRealm()
-        }
-    }
-
-
-
     //QUERIES GENERALES
 
     //Eliminar las tablas

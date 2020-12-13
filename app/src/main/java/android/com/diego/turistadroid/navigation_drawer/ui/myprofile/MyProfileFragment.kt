@@ -88,6 +88,7 @@ class MyProfileFragment : Fragment() {
         return root
     }
 
+    //Usuario segun hayamos entrado a la aplicacion
     private fun userSwitch(){
         user = if(SplashScreenActivity.login) {
             LogInActivity.user
@@ -97,19 +98,18 @@ class MyProfileFragment : Fragment() {
             ControllerUser.selectByEmail(emailSesion)!!
         }
     }
-
-
-
+    //Abrir redes sociales al hacer click en su boton correspondiente
     private fun abrirRedes(){
         imaInstagram.setOnClickListener {
-            onClickInstagram(it)
+            onClickInstagram()
         }
         imaTwitter.setOnClickListener {
-            onClickTwitter(it)
+            onClickTwitter()
         }
     }
 
-    fun onClickInstagram(view: View){
+    //Abrimos instagram del perfil del usuario
+    private fun onClickInstagram(){
         val str = "https://www.instagram.com/"+user.instagram
         Log.i("instagram: ", user.instagram)
 
@@ -119,7 +119,8 @@ class MyProfileFragment : Fragment() {
         startActivity(intent)
     }
 
-    fun onClickTwitter(view: View){
+    //Abrimos twitter del perfil del usuario
+    private fun onClickTwitter(){
         val str = "https://www.twitter.com/"+user.twitter
         Log.i("twitter: ", user.twitter)
         Toast.makeText(context, "twitter: "+user.twitter, Toast.LENGTH_SHORT).show()
@@ -128,6 +129,7 @@ class MyProfileFragment : Fragment() {
         startActivity(intent)
     }
 
+    //Asignamos a los componentes de la interfaz los datos del usuario logeado
     private fun asignarDatosUsuario(){
         imaProfile.setImageBitmap(Utilities.base64ToBitmap(user.foto))
         Utilities.redondearFoto(imaProfile)
@@ -136,14 +138,13 @@ class MyProfileFragment : Fragment() {
         txtEmailProfile.setText(user.email)
     }
 
-
-
+    //Opciones para insertar foto (camara o galeria)
     private fun abrirOpciones() {
         imaProfile.setOnClickListener(){
             val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_seleccion_camara, null)
             val mBuilder = AlertDialog.Builder(context!!)
                 .setView(mDialogView).create()
-            val mAlertDialog = mBuilder.show()
+            mBuilder.show()
 
             //Listener para abrir la camara
             mDialogView.txtCamara.setOnClickListener {
@@ -171,7 +172,6 @@ class MyProfileFragment : Fragment() {
     }
 
     //Llamamos al intent de la camara
-    // https://developer.android.com/training/camera/photobasics.html#TaskPath
     private fun tomarFotoCamara() {
         // Si queremos hacer uso de fotos en alta calidad
         val builder = StrictMode.VmPolicy.Builder()
@@ -197,21 +197,15 @@ class MyProfileFragment : Fragment() {
      * @param data Intent?
      */
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        Log.i("FOTO", "Opción::--->$requestCode")
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_CANCELED) {
-            Log.i("FOTO", "Se ha cancelado")
         }
         // Procesamos la foto de la galeria
         if (requestCode == GALERIA) {
-            Log.i("FOTO", "Entramos en Galería")
             if (data != null) {
                 // Obtenemos su URI con su dirección temporal
                 val contentURI = data.data!!
                 try {
-                    // Obtenemos el bitmap de su almacenamiento externo
-                    // Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
-                    // Dependeindo de la versión del SDK debemos hacerlo de una manera u otra
                     if (Build.VERSION.SDK_INT < 28) {
                         this.FOTO = MediaStore.Images.Media.getBitmap(context?.contentResolver, contentURI);
                     } else {
@@ -219,34 +213,24 @@ class MyProfileFragment : Fragment() {
                             ImageDecoder.createSource(context?.contentResolver!!, contentURI)
                         this.FOTO = ImageDecoder.decodeBitmap(source)
                     }
-                    // Para jugar con las proporciones y ahorrar en memoria no cargando toda la foto, solo carga 600px max
+                    // Para jugar con las proporciones
                     val prop = this.IMAGEN_PROPORCION / this.FOTO.width.toFloat()
-                    // Actualizamos el bitmap para ese tamaño, luego podríamos reducir su calidad
+                    // Actualizamos el bitmap para ese tamaño
                     this.FOTO = Bitmap.createScaledBitmap(
                         this.FOTO,
                         this.IMAGEN_PROPORCION,
                         (this.FOTO.height * prop).toInt(),
                         false
                     )
-                    Toast.makeText(context, "¡Foto rescatada de la galería!", Toast.LENGTH_SHORT).show()
                     imaProfile.setImageBitmap(this.FOTO)
-                    Utilities.redondearFoto(imaProfile)
-                    // Vamos a copiar nuestra imagen en nuestro directorio
-                    // Utilidades.copiarImagen(bitmap, IMAGEN_DIR, IMAGEN_COMPRES, applicationContext)
+                    Utilities.redondearFoto(imaProfile)//Redondea la foto
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    Toast.makeText(context, "¡Fallo Galeria!", Toast.LENGTH_SHORT).show()
                 }
             }
         } else if (requestCode == CAMARA) {
-            Log.i("FOTO", "Entramos en Camara")
             // Cogemos la imagen, pero podemos coger la imagen o su modo en baja calidad (thumbnail)
             try {
-                // Esta línea para baja calidad
-                //thumbnail = (Bitmap) data.getExtras().get("data");
-                // Esto para alta
-                //val source: ImageDecoder.Source = ImageDecoder.createSource(contentResolver, IMAGEN_URI)
-                //val foto: Bitmap = ImageDecoder.decodeBitmap(source)
 
                 if (Build.VERSION.SDK_INT < 28) {
                     this.FOTO = MediaStore.Images.Media.getBitmap(context?.contentResolver, IMAGEN_URI)
@@ -255,22 +239,15 @@ class MyProfileFragment : Fragment() {
                     this.FOTO = ImageDecoder.decodeBitmap(source)
                 }
 
-                // Vamos a probar a comprimir
+                //omprimir imagen
                 Fotos.comprimirImagen(IMAGEN_URI.toFile(), this.FOTO, this.IMAGEN_COMPRES)
-
-                // Si estamos en módo publico la añadimos en la biblioteca
-                // if (PUBLICO) {
-                // Por su queemos guardar el URI con la que se almacena en la Mediastore
                 IMAGEN_URI = Fotos.añadirFotoGaleria(IMAGEN_URI, IMAGEN_NOMBRE, context!!)!!
-                // }
 
                 // Mostramos
                 imaProfile.setImageBitmap(this.FOTO)
                 Utilities.redondearFoto(imaProfile)
-                Toast.makeText(context, "¡Foto Salvada!", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 e.printStackTrace()
-                Toast.makeText(context, "¡Fallo Camara!", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -289,17 +266,18 @@ class MyProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         abrirOpciones()
         Utilities.validarPassword(txtPassProfile, progressBar_MyProfile, password_strength_MyProfile, context!!)
-        Utilities.validarEmail(txtEmailProfile)
+        Utilities.validarEmail(txtEmailProfile, context!!)
         checkUsuario()
     }
 
 
+    //Actualizamos el usuario con los datos nuevos en la BD
     private fun actualizarUsuario(){
         val email = txtEmailProfile.text.toString()
         val name = txtNameProfile.text.toString()
         val nameUser = txtNameUserProfile.text.toString()
         val pass = Utilities.hashString(txtPassProfile.text.toString())
-        var imaStr = if (this::FOTO.isInitialized){
+        val imaStr = if (this::FOTO.isInitialized){
             Utilities.bitmapToBase64(this.FOTO)!!
         }else{
             user.foto
@@ -319,7 +297,8 @@ class MyProfileFragment : Fragment() {
         asignarDatosNavigation()
     }
 
-    fun asignarDatosNavigation(){
+    //Modificamos los datos del navigation drawer
+    private fun asignarDatosNavigation(){
         user = LogInActivity.user
         NavigationDrawer.txtNombreNav.text = user.nombre
         NavigationDrawer.txtCorreoNav.text = user.email
@@ -332,6 +311,7 @@ class MyProfileFragment : Fragment() {
         }
     }
 
+    //Eliminar usuaro BD
     private fun eliminarUser(){
         ControllerUser.deleteUser(user.email)
     }
@@ -346,25 +326,21 @@ class MyProfileFragment : Fragment() {
         return cambiada
     }
 
-
+    //Comprobamos que no haya campos vacios y el usuario sea unico
     private fun checkUsuario(){
         btnSave.setOnClickListener {
             Log.i("valor de vacios",comprobarVacios().toString())
             if(comprobarVacios()){
                 try {
-
                     if(ControllerUser.uniqueUser(txtNameUserProfile.text.toString())){
                         if(txtNameUserProfile.text.toString() == user.nombreUser){
                             actualizarUsuario()
-                            Toast.makeText(context, "Usuario actualizado con exito", Toast.LENGTH_SHORT).show()
                         }else {
                             txtNameUserProfile.error = getString(R.string.errorNameUser)
                         }
                     }else{
                         actualizarUsuario()
-                        Toast.makeText(context, "Usuario actualizado con exito", Toast.LENGTH_SHORT).show()
                     }
-
                 }catch (ex: RealmPrimaryKeyConstraintException){
                     txtEmailProfile.error = getString(R.string.errorEmail)
                 }
@@ -373,7 +349,6 @@ class MyProfileFragment : Fragment() {
             }
         }
     }
-
 
     //devuelve true si el campo del email ha sido modificado
     private fun checkEmailChange(): Boolean{
@@ -384,17 +359,10 @@ class MyProfileFragment : Fragment() {
         return v
     }
 
-
     private fun comprobarVacios(): Boolean{
         var valido = false
-        Log.i("validar email:", Utilities.validarEmail(txtEmailProfile).toString())
-        Log.i("nameProfile:", txtNameProfile.text.isNotEmpty().toString())
-        Log.i("nameUserProfile:", txtNameUserProfile.text.isNotEmpty().toString())
-        Log.i("txtNameProfile:", txtNameProfile.text.toString())
-        Log.i("txtNameUserProfile:", txtNameUserProfile.text.toString())
-        Log.i("txtEmailProfile:", txtEmailProfile.text.toString())
         if  (checkEmailChange()){
-            if (Utilities.validarEmail(txtEmailProfile) and txtNameProfile.text.isNotEmpty() and txtNameUserProfile.text.isNotEmpty()){
+            if (Utilities.validarEmail(txtEmailProfile, context!!) and txtNameProfile.text.isNotEmpty() and txtNameUserProfile.text.isNotEmpty()){
                 valido = true
             }
         }else{
@@ -404,15 +372,4 @@ class MyProfileFragment : Fragment() {
         }
         return valido
     }
-
-    override fun onResume() {
-        super.onResume()
-        //asignarDatosUsuario()
-    }
-
-
-
-
-
-
 }

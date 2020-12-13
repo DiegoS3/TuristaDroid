@@ -66,7 +66,7 @@ class SignUp : AppCompatActivity() {
     private fun init(){
         abrirOpciones()
         Utilities.validarPassword(txtPass, progressBar, password_strength, this)
-        Utilities.validarEmail(txtEmail)
+        Utilities.validarEmail(txtEmail, this)
         initSaveDatos()
         redes()
         checkUsuario()
@@ -83,6 +83,7 @@ class SignUp : AppCompatActivity() {
         Log.i("twitter2:",twitter)
     }
 
+    //Insertar id usuario en las redes sociales
     private fun redes(){
         imaInstagramSignUp.setOnClickListener {
             val mDialogView = LayoutInflater.from(this).inflate(R.layout.layout_input_instagram, null)
@@ -116,6 +117,7 @@ class SignUp : AppCompatActivity() {
         }
     }
 
+    //Comprobar suario
     private fun checkUsuario(){
         btnRegister.setOnClickListener {
             Log.i("valor de vacios",comprobarVacios().toString())
@@ -137,6 +139,7 @@ class SignUp : AppCompatActivity() {
         }
     }
 
+    //Registrar usuario
     private fun registrarUsuario() {
         val passCifrada = Utilities.hashString(txtPass.text.toString())
         val imaString = Utilities.bitmapToBase64(imaUser.drawable.toBitmap())
@@ -151,16 +154,18 @@ class SignUp : AppCompatActivity() {
         startActivity(intent)
     }
 
+    //Comprobar campos vaios
     private fun comprobarVacios(): Boolean{
-        return Utilities.validarEmail(txtEmail) and txtName.text.isNotEmpty() and txtPass.text.isNotEmpty() and txtNameUser.text.isNotEmpty()
+        return Utilities.validarEmail(txtEmail, this) and txtName.text.isNotEmpty() and txtPass.text.isNotEmpty() and txtNameUser.text.isNotEmpty()
     }
 
+    //Dialog para camara o galeria
     private fun abrirOpciones() {
         imaUser.setOnClickListener(){
             val mDialogView = LayoutInflater.from(this).inflate(R.layout.layout_seleccion_camara, null)
             val mBuilder = AlertDialog.Builder(this)
                     .setView(mDialogView).create()
-            val mAlertDialog = mBuilder.show()
+            mBuilder.show()
 
             //Listener para abrir la camara
             mDialogView.txtCamara.setOnClickListener {
@@ -261,6 +266,7 @@ class SignUp : AppCompatActivity() {
         ControllerBbdd.close()
     }
 
+    //Guardamos datos
     private fun initSaveDatos(){
         nombre = txtName.text.toString()
         usuario = txtNameUser.text.toString()

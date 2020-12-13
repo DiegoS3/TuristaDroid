@@ -101,6 +101,7 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         abrirOpciones()
     }
 
+    //Inciamos el adaptador del slider
     private fun initViewPager(){
         adapter = SliderAdapter(sliderItems, viewPager2)
         viewPager2.adapter = adapter
@@ -131,8 +132,9 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         })
     }
 
+    //Dialos para la camara o galeria
     private fun abrirOpciones() {
-        btnAddImage.setOnClickListener(){
+        btnAddImage.setOnClickListener{
             val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_seleccion_camara, null)
             val mBuilder = AlertDialog.Builder(context!!)
                 .setView(mDialogView).create()
@@ -186,12 +188,14 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         startActivityForResult(intent, GALERIA)
     }
 
+    //Añado imagen al slider del ViewAPger
     private fun addSliderItem(bitmap: Bitmap){
         val image = SliderItem(bitmap)
         addImageBd(bitmap)
         sliderItems.add(image)
     }
 
+    //Añado imagen a la BD
     private fun addImageBd(bitmap: Bitmap){
         val imgStr = Utilities.bitmapToBase64(bitmap)!!
         val id = ControllerImages.getImageIdentity()
@@ -200,12 +204,14 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         ControllerImages.insertImage(img)
     }
 
+    ////Añado imagen al RealmList de lugar
     private fun addImagePlace(list: MutableList<Image>, place: Place){
 
         for (imagen in list){ place.imagenes.add(imagen) }
 
     }
 
+    //Inicio Fragment mis lugares
     private fun initMyPlacesFragment(){
 
         val newFragment: Fragment = MyPlacesFragment()
@@ -216,6 +222,8 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
 
     }
 
+    //Creamos un lugar al hacer click en el boton guardar y tras comprobar las
+    //diferentes condiciones que se deben de dar
     private fun createPlace(latitude: Double, longitude : Double){
 
         btnSave_NewActualPlace.setOnClickListener {
@@ -239,9 +247,7 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
                     initMyPlacesFragment()
                 }
             }else{
-
                 Toast.makeText(context, getString(R.string.action_emptyfield), Toast.LENGTH_SHORT).show()
-
             }
         }
     }
@@ -251,8 +257,6 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK && requestCode==GALERIA) {
             try {
-
-
 
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -272,23 +276,16 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
             GALERIA -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
                     mostrarGaleria()
-                else
-                    Toast.makeText(
-                        context,
-                        "No tienes permiso para acceder a la galería",
-                        Toast.LENGTH_SHORT
-                    ).show()
+
             }
             CAMARA -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
                     abrirCamara()
-                else
-                    Toast.makeText(context, "No tienes permiso para acceder a la cámara", Toast.LENGTH_SHORT)
-                        .show()
             }
         }
     }
 
+    //HIlo Slider
     private var sliderRunnable = Runnable {
 
         run {
@@ -296,11 +293,14 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         }
     }
 
+
+    //Pausamos hilo
     override fun onPause() {
         super.onPause()
         sliderHandler.removeCallbacks(sliderRunnable)
     }
 
+    //Activamos hilo
     override fun onResume() {
         super.onResume()
         sliderHandler.postDelayed(sliderRunnable, 3000)
@@ -311,6 +311,7 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         mark = rating.toDouble()
     }
 
+    //Posicon actual usuario
     private fun getCurrentLocation(){
 
         val locationRequest = LocationRequest()
@@ -337,12 +338,14 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
             }, Looper.getMainLooper())
     }
 
+    //Metodo en el que inicializamos la Tarea para detectar la ciudad
     private fun cargarCiudad(latitude: Double, longiude : Double){
 
         tarea = CityAsyncTask(latitude, longiude)
         tarea.execute()
     }
 
+    //Clase ASyncrona que detecta segun el marcador la ciudad en la que se encuentra
     inner class CityAsyncTask(latitude: Double, longiude : Double) : AsyncTask<String, String, String>() {
 
         private var latitud = latitude
