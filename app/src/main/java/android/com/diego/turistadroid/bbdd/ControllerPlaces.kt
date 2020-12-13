@@ -27,6 +27,13 @@ object ControllerPlaces {
         )
     }
 
+    //Seleccionar todos los lugares
+    fun selectPlaces(): MutableList<Place>?{
+        return Realm.getDefaultInstance().copyFromRealm(
+            Realm.getDefaultInstance().where<Place>().findAll()
+        )
+    }
+
     //Actualizar un lugar
     fun updatePlace(place: Place){
         Realm.getDefaultInstance().executeTransaction{
@@ -49,6 +56,13 @@ object ControllerPlaces {
         } else {
             //Si devuelve registro lo incrementamos en 1
             registro.toLong() + 1
+        }
+    }
+
+    //Eliminar todos los lugares
+    fun deleteAllPlaces(){
+        Realm.getDefaultInstance().executeTransaction{
+            it.where<Place>().findAll().deleteAllFromRealm()
         }
     }
 }

@@ -45,8 +45,7 @@ class MyApplication : Application(){
                     // ccomprbamos si tenemos los permisos de todos ellos
                     if (report.areAllPermissionsGranted()) {
                         APP_PERMISOS = true
-                        Toast.makeText(applicationContext, "¡Todos los permisos concedidos!", Toast.LENGTH_SHORT)
-                            .show()
+
                     }
 
                     // comprobamos si hay un permiso que no tenemos concedido ya sea temporal o permanentemente
@@ -62,7 +61,7 @@ class MyApplication : Application(){
                 ) {
                     token.continuePermissionRequest()
                 }
-            }).withErrorListener { Toast.makeText(applicationContext, "¡Existe errores! ", Toast.LENGTH_SHORT).show() }
+            }).withErrorListener {  }
             .onSameThread()
             .check()
         Log.i("Config", "Fin Permisos")

@@ -58,7 +58,6 @@ class MyPlacesViewModel (
     fun addItem(place: Place){
         listPlaces.add(place)
         notifyDataSetChanged()
-
     }
 
     /**

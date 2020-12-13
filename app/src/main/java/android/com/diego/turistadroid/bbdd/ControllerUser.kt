@@ -48,4 +48,11 @@ object ControllerUser {
             it.where<User>().findAll().deleteAllFromRealm()
         }
     }
+
+    //Seleccionar todos los usaers
+    fun selectUsers(): MutableList<User>?{
+        return Realm.getDefaultInstance().copyFromRealm(
+            Realm.getDefaultInstance().where<User>().findAll()
+        )
+    }
 }

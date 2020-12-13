@@ -3,11 +3,9 @@ package android.com.diego.turistadroid.navigation_drawer.ui.myplaces
 import android.Manifest
 import android.app.Activity
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.ControllerImages
-import android.com.diego.turistadroid.bbdd.ControllerPlaces
-import android.com.diego.turistadroid.bbdd.Image
-import android.com.diego.turistadroid.bbdd.Place
+import android.com.diego.turistadroid.bbdd.*
 import android.com.diego.turistadroid.login.LogInActivity
+import android.com.diego.turistadroid.splash.SplashScreenActivity
 import android.com.diego.turistadroid.utilities.Fotos
 import android.com.diego.turistadroid.utilities.Utilities
 import android.com.diego.turistadroid.utilities.Utilities.generateQRCode
@@ -90,7 +88,7 @@ class MyPlaceDetailFragment(
     private var images = RealmList<Image>()
 
     //Usuario logeado
-    private var user = LogInActivity.user
+    private lateinit var user : User
 
     private var clicked = false //FLoating Button More clicked
     private var clickedShare = false //FLoating Button Share clicked
@@ -132,6 +130,7 @@ class MyPlaceDetailFragment(
         initMode()
         initChangeName()
         initViewPager()
+        userSwitch()
         lugaresUsuario()
         showDetailsPlace()
         abrirOpciones()
@@ -139,6 +138,17 @@ class MyPlaceDetailFragment(
         sharePlaceOnSocialNetwork()
         onClickQRBtn()
         onImportButton()
+    }
+
+    //usuario segunde donde entremos
+    private fun userSwitch(){
+        user = if(SplashScreenActivity.login) {
+            LogInActivity.user
+        }else{
+            val listaSesion = ControllerSession.selectSessions()!!
+            val emailSesion = listaSesion[0].emailUser
+            ControllerUser.selectByEmail(emailSesion)!!
+        }
     }
 
     /**

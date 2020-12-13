@@ -81,12 +81,13 @@ class MyPlacesFragment : Fragment() {
     }
 
     private fun initUI() {
-        userSwitch()
+
         initFloatingButtons()
         iniciarSwipeRecarga()
         iniciarSwipeHorizontal()
         // Mostramos las vistas de listas y adaptador asociado
         placeRecycler_MyPlaces.layoutManager = LinearLayoutManager(context)
+        userSwitch()
         cargarDatos()
         orderSites()
     }
@@ -330,9 +331,9 @@ class MyPlacesFragment : Fragment() {
     //Metodo al hacer click en el FAB ordenar
     private fun onSortButtonClicked() {
 
-        setVisibilitySort(clicked)
-        setAnimationSort(clicked)
-        setClickableSort(clicked)
+        setVisibilitySort(clickedSort)
+        setAnimationSort(clickedSort)
+        setClickableSort(clickedSort)
         clickedSort = !clickedSort
     }
 

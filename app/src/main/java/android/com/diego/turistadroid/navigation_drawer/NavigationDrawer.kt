@@ -127,8 +127,7 @@ class NavigationDrawer : AppCompatActivity(){
      */
     private fun comprobarRed() {
         if (Utilities.isNetworkAvailable(applicationContext)) {
-            Toast.makeText(applicationContext, "Existe conexión a internet", Toast.LENGTH_SHORT)
-                .show()
+
         } else {
             val snackbar = Snackbar.make(
                 findViewById(android.R.id.content),
@@ -149,8 +148,7 @@ class NavigationDrawer : AppCompatActivity(){
      */
     private fun comprobarGPS() {
         if (Utilities.isGPSAvaliable(applicationContext)) {
-            Toast.makeText(applicationContext, "Existe conexión a GPS", Toast.LENGTH_SHORT)
-                .show()
+
         } else {
             val snackbar = Snackbar.make(
                 findViewById(android.R.id.content),
@@ -316,7 +314,7 @@ class NavigationDrawer : AppCompatActivity(){
         when(requestCode){
             CAMERA_PERMISSION -> {
                 if (grantResults.isEmpty() || grantResults[0] != (PackageManager.PERMISSION_GRANTED)) {
-                    Toast.makeText(this, "Permiso denegado", Toast.LENGTH_SHORT).show()
+
                 } else {
                     openFlashLight()
                 }
