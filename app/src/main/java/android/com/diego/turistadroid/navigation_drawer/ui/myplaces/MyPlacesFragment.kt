@@ -6,6 +6,7 @@ import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewActualPlaceFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewPlaceFragment
 import android.com.diego.turistadroid.utilities.Utilities
+import android.content.Intent
 import android.graphics.*
 import android.os.AsyncTask
 import android.os.Bundle
@@ -14,12 +15,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.gson.Gson
 import com.google.zxing.client.result.VINParsedResult
 import com.google.zxing.integration.android.IntentIntegrator
 import com.journeyapps.barcodescanner.CaptureActivity
@@ -35,6 +38,7 @@ class MyPlacesFragment : Fragment() {
     private lateinit var place: Place
     private val user = LogInActivity.user //Usuario logeado
     private var clicked = false
+    private lateinit var placeQr : Place
 
     // Interfaz gráfica
     private lateinit var adapter: MyPlacesViewModel //Adaptador de Recycler
@@ -219,7 +223,7 @@ class MyPlacesFragment : Fragment() {
     }
 
     private fun editarElemento(pos: Int){
-        initDetailsPlaceFragment(true, places[pos], pos)
+        initDetailsPlaceFragment(true, places[pos], pos, false)
     }
 
     private fun abrirOpciones(pos: Int) {
@@ -333,7 +337,7 @@ class MyPlacesFragment : Fragment() {
         transaction.commit()
     }
 
-    private fun initDetailsPlaceFragment(boolean: Boolean, place: Place, pos: Int?) {
+    private fun initDetailsPlaceFragment(boolean: Boolean, place: Place, pos: Int?, import : Boolean) {
 
         val newFragment: Fragment = MyPlaceDetailFragment(boolean, place, pos, this)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
@@ -412,6 +416,33 @@ class MyPlacesFragment : Fragment() {
         }
         integrator.initiateScan()
     }
+    /**
+     * Procesamos los resultados
+     * @param requestCode Int
+     * @param resultCode Int
+     * @param data [ERROR : Intent]
+     */
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
+        if (result != null) {
+            if (result.contents == null) {
+                Toast.makeText(context, "Cancelado", Toast.LENGTH_LONG).show()
+            }
+            else {
+                try {
+                    placeQr = Gson().fromJson(result.contents, Place::class.java)
+                    // Toast.makeText(context, "Recuperado: $LUGAR", Toast.LENGTH_LONG).show()
+                    //initUI()
+                    initDetailsPlaceFragment(true, placeQr, null, true)
+                } catch (ex: Exception) {
+                    Toast.makeText(context, "Error: El QR no es de un lugar válido", Toast.LENGTH_LONG).show()
+                    // volver()
+                }
+            }
+        } else {
+            super.onActivityResult(requestCode, resultCode, data)
+        }
+    }
 
     /**
      * Carga las datos
@@ -432,7 +463,7 @@ class MyPlacesFragment : Fragment() {
      * @param place Place
      */
     private fun eventoClicFila(place: Place) {
-        initDetailsPlaceFragment(false, place, null)
+        initDetailsPlaceFragment(false, place, null, false)
     }
 
     inner class TareaCargarDatos : AsyncTask<String?, Void?, Void?>() {
