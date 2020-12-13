@@ -41,6 +41,7 @@ import com.google.android.gms.maps.model.LatLng
 import io.realm.RealmList
 import kotlinx.android.synthetic.main.activity_sign_up.*
 import kotlinx.android.synthetic.main.app_bar_main.view.*
+import kotlinx.android.synthetic.main.fragment_my_place_detail.*
 import kotlinx.android.synthetic.main.fragment_newplace.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
 import java.io.IOException
@@ -260,19 +261,22 @@ class NewPlaceFragment () : Fragment(), RatingBar.OnRatingBarChangeListener {
 
             if (comprobarVacios()){
 
-                val currentDate = Calendar.getInstance().time
-                val namePlace = txtNamePlace_NewPlace.text.toString()
-                val id = ControllerPlaces.getPlaceIdentity()
-                val city = txtUbication.text.toString()
-                val place = Place(id, namePlace, currentDate, city, mark, location.longitude, location.latitude)
-                ControllerPlaces.insertPlace(place)
-                addImagePlace(images, place)
-                user.places.add(place)
-                //Creamos un usuario nuevo con los datos del logeado y le incluimos los lugares
-                val newUser = User(user.email, user.nombre, user.nombreUser, user.pwd, user.foto, user.places)
-                ControllerBbdd.updateUser(newUser)
-                initMyPlacesFragment()
-
+                if (txtNamePlace_NewPlace.equals(getString(R.string.notFoundUbication))){
+                    Toast.makeText(context, getString(R.string.ubicationError), Toast.LENGTH_SHORT).show()
+                }else {
+                    val currentDate = Calendar.getInstance().time
+                    val namePlace = txtNamePlace_NewPlace.text.toString()
+                    val id = ControllerPlaces.getPlaceIdentity()
+                    val city = txtUbication.text.toString()
+                    val place = Place(id, namePlace, currentDate, city, mark, location.longitude, location.latitude)
+                    ControllerPlaces.insertPlace(place)
+                    addImagePlace(images, place)
+                    user.places.add(place)
+                    //Creamos un usuario nuevo con los datos del logeado y le incluimos los lugares
+                    val newUser = User(user.email, user.nombre, user.nombreUser, user.pwd, user.foto, user.places)
+                    ControllerBbdd.updateUser(newUser)
+                    initMyPlacesFragment()
+                }
             }else{
 
                 Toast.makeText(context, getString(R.string.action_emptyfield), Toast.LENGTH_SHORT).show()

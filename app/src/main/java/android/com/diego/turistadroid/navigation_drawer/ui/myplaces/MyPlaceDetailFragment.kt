@@ -3,11 +3,15 @@ package android.com.diego.turistadroid.navigation_drawer.ui.myplaces
 import android.Manifest
 import android.app.Activity
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.*
+import android.com.diego.turistadroid.bbdd.ControllerImages
+import android.com.diego.turistadroid.bbdd.ControllerPlaces
+import android.com.diego.turistadroid.bbdd.Image
+import android.com.diego.turistadroid.bbdd.Place
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.utilities.Utilities
 import android.com.diego.turistadroid.utilities.slider.SliderAdapter
 import android.com.diego.turistadroid.utilities.slider.SliderItem
+import android.content.ActivityNotFoundException
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -42,11 +46,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import io.realm.RealmList
-import kotlinx.android.synthetic.main.activity_log_in.*
 import kotlinx.android.synthetic.main.fragment_my_place_detail.*
-import kotlinx.android.synthetic.main.fragment_myplaces.*
-import kotlinx.android.synthetic.main.fragment_new_actual_place.*
-import kotlinx.android.synthetic.main.item_list_places.*
 import kotlinx.android.synthetic.main.layout_change_name_place.view.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
 import java.io.IOException
@@ -55,19 +55,18 @@ import kotlin.math.abs
 
 class MyPlaceDetailFragment(
 
-    private var editable : Boolean,
-    private var lugar : Place,
-    private var indexPlace : Int? = null,
-    private var fragmentAnterior : MyPlacesFragment? = null
+    private var editable: Boolean,
+    private var lugar: Place,
+    private var indexPlace: Int? = null,
+    private var fragmentAnterior: MyPlacesFragment? = null
 
-    ) : Fragment(), OnMapReadyCallback, RatingBar.OnRatingBarChangeListener {
+) : Fragment(), OnMapReadyCallback, RatingBar.OnRatingBarChangeListener {
 
     //Componentes Interfaz
     private lateinit var btnSave : Button
     private lateinit var floatBtnMore : FloatingActionButton
     private lateinit var floatBtnShare : FloatingActionButton
     private lateinit var floatBtnQr : FloatingActionButton
-    private lateinit var floatBtnGoTo : FloatingActionButton
     private lateinit var floatBtnTwitter : FloatingActionButton
     private lateinit var floatBtnEmail : FloatingActionButton
     private lateinit var floatBtnInsta : FloatingActionButton
@@ -125,6 +124,7 @@ class MyPlaceDetailFragment(
         showDetailsPlace()
         abrirOpciones()
         updatePlace()
+        sharePlaceOnSocialNetwork()
     }
 
     private fun lugaresUsuario(){
@@ -153,7 +153,7 @@ class MyPlaceDetailFragment(
         }
     }
 
-    private fun initUI(view : View){
+    private fun initUI(view: View){
 
         viewPager2 = view.findViewById(R.id.vpImagesPlace_DetailsPlace)
         btnSave = view.findViewById(R.id.btnSave_DetailsPlace)
@@ -239,7 +239,7 @@ class MyPlaceDetailFragment(
         }
     }
 
-    private fun setNewName(name : String){
+    private fun setNewName(name: String){
         this.newNamePlace = name
         txtTitlePlace_DetailsPlace.text = name
     }
@@ -280,9 +280,25 @@ class MyPlaceDetailFragment(
                     val namePlace = txtTitlePlace_DetailsPlace.text.toString()
                     val city = txtUbicationPlace_DetailsPlace.text.toString()
                     val place = if (this::location.isInitialized){
-                        Place(this.lugar.id, namePlace, this.lugar.fecha, city, mark.toDouble(), location.longitude, location.latitude)
+                        Place(
+                            this.lugar.id,
+                            namePlace,
+                            this.lugar.fecha,
+                            city,
+                            mark.toDouble(),
+                            location.longitude,
+                            location.latitude
+                        )
                     }else{
-                        Place(this.lugar.id, namePlace, this.lugar.fecha, city, mark.toDouble(), this.lugar.longitud, this.lugar.latitud)
+                        Place(
+                            this.lugar.id,
+                            namePlace,
+                            this.lugar.fecha,
+                            city,
+                            mark.toDouble(),
+                            this.lugar.longitud,
+                            this.lugar.latitud
+                        )
                     }
                     addImagePlace(images, place)
                     ControllerPlaces.updatePlace(place)
@@ -328,11 +344,9 @@ class MyPlaceDetailFragment(
             if (!clicked) {
                 floatBtnShare.isClickable = true
                 floatBtnQr.isClickable = true
-                floatBtnGoTo.isClickable = true
             } else {
                 floatBtnShare.isClickable = false
                 floatBtnQr.isClickable = false
-                floatBtnGoTo.isClickable = false
             }
         }else{
             if (!clickedShare) {
@@ -352,7 +366,6 @@ class MyPlaceDetailFragment(
     private fun notClickable(){
         floatBtnShare.isClickable = false
         floatBtnQr.isClickable = false
-        floatBtnGoTo.isClickable = false
         floatBtnTwitter.isClickable = false
         floatBtnEmail.isClickable = false
         floatBtnInsta.isClickable = false
@@ -362,13 +375,11 @@ class MyPlaceDetailFragment(
         if (moreOrShareClick) {
             if (!clicked) {
                 floatBtnShare.visibility = View.VISIBLE
-                floatBtnGoTo.visibility = View.VISIBLE
                 floatBtnQr.visibility = View.VISIBLE
                 txtSharePlace_Details.visibility = View.VISIBLE
                 txtQRPlace_Details.visibility = View.VISIBLE
             } else {
                 floatBtnShare.visibility = View.INVISIBLE
-                floatBtnGoTo.visibility = View.INVISIBLE
                 floatBtnQr.visibility = View.INVISIBLE
                 txtSharePlace_Details.visibility = View.INVISIBLE
                 txtQRPlace_Details.visibility = View.INVISIBLE
@@ -406,7 +417,6 @@ class MyPlaceDetailFragment(
         if (moreOrShareClick and !clickedShare){
             if (!clicked) {
                 floatBtnShare.startAnimation(fromBottom)
-                floatBtnGoTo.startAnimation(fromBottom)
                 floatBtnQr.startAnimation(fromBottom)
                 txtSharePlace_Details.startAnimation(fromBottom)
                 txtQRPlace_Details.startAnimation(fromBottom)
@@ -414,7 +424,6 @@ class MyPlaceDetailFragment(
 
             } else {
                 floatBtnShare.startAnimation(toBottom)
-                floatBtnGoTo.startAnimation(toBottom)
                 floatBtnQr.startAnimation(toBottom)
                 txtSharePlace_Details.startAnimation(toBottom)
                 txtQRPlace_Details.startAnimation(toBottom)
@@ -482,6 +491,45 @@ class MyPlaceDetailFragment(
 
     }
 
+    private fun sharePlaceOnSocialNetwork(){
+        floatBtnTwitter.setOnClickListener {
+
+            val img = Utilities.base64ToBitmap(this.lugar.imagenes[0]!!.foto)
+            val uri = Utilities.getImageUri(context!!, img!!)
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.type = "image/*"
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent.putExtra(Intent.EXTRA_STREAM, uri)
+            intent.setPackage("com.twitter.android")
+            try {
+                startActivity(intent)
+            }catch (e : ActivityNotFoundException){
+                Toast.makeText(context, getString(R.string.fatalTwitter), Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        floatBtnInsta.setOnClickListener {
+            val img = Utilities.base64ToBitmap(this.lugar.imagenes[0]!!.foto)
+            val uri = Utilities.getImageUri(context!!, img!!)
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            intent.putExtra(Intent.EXTRA_STREAM, uri)
+            intent.setPackage("com.instagram.android")
+            startActivity(Intent.createChooser(intent, this.lugar.nombre))
+        }
+
+        floatBtnEmail.setOnClickListener {
+            val img = Utilities.base64ToBitmap(this.lugar.imagenes[0]!!.foto)
+            val uri = Utilities.getImageUri(context!!, img!!)
+            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                data = Uri.parse("mailto:" + user.email)}
+            intent.putExtra(Intent.EXTRA_SUBJECT, lugar.nombre)
+            intent.putExtra(Intent.EXTRA_STREAM, uri)
+            startActivity(intent)
+
+        }
+    }
+
     private fun addImagePlace(list: MutableList<Image>, place: Place){
 
         for (imgPlace in this.lugar.imagenes){ place.imagenes.add(imgPlace)}
@@ -503,7 +551,7 @@ class MyPlaceDetailFragment(
     /**
     * Configuración por defecto del modo de mapa
     */
-    private fun configurarIUMapa(boolean : Boolean) {
+    private fun configurarIUMapa(boolean: Boolean) {
         Log.i("Mapa", "Configurando IU Mapa")
         mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
         val uiSettings: UiSettings = mMap.uiSettings
@@ -563,7 +611,8 @@ class MyPlaceDetailFragment(
     }
 
     //muestro la camara
-    private fun abrirCamara() = if (ActivityCompat.checkSelfPermission(context!!,
+    private fun abrirCamara() = if (ActivityCompat.checkSelfPermission(
+            context!!,
             Manifest.permission.CAMERA
         ) == PackageManager.PERMISSION_DENIED ||
         ActivityCompat.checkSelfPermission(context!!, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
@@ -640,13 +689,13 @@ class MyPlaceDetailFragment(
         }
     }
 
-    private fun cargarCiudad(latitude: Double, longiude : Double){
+    private fun cargarCiudad(latitude: Double, longiude: Double){
 
         tarea = CityAsyncTask(latitude, longiude)
         tarea.execute()
     }
 
-    inner class CityAsyncTask(latitude: Double, longiude : Double) : AsyncTask<String, String, String>() {
+    inner class CityAsyncTask(latitude: Double, longiude: Double) : AsyncTask<String, String, String>() {
 
         private var latitud = latitude
         private var longitud = longiude
@@ -669,8 +718,8 @@ class MyPlaceDetailFragment(
                     }
                 }
                 result = addresses[0].toString()
-            }catch (e : IOException){}
-            catch (e : Exception) {}
+            }catch (e: IOException){}
+            catch (e: Exception) {}
 
             return result
         }
