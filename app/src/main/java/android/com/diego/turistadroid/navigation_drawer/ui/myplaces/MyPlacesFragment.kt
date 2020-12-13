@@ -222,6 +222,11 @@ class MyPlacesFragment : Fragment() {
         adapter.notifyDataSetChanged()
     }
 
+    fun insertarPlaceAdapter(place: Place){
+        adapter.addItem(place)
+        adapter.notifyDataSetChanged()
+    }
+
     private fun editarElemento(pos: Int){
         initDetailsPlaceFragment(true, places[pos], pos, false)
     }
@@ -339,7 +344,7 @@ class MyPlacesFragment : Fragment() {
 
     private fun initDetailsPlaceFragment(boolean: Boolean, place: Place, pos: Int?, import : Boolean) {
 
-        val newFragment: Fragment = MyPlaceDetailFragment(boolean, place, pos, this)
+        val newFragment: Fragment = MyPlaceDetailFragment(boolean, place, pos, this, import)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
@@ -433,7 +438,7 @@ class MyPlacesFragment : Fragment() {
                     placeQr = Gson().fromJson(result.contents, Place::class.java)
                     // Toast.makeText(context, "Recuperado: $LUGAR", Toast.LENGTH_LONG).show()
                     //initUI()
-                    initDetailsPlaceFragment(true, placeQr, null, true)
+                    initDetailsPlaceFragment(false, placeQr, null, true)
                 } catch (ex: Exception) {
                     Toast.makeText(context, "Error: El QR no es de un lugar válido", Toast.LENGTH_LONG).show()
                     // volver()

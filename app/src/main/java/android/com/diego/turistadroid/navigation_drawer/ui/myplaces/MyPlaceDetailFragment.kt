@@ -360,6 +360,8 @@ class MyPlaceDetailFragment(
             val place = Place(id, this.lugar.nombre, currentDate, this.lugar.city, this.lugar.puntuacion, this.lugar.longitud, this.lugar.latitud)
             addImagePlaceImport(this.lugar)
             ControllerPlaces.insertPlace(place)
+            this.fragmentAnterior?.insertarPlaceAdapter(place)
+            initMyPlacesFragment()
         }
     }
 
@@ -541,7 +543,10 @@ class MyPlaceDetailFragment(
         val builder = AlertDialog.Builder(context!!)
         val inflater = requireActivity().layoutInflater
         val vista = inflater.inflate(R.layout.layout_share_qr_code, null)
-        val code = generateQRCode(Gson().toJson(lugar))
+
+        val lugarSinImagenes = Place(lugar.id, lugar.nombre, lugar.fecha, lugar.city, lugar.puntuacion, lugar.longitud, lugar.latitud)
+
+        val code = generateQRCode(Gson().toJson(lugarSinImagenes))
         val qrCodeImageView = vista.findViewById(R.id.imagenCodigoQR) as ImageView
         qrCodeImageView.setImageBitmap(code)
         builder
