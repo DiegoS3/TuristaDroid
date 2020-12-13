@@ -184,7 +184,7 @@ class MyPlacesFragment : Fragment() {
         restoreImgPlace(place)
         user.places.add(place)
         val newUser = User(user.email, user.nombre, user.nombreUser, user.pwd, user.foto, user.places)
-        ControllerBbdd.updateUser(newUser)
+        ControllerUser.updateUser(newUser)
         val idPlace = ControllerPlaces.getPlaceIdentity()
         val newPlace = Place(
             idPlace,
@@ -204,7 +204,7 @@ class MyPlacesFragment : Fragment() {
         deleteImgPlace(place)
         user.places.remove(place)
         val newUser = User(user.email, user.nombre, user.nombreUser, user.pwd, user.foto, user.places)
-        ControllerBbdd.updateUser(newUser)
+        ControllerUser.updateUser(newUser)
         ControllerPlaces.deletePlace(place.id)
     }
 

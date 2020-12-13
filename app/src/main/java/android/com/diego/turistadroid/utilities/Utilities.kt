@@ -1,12 +1,7 @@
 package android.com.diego.turistadroid.utilities
 
-import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.signup.SignUp
 import android.content.Context
 import android.content.res.Resources
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -17,10 +12,10 @@ import android.net.Uri
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextUtils
 import android.text.TextWatcher
-import android.provider.MediaStore
 import android.util.Base64
 import android.util.Log
 import android.widget.EditText
@@ -33,13 +28,8 @@ import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
-import androidx.core.graphics.drawable.toBitmap
-import kotlinx.android.synthetic.main.activity_sign_up.*
 import java.io.ByteArrayOutputStream
-import java.io.UnsupportedEncodingException
-import java.lang.Byte.decode
 import java.security.MessageDigest
-import kotlin.experimental.and
 
 
 object Utilities {

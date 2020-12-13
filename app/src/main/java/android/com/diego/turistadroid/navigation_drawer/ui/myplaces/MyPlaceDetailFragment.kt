@@ -65,7 +65,7 @@ class MyPlaceDetailFragment(
     private var lugar: Place,
     private var indexPlace: Int? = null,
     private var fragmentAnterior: MyPlacesFragment? = null,
-    private var import : Boolean? = null
+    private var import : Boolean = false
 
 ) : Fragment(), OnMapReadyCallback, RatingBar.OnRatingBarChangeListener {
 
@@ -194,7 +194,7 @@ class MyPlaceDetailFragment(
                 notClickable()
 
             }
-            import!! -> {
+            import -> {
 
                 btnImport.visibility = View.VISIBLE
                 floatBtnMore.isClickable = true
@@ -600,7 +600,11 @@ class MyPlaceDetailFragment(
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             intent.putExtra(Intent.EXTRA_STREAM, uri)
             intent.setPackage("com.instagram.android")
-            startActivity(Intent.createChooser(intent, this.lugar.nombre))
+            try {
+                startActivity(intent)
+            }catch (e : ActivityNotFoundException){
+                Toast.makeText(context, getString(R.string.fatalTwitter), Toast.LENGTH_SHORT).show()
+            }
         }
 
         floatBtnEmail.setOnClickListener {

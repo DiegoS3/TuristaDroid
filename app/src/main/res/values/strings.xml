@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Turista Droid</string>
 
     <!--SignUp-->
@@ -11,7 +11,7 @@
     <string name="errorEmail">This email already exists</string>
     <string name="errorNameUser">This user name already exists</string>
     <string name="inputSocialMedia">Enter your username</string>
-    <string name="btnOk">Save</string>
+    <string name="btnOk" tools:ignore="ExtraTranslation">Save</string>
     <string name="btnCancel">Cancel</string>
 
     <!--Seleccion_Camara-->

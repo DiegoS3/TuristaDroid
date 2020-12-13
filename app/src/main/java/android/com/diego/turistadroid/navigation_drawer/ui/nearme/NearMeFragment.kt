@@ -29,7 +29,6 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
 import kotlinx.android.synthetic.main.fragment_near_me.*
-import kotlinx.android.synthetic.main.intem_visualizacion_mapa.*
 import java.util.*
 
 

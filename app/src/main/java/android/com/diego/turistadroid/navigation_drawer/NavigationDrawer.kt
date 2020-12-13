@@ -181,16 +181,16 @@ class NavigationDrawer : AppCompatActivity(){
     }
 
     private fun linterna(){
-            val permission = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                if (permission != PackageManager.PERMISSION_GRANTED) {
-                    setupPermissions()
-                } else {
-                    openFlashLight()
-                }
+        val permission = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            if (permission != PackageManager.PERMISSION_GRANTED) {
+                setupPermissions()
             } else {
                 openFlashLight()
             }
+        } else {
+            openFlashLight()
+        }
     }
 
 
@@ -206,17 +206,6 @@ class NavigationDrawer : AppCompatActivity(){
     }
 
     private fun navigationListener(navigationView: NavigationView){
-    private fun abrirMyPlaces(){
-
-        val newFragment = MyPlacesFragment()
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.nav_host_fragment, newFragment)
-        transaction.addToBackStack(null)
-        transaction.commit()
-
-    }
-
-    private fun linternaListener(navigationView: NavigationView){
         navigationView.setNavigationItemSelectedListener {
             when(it.itemId){
                 R.id.nav_lantern -> {
@@ -274,13 +263,6 @@ class NavigationDrawer : AppCompatActivity(){
         transaction.addToBackStack(null)
         transaction.commit()
     }
-    /**
-     * Inicia/ Comprueba los permisos de la App
-     */
-    private fun initPermisos() {
-        if (!(this.application as MyApplication).APP_PERMISOS)
-            (this.application as MyApplication).initPermisos()
-    }
 
     private fun abrirMyProfile(){
         val newFragment = MyProfileFragment()
@@ -302,60 +284,6 @@ class NavigationDrawer : AppCompatActivity(){
         ControllerSession.deleteSession(user.email)
         val intent = Intent (this, LogInActivity::class.java)
         startActivity(intent)
-    }
-
-
-    /*
-    * Comprueba que exista las conexiones para funcionar
-    */
-    private fun comprobarConexion() {
-        // Comprobamos la red
-        comprobarRed()
-        comprobarGPS()
-    }
-
-    /*
-    * Comprueba que haya red, si no llama a activarlo
-    */
-    private fun comprobarRed() {
-        if (Utilities.isNetworkAvailable(applicationContext)) {
-            Toast.makeText(applicationContext, "Existe conexión a internet", Toast.LENGTH_SHORT)
-                .show()
-        } else {
-            val snackbar = Snackbar.make(
-                findViewById(android.R.id.content),
-                "Es necesaria una conexión a internet",
-                Snackbar.LENGTH_INDEFINITE
-            )
-            snackbar.setActionTextColor(getColor(R.color.colorAccent))
-            snackbar.setAction("Conectar") {
-                val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
-                startActivity(intent)
-            }
-            snackbar.show()
-        }
-    }
-
-    /**
-     * Comprueba que existe GPS si no llama a activarlo
-     */
-    private fun comprobarGPS() {
-        if (Utilities.isGPSAvaliable(applicationContext)) {
-            Toast.makeText(applicationContext, "Existe conexión a GPS", Toast.LENGTH_SHORT)
-                .show()
-        } else {
-            val snackbar = Snackbar.make(
-                findViewById(android.R.id.content),
-                "Es necesaria una conexión a GPS",
-                Snackbar.LENGTH_INDEFINITE
-            )
-            snackbar.setActionTextColor(getColor(R.color.colorAccent))
-            snackbar.setAction("Conectar") {
-                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                startActivity(intent)
-            }
-            snackbar.show()
-        }
     }
 
 
@@ -408,4 +336,3 @@ class NavigationDrawer : AppCompatActivity(){
     }
 
 }
-

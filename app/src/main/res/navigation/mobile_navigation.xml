@@ -9,7 +9,7 @@
             android:id="@+id/nav_myPlaces"
             android:name="android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment"
             android:label="@string/my_places"
-            tools:layout="@layout/fragment_home"/>
+            tools:layout="@layout/fragment_myplaces"/>
 
     <fragment
             android:id="@+id/nav_myProfile"
@@ -21,5 +21,5 @@
             android:id="@+id/nav_nearMe"
             android:name="android.com.diego.turistadroid.navigation_drawer.ui.nearme.NearMeFragmentt"
             android:label="@string/menu_slideshow"
-            tools:layout="@layout/fragment_slideshow"/>
+            tools:layout="@layout/fragment_near_me"/>
 </navigation>
