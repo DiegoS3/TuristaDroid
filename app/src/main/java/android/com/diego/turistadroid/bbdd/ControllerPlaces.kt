@@ -1,6 +1,8 @@
 package android.com.diego.turistadroid.bbdd
 
 import io.realm.Realm
+import io.realm.RealmObject
+import io.realm.kotlin.createObject
 import io.realm.kotlin.where
 
 object ControllerPlaces {
