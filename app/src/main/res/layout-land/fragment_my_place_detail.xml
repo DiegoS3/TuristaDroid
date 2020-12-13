@@ -67,9 +67,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:stepSize="0.5"
-                android:layout_marginStart="80dp"
                 android:numStars="5"
-                android:layout_marginEnd="80dp"
+                android:layout_marginStart="85dp"
+                android:layout_marginEnd="85dp"
                 android:layout_marginTop="220dp"
                 android:theme="@style/RatingBar"
                 android:layout_below="@+id/vpImagesPlace_DetailsPlace"/>
@@ -188,7 +188,7 @@
                 android:backgroundTint="@color/colorFloatingButton"
                 android:id="@+id/btnFloatShareEmail_DetailsPlace"
                 android:visibility="invisible"
-                android:layout_marginStart="237dp"
+                android:layout_marginStart="187dp"
                 android:clickable="true"
                 android:focusable="true"
                 android:layout_above="@+id/btnFloatSharePlace_DetailsPlace"
@@ -219,7 +219,7 @@
                 android:focusable="true"
                 android:backgroundTint="@color/colorFloatingButton"
                 android:id="@+id/btnFloatShareInstagram_DetailsPlace"
-                android:layout_marginStart="237dp"
+                android:layout_marginStart="187dp"
                 android:layout_above="@+id/btnFloatShareEmail_DetailsPlace"
                 android:layout_marginBottom="15dp" android:layout_alignParentStart="true"/>
         <TextView
@@ -245,7 +245,7 @@
                 android:backgroundTint="@color/colorFloatingButton"
                 android:visibility="invisible"
                 android:id="@+id/btnFloatShareTwitter_DetailsPlace"
-                android:layout_marginStart="237dp"
+                android:layout_marginStart="187dp"
                 android:layout_above="@+id/btnFloatShareInstagram_DetailsPlace"
                 android:layout_marginBottom="15dp" android:layout_alignParentStart="true"/>
         <TextView

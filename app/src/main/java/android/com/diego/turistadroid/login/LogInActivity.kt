@@ -16,85 +16,105 @@ import kotlinx.android.synthetic.main.activity_log_in.*
 
 class LogInActivity : AppCompatActivity() {
 
+    //mis variables
     private var userSave = ""
     private var pwdSave = ""
     private var sesion = Session()
-    companion object{
-        var user = User()
+
+    companion object {
+        var user = User() //usuario que compartiremos con activities y fragments
     }
 
+    //Cuando se crea la actividad
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Ocultamos la barra de action
         this.supportActionBar?.hide()
         setContentView(R.layout.activity_log_in)
-        txtUser_Login.setText("d@d.d")
-        txtPwd_Login.setText("d")
+
         clickBtn()
         clickRegister()
-        //sdf()
-
     }
 
-    private fun sdf(){
-        txtUser_Login.setText("x@x.c")
-        txtPwd_Login.setText("x")
-    }
-
+    //Al parar la actividad
     override fun onStop() {
         super.onStop()
+        //Cerramos el realm
         ControllerBbdd.close()
     }
 
+    //Al destruir la actividad
     override fun onDestroy() {
         super.onDestroy()
+        //Cerramos el realm
         ControllerBbdd.close()
     }
 
-    private fun comprobarLogin(email : String, pwd : String) : Boolean{
-    try{
-        user = ControllerUser.selectByEmail(email)!!
-    }catch (e: IllegalArgumentException){
-    }
+    /**
+     * Comprueba que los datos del usuario existen en la tabla
+     *
+     * @param email Email introducido por el usuario
+     * @param pwf Contraseña introducida por el usuario
+     *
+     * @return true si el email y la pwd coinciden con los de la BD
+     *         false en caso de que alguno de los dos no coincida
+     */
+    private fun comprobarLogin(email: String, pwd: String): Boolean {
+        try {
+            user = ControllerUser.selectByEmail(email)!! //Seleccionamos el usuario en la BD por el email introducido
+        } catch (e: IllegalArgumentException) {
+        }
         return pwd == user.pwd
-
     }
 
+    /**
+     * Metodo en el que al pulsar en login se comprueban los
+     * diferentes casos que se pueden dar al intentar iniciar sesion
+     */
+    private fun clickBtn() {
 
-    private fun clickBtn(){
-
+        //Evento al hacer click
         btnLogIn.setOnClickListener {
 
-            val email = txtUser_Login.text.toString()
+            val email = txtUser_Login.text.toString()//email introducido en el EditText
+            //pwd introducida en el EditText y convertida a Sha-256
             val pwd = Utilities.hashString(txtPwd_Login.text.toString())
 
-            if (email.isEmpty()) {
-                txtUser_Login.error = getString(R.string.action_emptyfield)
+            if (email.isEmpty()) { //En caso de estar el EditText del email vacio
+                txtUser_Login.error = getString(R.string.action_emptyfield) //seteamos el error a mostrar
             }
-            if (pwd.isEmpty()) {
-                txtPwd_Login.error = getString(R.string.action_emptyfield)
+            if (pwd.isEmpty()) { //En caso de estar el EditText del pwd vacio
+                txtPwd_Login.error = getString(R.string.action_emptyfield) //seteamos el error a mostrar
             }
 
+            // en caso de no estar ninguno de los EditText vacios
             if (email.isNotEmpty() and pwd.isNotEmpty()) {
-
+                //Lamamos al metodo que comprueba que coincidan con los de la BD
                 if (comprobarLogin(email, pwd)) {
-                    if (comprobarRed()) {
-                        insertarSession(email)
-                        initNavigation()
+                    if (comprobarRed()) {//si coinciden comprobamos que existe conexion a internet
+                        insertarSession(email) //creamos la sesion con el email del usuario
+                        initNavigation() //iniciamos la actividad del Navigation Drawer
                     }
-                }else { txtUser_Login.error = getString(R.string.errorLogin) }
+                } else {
+                    txtUser_Login.error = getString(R.string.errorLogin) //en caso contraio seteamos el error
+                }
             }
         }
     }
 
+    /**
+     * Metodo que comprueba si el usuario tiene activa la conexion a internet
+     *
+     * @return true en caso de tener activa la conexion
+     *         false en caso de no tener activa la conexion
+     */
     private fun comprobarRed(): Boolean {
 
         var red = false
-        if (Utilities.isNetworkAvailable(applicationContext)) {
-            Toast.makeText(applicationContext, getString(R.string.InternetON), Toast.LENGTH_SHORT)
-                .show()
-            red = true
-        } else {
+        //Si esta activa
+        if (Utilities.isNetworkAvailable(applicationContext)) { red = true}
+        else { //si no esta activa
+            //Mostramos snack bar que le permite acceder a las opciones para activar la conexion a internet
             val snackbar = Snackbar.make(
                 findViewById(android.R.id.content),
                 getString(R.string.InternetNeed),
@@ -110,27 +130,39 @@ class LogInActivity : AppCompatActivity() {
         return red
     }
 
-    
-    private fun insertarSession(email: String){
+    /**
+     * Metodo que inserta al usuario en la tabla de sesiones
+     */
+    private fun insertarSession(email: String) {
         sesion = Session(email)
         ControllerSession.insertSession(sesion)
     }
 
-    private fun clickRegister(){
+    /**
+     * Metodo que al hacer click en el text view Register
+     * te lleva a la actividad que te permite registrarte
+     */
+    private fun clickRegister() {
         textRegister_LogIn.setOnClickListener {
             initRegister()
         }
     }
 
-    private fun initRegister(){
+    /**
+     * Metodo que contiene el intent que permite ir a la actividad SignUp
+     */
+    private fun initRegister() {
 
-        val intent = Intent (this, SignUp::class.java)
+        val intent = Intent(this, SignUp::class.java)
         startActivity(intent)
     }
 
-    private fun initNavigation(){
+    /**
+     * Metodo que contiene el intent que permite ir a la actividad NavigataionDrawer
+     */
+    private fun initNavigation() {
 
-        val intent = Intent (this, NavigationDrawer::class.java)
+        val intent = Intent(this, NavigationDrawer::class.java)
         startActivity(intent)
 
     }

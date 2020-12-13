@@ -1,13 +1,9 @@
 package android.com.diego.turistadroid.navigation_drawer.ui.nearme
 
-import android.app.AlertDialog
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.ControllerBbdd
 import android.com.diego.turistadroid.bbdd.ControllerPlaces
-import android.com.diego.turistadroid.bbdd.Image
 import android.com.diego.turistadroid.bbdd.Place
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlaceDetailFragment
-import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
 import android.com.diego.turistadroid.utilities.Utilities
 import android.graphics.*
 import android.os.Bundle
@@ -19,7 +15,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import com.google.android.gms.location.LocationCallback
@@ -35,7 +30,6 @@ import java.util.*
 class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener{
 
     private lateinit var mMap: GoogleMap
-    private lateinit var locationCallback: LocationCallback
     private var primera = true
 
     override fun onCreateView(
@@ -43,8 +37,7 @@ class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val root = inflater.inflate(R.layout.fragment_near_me, container, false)
-        return root
+        return inflater.inflate(R.layout.fragment_near_me, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -53,15 +46,11 @@ class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLi
             return@setOnTouchListener true
         }
 
-        //requireActivity().actionBar!!.title = getString(R.string.near_me)
-
         getCurrentLocation()
         initUI()
-        
-
     }
 
-
+    //Recuperamos localizacion actual del usuario
     private fun getCurrentLocation(){
         val locationRequest = LocationRequest()
         locationRequest.interval = 2000
@@ -77,29 +66,27 @@ class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLi
                         for (location in locationResult.locations) {
                             //Obtenemos la ultima posicion conocida
                             val latestLocationIndex = locationResult.locations.size - 1
-                            var latitud = locationResult.locations[latestLocationIndex].latitude //LATITUD
-                            var longitud = locationResult.locations[latestLocationIndex].longitude //LONGITUD
+                            val latitud = locationResult.locations[latestLocationIndex].latitude //LATITUD
+                            val longitud = locationResult.locations[latestLocationIndex].longitude //LONGITUD
                             val currentLocation = LatLng(latitud, longitud)
                             mMap.clear()
                             positionMarker(currentLocation)
                             marcadoresLugares(currentLocation)
                             moverCamara(currentLocation)
-                            Log.i("currentLocation", latitud.toString() + ", " + longitud.toString())
+                            Log.i("currentLocation", "$latitud, $longitud")
                             //Toast.makeText(context, "Location update: "+latitud.toString() + ", " + longitud.toString(), Toast.LENGTH_SHORT).show()
                         }
                     }
                 }, Looper.getMainLooper())
     }
 
+    //Movemos camara a la posicion
     private fun moverCamara(latLng: LatLng){
         if(primera){
             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng))
             primera = false
         }
     }
-
-
-
 
     private fun initUI() {
         miMapaProgressBar.visibility = View.VISIBLE
@@ -108,7 +95,7 @@ class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLi
     }
 
     /**
-     * Inicia el Mapa
+     * Iniciamos el Mapa
      */
     private fun initMapa() {
         Log.i("Mapa", "Iniciando Mapa")
@@ -126,19 +113,16 @@ class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         configurarIUMapa()
         puntosEnMapa()
         clickInfoWindow()
-        //pintarPosicionActual()
-        //marcadoresLugares()
-        Log.i("pintada posicion actual", "pintado")
         mMap.setOnMapClickListener { latLng ->
             //mMap.clear()
             Log.i("Mapa", "Pulsado")
-            //mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng))
             val location = LatLng(latLng.latitude, latLng.longitude)
             //placeMarker(location)
             Log.i("Mapa", location.longitude.toString() + " " + location.latitude.toString())
         }
     }
 
+    //Crear Marcador del usuario
     private fun positionMarker(location: LatLng){
         val icon = BitmapDescriptorFactory.fromBitmap(
             BitmapFactory.decodeResource(
@@ -151,6 +135,7 @@ class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         mMap.addMarker(markerOptions)
     }
 
+    //Creamos pin del usuario
     private fun placeMarker(location: LatLng, place: Place){
         val icon = BitmapDescriptorFactory.fromBitmap(
             BitmapFactory.decodeResource(
@@ -180,17 +165,16 @@ class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         mMap.setMinZoomPreference(15.0f)
     }
 
-    fun puntosEnMapa() {
+    private fun puntosEnMapa() {
         mMap.setOnMarkerClickListener(this)
-
     }
 
     private fun marcadoresLugares(latLng: LatLng) {
-        var listaPlaces  = ControllerPlaces.selectNearby(latLng.latitude, latLng.longitude)!!
+        val listaPlaces  = ControllerPlaces.selectNearby(latLng.latitude, latLng.longitude)!!
         //var listaPlaces  = ControllerPlaces.selectPlaces()!!
         var i = 0
         listaPlaces.forEach { _ ->
-            var location = LatLng(listaPlaces[i].latitud, listaPlaces[i].longitud)
+            val location = LatLng(listaPlaces[i].latitud, listaPlaces[i].longitud)
             placeMarker(location, listaPlaces[i])
             i++
         }
@@ -205,18 +189,16 @@ class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         Log.i("Pulsado", "sadfs")
         val lugar = marker.tag as Place
         Log.i("Mapa", lugar.nombre)
-        //mostrarDialogo(lugar)
         infoWindow()
         return false
     }
 
-
+    //Modificamos el infoWindow que se vera al hacer click en el marcador
     private fun infoWindow(){
         mMap.setInfoWindowAdapter(object : GoogleMap.InfoWindowAdapter{
             override fun getInfoWindow(marker: Marker): View? {
                 return null
             }
-
             override fun getInfoContents(marker: Marker): View {
                 val row: View = layoutInflater.inflate(R.layout.info_place_near_me, null)
                 val txtNamePlaceInfo: TextView = row.findViewById(R.id.namePlace_infoWindow)
@@ -226,10 +208,10 @@ class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLi
                 imaPlaceInfo.setImageBitmap(Utilities.base64ToBitmap(place.imagenes[0]!!.foto))
                 return row
             }
-
         })
     }
 
+    //Al hacer click en el infoWindow abrimos el lugar para ver sus detalles
     private fun clickInfoWindow(){
         mMap.setOnInfoWindowClickListener {
             val place =  it.tag as Place
@@ -238,14 +220,13 @@ class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickLi
         }
     }
 
+    //Abrimos el fragment de lugar detalles sin modo edicion
     private fun abrirMyPlacesDetail(lugar: Place){
-        var editable = false
+        val editable = false
         val newFragment: Fragment = MyPlaceDetailFragment(editable, lugar)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
         transaction.commit()
     }
-
-
 }

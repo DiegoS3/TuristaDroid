@@ -55,8 +55,6 @@ class NavigationDrawer : AppCompatActivity(){
         lateinit var txtCorreoNav : TextView
     }
 
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_navigation_drawer)
@@ -66,18 +64,14 @@ class NavigationDrawer : AppCompatActivity(){
         setSupportActionBar(toolbar)
         toolbar.title = getString(R.string.my_places)
 
-        /*val fab: FloatingActionButton = findViewById(R.id.btnFloatAddPlace_MyPlaces)
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-        }*/
+
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         val navView: NavigationView = findViewById(R.id.nav_view)
 
         val navHeader: View = navView.getHeaderView(0)
-        imaUser_nav = navHeader.findViewById<ImageView>(R.id.imgUser_nav)
-        txtNombreNav = navHeader.findViewById<TextView>(R.id.txtName_nav)
-        txtCorreoNav = navHeader.findViewById<TextView>(R.id.txtEmail_nav)
+        imaUser_nav = navHeader.findViewById(R.id.imgUser_nav)
+        txtNombreNav = navHeader.findViewById(R.id.txtName_nav)
+        txtCorreoNav = navHeader.findViewById(R.id.txtEmail_nav)
 
         userSwitch()
         asignarDatosUsuario()
@@ -100,8 +94,7 @@ class NavigationDrawer : AppCompatActivity(){
 
     }
 
-
-
+    //usuario segunde donde entremos
     private fun userSwitch(){
         user = if(SplashScreenActivity.login) {
             LogInActivity.user
@@ -211,18 +204,18 @@ class NavigationDrawer : AppCompatActivity(){
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
-
+    //Listener que detecta en el boton que se pulsa del menu del navigation drawer
     private fun navigationListener(navigationView: NavigationView){
         navigationView.setNavigationItemSelectedListener {
             when(it.itemId){
-                R.id.nav_lantern -> {
+                R.id.nav_lantern -> {//Lintera
                     linterna()
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
                         drawer_layout.closeDrawer(GravityCompat.START)
                     }
                     true
                 }
-                R.id.nav_myPlaces -> {
+                R.id.nav_myPlaces -> {//Mis lugares
                     abrirMyPlaces()
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
                         toolbar.title = getString(R.string.my_places)
@@ -230,7 +223,7 @@ class NavigationDrawer : AppCompatActivity(){
                     }
                     true
                 }
-                R.id.nav_myProfile -> {
+                R.id.nav_myProfile -> {//Mi perfil
                     abrirMyProfile()
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
                         toolbar.title = getString(R.string.my_profile)
@@ -238,7 +231,7 @@ class NavigationDrawer : AppCompatActivity(){
                     }
                     true
                 }
-                R.id.nav_nearMe -> {
+                R.id.nav_nearMe -> {//Cerca de mi
                     abrirNearMe()
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
                         toolbar.title = getString(R.string.near_me)
@@ -246,7 +239,7 @@ class NavigationDrawer : AppCompatActivity(){
                     }
                     true
                 }
-                R.id.nav_exit -> {
+                R.id.nav_exit -> {//Salir
                     ejecutarExit()
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
                         drawer_layout.closeDrawer(GravityCompat.START)
@@ -278,6 +271,7 @@ class NavigationDrawer : AppCompatActivity(){
         }
     }
 
+    //Abrir mis lugares
     private fun abrirMyPlaces(){
         val newFragment = MyPlacesFragment()
         val transaction = supportFragmentManager.beginTransaction()
@@ -286,6 +280,7 @@ class NavigationDrawer : AppCompatActivity(){
         transaction.commit()
     }
 
+    //Abir Mu pergil
     private fun abrirMyProfile(){
         val newFragment = MyProfileFragment()
         val transaction = supportFragmentManager.beginTransaction()
@@ -294,6 +289,7 @@ class NavigationDrawer : AppCompatActivity(){
         transaction.commit()
     }
 
+    //Abrir cerca de mi
     private fun abrirNearMe(){
         val newFragment = NearMeFragment()
         val transaction = supportFragmentManager.beginTransaction()
@@ -302,6 +298,7 @@ class NavigationDrawer : AppCompatActivity(){
         transaction.commit()
     }
 
+    //Salir al login
     private fun ejecutarExit(){
         ControllerSession.deleteSession(user.email)
         val intent = Intent (this, LogInActivity::class.java)
@@ -318,7 +315,7 @@ class NavigationDrawer : AppCompatActivity(){
 
         when(requestCode){
             CAMERA_PERMISSION -> {
-                if (grantResults.isEmpty() || !grantResults[0].equals((PackageManager.PERMISSION_GRANTED))) {
+                if (grantResults.isEmpty() || grantResults[0] != (PackageManager.PERMISSION_GRANTED)) {
                     Toast.makeText(this, "Permiso denegado", Toast.LENGTH_SHORT).show()
                 } else {
                     openFlashLight()
@@ -327,6 +324,7 @@ class NavigationDrawer : AppCompatActivity(){
         }
     }
 
+    //Activar linterna
     private fun openFlashLight(){
         val cameraManager = getSystemService(Context.CAMERA_SERVICE) as CameraManager
         val cameraId = cameraManager.cameraIdList[0]
@@ -347,10 +345,9 @@ class NavigationDrawer : AppCompatActivity(){
                 }
             }
         }else{
-            Toast.makeText(this, "This device has no flash", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "This device has no flash", Toast.LENGTH_SHORT).show()
         }
     }
-
 
     override fun onBackPressed() {
         super.onBackPressed()

@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">Turista Droid</string>
+    <string name="app_name">Turist Droid</string>
 
     <!--SignUp-->
     <string name="tvTitle">Register</string>
@@ -101,7 +101,7 @@
     <string name="InternetON">Internet connection exists</string>
     <string name="InternetNeed">Internet connection needed</string>
     <string name="Connect">Connect</string>
-
+    <string name="invalidEmail">Invalid Email</string>
 
 
 </resources>

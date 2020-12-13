@@ -5,6 +5,7 @@ import android.com.diego.turistadroid.bbdd.*
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewActualPlaceFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewPlaceFragment
+import android.com.diego.turistadroid.splash.SplashScreenActivity
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Intent
 import android.graphics.*
@@ -36,7 +37,7 @@ class MyPlacesFragment : Fragment() {
     // Mis variables
     private var places = mutableListOf<Place>() // Lista
     private lateinit var place: Place
-    private val user = LogInActivity.user //Usuario logeado
+    private lateinit var user : User //Usuario logeado
     private var clicked = false
     private var clickedSort = false
     private lateinit var placeQr: Place
@@ -80,6 +81,7 @@ class MyPlacesFragment : Fragment() {
     }
 
     private fun initUI() {
+        userSwitch()
         initFloatingButtons()
         iniciarSwipeRecarga()
         iniciarSwipeHorizontal()
@@ -166,6 +168,17 @@ class MyPlacesFragment : Fragment() {
         itemTouchHelper.attachToRecyclerView(placeRecycler_MyPlaces)
     }
 
+    private fun userSwitch(){
+        user = if(SplashScreenActivity.login) {
+            LogInActivity.user
+        }else{
+            val listaSesion = ControllerSession.selectSessions()!!
+            val emailSesion = listaSesion[0].emailUser
+            ControllerUser.selectByEmail(emailSesion)!!
+        }
+    }
+
+    //Eliminamos la imagen del lugar
     private fun deleteImgPlace(place: Place) {
 
         val list = ConcurrentLinkedQueue<Image>()
@@ -179,25 +192,8 @@ class MyPlacesFragment : Fragment() {
         }
     }
 
-    private fun restoreImgPlace(place: Place) {
-        val list = ConcurrentLinkedQueue<Image>()
-
-        for (img in place.imagenes) {
-            list.add(img)
-        }
-
-        list.forEachIndexed { index, image ->
-
-            val id = ControllerImages.getImageIdentity()
-            val imag = Image(id, image.foto)
-            place.imagenes.add(imag)
-            ControllerImages.insertImage(imag)
-
-        }
-    }
-
+    //Eliminamos el lugar
     private fun deletePlaceBD(place: Place) {
-
         deleteImgPlace(place)
         user.places.remove(place)
         val newUser = User(user.email, user.nombre, user.nombreUser, user.pwd, user.foto, user.places)
@@ -205,6 +201,8 @@ class MyPlacesFragment : Fragment() {
         ControllerPlaces.deletePlace(place.id)
     }
 
+
+    //Borramos elemento del adaptador
     private fun borrarElemento(pos: Int) {
         //Acciones
         val deletedModel: Place = places[pos]
@@ -214,20 +212,24 @@ class MyPlacesFragment : Fragment() {
         adapter.notifyDataSetChanged()
     }
 
+    //Actualizamos el adaptor
     fun actualizarPlaceAdapter(place: Place, pos: Int) {
         adapter.updateItem(place, pos)
         adapter.notifyDataSetChanged()
     }
 
+    //Insertamos lugar nuevo en el adaptador
     fun insertarPlaceAdapter(place: Place){
         adapter.addItem(place)
         adapter.notifyDataSetChanged()
     }
 
+    //inciamos fragment details en modo edicion
     private fun editarElemento(pos: Int){
         initDetailsPlaceFragment(true, places[pos], pos, false)
     }
 
+    //Dialog para que confirme el si quiere eliminar el lugar
     private fun abrirOpciones(pos: Int) {
         cargarDatos()
         val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_confirm_delete_item, null)
@@ -316,6 +318,7 @@ class MyPlacesFragment : Fragment() {
         }
     }
 
+    //Metodo al hacer click en el FAB añadir
     private fun onAddButtonClicked() {
 
         setVisibility(clicked)
@@ -324,6 +327,7 @@ class MyPlacesFragment : Fragment() {
         clicked = !clicked
     }
 
+    //Metodo al hacer click en el FAB ordenar
     private fun onSortButtonClicked() {
 
         setVisibilitySort(clicked)
@@ -332,6 +336,7 @@ class MyPlacesFragment : Fragment() {
         clickedSort = !clickedSort
     }
 
+    //Iniciamos fragment Nuevo Lugar
     private fun initNewPlaceFragment() {
 
         val newFragment: Fragment = NewPlaceFragment()
@@ -341,6 +346,7 @@ class MyPlacesFragment : Fragment() {
         transaction.commit()
     }
 
+    //Iniciamos fragment Nuevo Lugar Actual
     private fun initNewActualPlaceFragment() {
 
         val newFragment: Fragment = NewActualPlaceFragment()
@@ -350,15 +356,25 @@ class MyPlacesFragment : Fragment() {
         transaction.commit()
     }
 
-    private fun initDetailsPlaceFragment(boolean: Boolean, place: Place, pos: Int?, import: Boolean) {
+    /**
+     * Iniciamos fragment detalles del lugar
+     *
+     * @param editable modo edicion
+     * @param place Lugar
+     * @param pos posicion en el adaptador
+     * @param import modo importar
+     *
+     */
+    private fun initDetailsPlaceFragment(editable: Boolean, place: Place, pos: Int?, import: Boolean) {
 
-        val newFragment: Fragment = MyPlaceDetailFragment(boolean, place, pos, this, import)
+        val newFragment: Fragment = MyPlaceDetailFragment(editable, place, pos, this, import)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
         transaction.commit()
     }
 
+    //Modificar visibilidad FABS ADD
     private fun setVisibility(clicked: Boolean) {
         if (!clicked) {
             btnFloatAddActualPlace.visibility = View.VISIBLE
@@ -377,6 +393,7 @@ class MyPlacesFragment : Fragment() {
         }
     }
 
+    //Añadir animaciones on clikc FAB ADD
     private fun setAnimation(clicked: Boolean) {
 
         //Animaciones
@@ -405,6 +422,7 @@ class MyPlacesFragment : Fragment() {
         }
     }
 
+    //Modificar clickable FAB ADD
     private fun setClickable(clicked: Boolean) {
         if (!clicked) {
             btnFloatAddActualPlace.isClickable = true
@@ -417,6 +435,7 @@ class MyPlacesFragment : Fragment() {
         }
     }
 
+    //Visibilidad FABS SORT
     private fun setVisibilitySort(clickedSort: Boolean) {
         if (!clickedSort) {
             btnSortNamePlace.visibility = View.VISIBLE
@@ -429,6 +448,7 @@ class MyPlacesFragment : Fragment() {
         }
     }
 
+    //Animacion FABS Sort
     private fun setAnimationSort(clickedSort: Boolean) {
 
         //Animaciones
@@ -447,6 +467,7 @@ class MyPlacesFragment : Fragment() {
         }
     }
 
+    //Clickables FABS SORt
     private fun setClickableSort(clickedSort: Boolean) {
         if (!clickedSort) {
             btnSortNamePlace.isClickable = true
@@ -482,16 +503,13 @@ class MyPlacesFragment : Fragment() {
         val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
         if (result != null) {
             if (result.contents == null) {
-                Toast.makeText(context, "Cancelado", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, getString(R.string.btnCancel), Toast.LENGTH_LONG).show()
             } else {
                 try {
                     placeQr = Gson().fromJson(result.contents, Place::class.java)
-                    // Toast.makeText(context, "Recuperado: $LUGAR", Toast.LENGTH_LONG).show()
-                    //initUI()
                     initDetailsPlaceFragment(false, placeQr, null, true)
                 } catch (ex: Exception) {
-                    Toast.makeText(context, "Error: El QR no es de un lugar válido", Toast.LENGTH_LONG).show()
-                    // volver()
+                    Toast.makeText(context, getString(R.string.errorEmail), Toast.LENGTH_LONG).show()
                 }
             }
         } else {
@@ -499,6 +517,7 @@ class MyPlacesFragment : Fragment() {
         }
     }
 
+    //Metodo que ordena sitios y modifica iconos de los FABS
     private fun orderSites() {
 
         btnSortNamePlace.setOnClickListener { // Order by NAME
@@ -543,8 +562,8 @@ class MyPlacesFragment : Fragment() {
                     lugar2.puntuacion.compareTo(lugar1.puntuacion) }
                 false
             }else{
-                btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_mark_desc_btn)
-                btnSortMarkPlace.setImageResource(R.drawable.ic_short_mark_asc_btn)
+                btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_mark_asc_btn)
+                btnSortMarkPlace.setImageResource(R.drawable.ic_short_mark_desc_btn)
                 this.places.sortWith { lugar1: Place, lugar2: Place ->
                     lugar1.puntuacion.compareTo(lugar2.puntuacion) }
                 true
@@ -568,7 +587,7 @@ class MyPlacesFragment : Fragment() {
     }
 
     /**
-     * Evento cli asociado a una fila
+     * Evento click asociado a una fila
      * @param place Place
      */
     private fun eventoClicFila(place: Place) {

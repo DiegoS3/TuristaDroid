@@ -108,6 +108,7 @@ class NewPlaceFragment () : Fragment(), RatingBar.OnRatingBarChangeListener {
         initViewPager()
     }
 
+    //Inciamos el adaptador del slider
     private fun initViewPager(){
         adapter = SliderAdapter(sliderItems, viewPager2)
         viewPager2.adapter = adapter

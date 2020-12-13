@@ -18,13 +18,6 @@ object ControllerPlaces {
         }
     }
 
-    //Seleccionar todos los lugares
-    fun selectPlaces(): MutableList<Place>?{
-        return Realm.getDefaultInstance().copyFromRealm(
-            Realm.getDefaultInstance().where<Place>().findAll()
-        )
-    }
-
     //Seleccionar lugares cerca de mi
     fun selectNearby(latitud : Double, longitud : Double): MutableList<Place>?{
         return Realm.getDefaultInstance().copyFromRealm(
@@ -40,12 +33,6 @@ object ControllerPlaces {
             it.copyToRealmOrUpdate(place)
         }
     }
-    //Eliminar todos las imagenes
-    fun deleteAllPlaces(){
-        Realm.getDefaultInstance().executeTransaction{
-            it.where<Place>().findAll().deleteAllFromRealm()
-        }
-    }
 
     //Eliminar un lugar
     fun deletePlace(id : Long){
@@ -57,9 +44,10 @@ object ControllerPlaces {
     //Generar AutoIncrement ID
     fun getPlaceIdentity(): Long {
         val registro = Realm.getDefaultInstance().where<Place>().max("id")
-        return if (registro == null) {
+        return if (registro == null) {//si no devuele ningun registro
             1
         } else {
+            //Si devuelve registro lo incrementamos en 1
             registro.toLong() + 1
         }
     }

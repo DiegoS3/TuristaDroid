@@ -24,12 +24,16 @@ import java.util.*
 
 class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
+    //Mis variables
     private lateinit var mMap: GoogleMap
+
+    //Variables que usaremos en otras actividades
     companion object{
         lateinit var location: LatLng
         var maps = false
     }
 
+    //Creacion de la vista
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -38,23 +42,30 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickList
         return inflater.inflate(R.layout.fragment_maps, container, false)
     }
 
+    //Con la vista creada activamos el evento que detecta clicks en el mapa
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         view.setOnTouchListener { v, event ->
             return@setOnTouchListener true
         }
         initUI()
-        getCurrentLocation()
+        getCurrentLocation()//Obtenemos posicion actual
     }
 
+    /**
+     * Iniciamos diferentes metodos
+     */
     private fun initUI() {
         initMapa()
         saveLocation()
     }
 
+    /**
+     * Metodo que obteien la posicon actual del usuario
+     */
     private fun getCurrentLocation(){
         val locationRequest = LocationRequest()
-        locationRequest.interval = 2000
+        locationRequest.interval = 2000 //Intervalo con el que se actualiza
         locationRequest.fastestInterval = 1000
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
 
@@ -62,17 +73,17 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickList
             .requestLocationUpdates(locationRequest, object : LocationCallback() {
                 override fun onLocationResult(locationResult: LocationResult) {
                     super.onLocationResult(locationResult)
-                    val latestLocationIndex = locationResult.locations.size - 1
+                    val latestLocationIndex = locationResult.locations.size - 1 //Ultima localizacion conocida
                     var latitud = locationResult.locations[latestLocationIndex].latitude //LATITUD
                     var longitud = locationResult.locations[latestLocationIndex].longitude //LONGITUD
                     val currentLocation = LatLng(latitud, longitud)
-                    moverCamara(currentLocation)
+                    moverCamara(currentLocation)//centramos la camara en la nueva posicion
                 }
             }, Looper.getMainLooper())
     }
 
     /**
-     * Inicia el Mapa
+     * Iniciamos el Mapa
      */
     private fun initMapa() {
         val mapFragment = (childFragmentManager
@@ -81,54 +92,74 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickList
     }
 
     /**
-     * EL mapa está listo
+     * Metodo que detecta que el mapa esta listo
+     *
      * @param googleMap GoogleMap
      */
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         mMap.setOnMapClickListener { latLng ->
 
-            mMap.clear()
-            location = LatLng(latLng.latitude, latLng.longitude)
-            placeMarker(location)
+            mMap.clear()//limpiamos
+            location = LatLng(latLng.latitude, latLng.longitude)//nueva localizacion
+            placeMarker(location)//creamos marcador
         }
 
-        configurarIUMapa()
+        configurarIUMapa()//configuracion del mapa
     }
 
+    /**
+     * Metodo que centra la camara/pantalla en la posicion que
+     * le pasamos como parametro
+     *
+     *@param latLng posicion del usuario
+     *
+     */
     private fun moverCamara(latLng: LatLng) {
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng))
     }
 
-
+    /**
+     * Configuracion que le damos al mapa
+     */
     private fun configurarIUMapa() {
-        Log.i("Mapa", "Configurando IU Mapa")
-        mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
+        mMap.mapType = GoogleMap.MAP_TYPE_NORMAL //Tipo de mapa
         val uiSettings: UiSettings = mMap.uiSettings
-        uiSettings.isScrollGesturesEnabled = true
+        uiSettings.isScrollGesturesEnabled = true //Permitir gestos
         uiSettings.isTiltGesturesEnabled = true
-        uiSettings.isCompassEnabled = true
-        uiSettings.isZoomControlsEnabled = true
-        uiSettings.isMapToolbarEnabled = false
-        mMap.setMinZoomPreference(5.0f)
+        uiSettings.isCompassEnabled = true //brujula
+        uiSettings.isZoomControlsEnabled = true //permitir zoom
+        uiSettings.isMapToolbarEnabled = false //barra de ir a y abrir googlemaps
+        mMap.setMinZoomPreference(5.0f)//zoom minimo
     }
 
-
+    /**
+     * Metodo que crea un nuevo pin
+     *
+     * @param location Localizacion en la que pincha/seEncuentra el usuario
+     *
+     */
     private fun placeMarker(location: LatLng){
         val icon = BitmapDescriptorFactory.fromBitmap(
             BitmapFactory.decodeResource(
                 context?.resources,
                 R.drawable.pin_centrado_2
             )
-        )
-        val markerOptions = MarkerOptions().position(location).icon(icon)
-        mMap.addMarker(markerOptions)
+        )//Icono personalizado del pin
+        val markerOptions = MarkerOptions().position(location).icon(icon)//creamos el marcador custom
+        mMap.addMarker(markerOptions)//lo añadimos
     }
 
+    /**
+     * evento al hacer click en el marcador
+     */
     override fun onMarkerClick(marker: Marker): Boolean {
         return false
     }
 
+    /**
+     * Metodo que iniciar el Fragment Crear un Nuevo Lugar
+     */
     private fun initNewPlaceFragment() {
 
         val newFragment: Fragment = NewPlaceFragment()
@@ -139,6 +170,10 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickList
 
     }
 
+    /**
+     * Guardamos la nueva localizacion e iniciamos el Fragment
+     * Nuevo Lugar
+     */
     private fun saveLocation(){
         btnSelectLocation_NewPlace.setOnClickListener {
              maps = true

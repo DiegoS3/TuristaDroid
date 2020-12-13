@@ -35,11 +35,13 @@ object ControllerImages {
         )
     }
 
+    //Generar codigo imagen autoincrementable
     fun getImageIdentity(): Long {
         val registro = Realm.getDefaultInstance().where<Image>().max("id")
-        return if (registro == null) {
+        return if (registro == null) { //si no devuele ningun registro
             1
         } else {
+            //Si devuelve registro lo incrementamos en 1
             registro.toLong() + 1
         }
     }

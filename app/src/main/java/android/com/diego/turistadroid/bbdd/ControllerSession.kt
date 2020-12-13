@@ -28,10 +28,4 @@ object ControllerSession {
         }
     }
 
-    //Eliminar todos las sesiones
-    fun deleteAllSessions(){
-        Realm.getDefaultInstance().executeTransaction{
-            it.where<Session>().findAll().deleteAllFromRealm()
-        }
-    }
 }
