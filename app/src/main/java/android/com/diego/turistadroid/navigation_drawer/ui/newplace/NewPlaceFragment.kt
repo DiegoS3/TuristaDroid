@@ -261,7 +261,7 @@ class NewPlaceFragment () : Fragment(), RatingBar.OnRatingBarChangeListener {
 
             if (comprobarVacios()){
 
-                if (txtNamePlace_NewPlace.equals(getString(R.string.notFoundUbication))){
+                if (txtUbicationPlace_NewPlace.text.toString() == getString(R.string.notFoundUbication)){
                     Toast.makeText(context, getString(R.string.ubicationError), Toast.LENGTH_SHORT).show()
                 }else {
                     val currentDate = Calendar.getInstance().time

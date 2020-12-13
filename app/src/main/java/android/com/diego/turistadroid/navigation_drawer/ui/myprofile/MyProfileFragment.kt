@@ -4,10 +4,12 @@ import android.Manifest.permission.CAMERA
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.app.Activity.RESULT_CANCELED
 import android.com.diego.turistadroid.R
+import android.com.diego.turistadroid.bbdd.ControllerSession
 import android.com.diego.turistadroid.bbdd.ControllerUser
 import android.com.diego.turistadroid.bbdd.User
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
+import android.com.diego.turistadroid.splash.SplashScreenActivity
 import android.com.diego.turistadroid.utilities.Fotos
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Intent
@@ -40,7 +42,7 @@ import java.io.IOException
 
 class MyProfileFragment : Fragment() {
 
-    private var user = LogInActivity.user
+    private lateinit var user : User
     // Variables para la camara
     private val GALERIA = 1
     private val CAMARA = 2
@@ -79,10 +81,21 @@ class MyProfileFragment : Fragment() {
 
         imaInstagram = root.findViewById(R.id.imaInstagram)
         imaTwitter = root.findViewById(R.id.imaTwitter)
+        userSwitch()
         asignarDatosUsuario()
         abrirRedes()
 
         return root
+    }
+
+    private fun userSwitch(){
+        user = if(SplashScreenActivity.login) {
+            LogInActivity.user
+        }else{
+            val listaSesion = ControllerSession.selectSessions()!!
+            val emailSesion = listaSesion[0].emailUser
+            ControllerUser.selectByEmail(emailSesion)!!
+        }
     }
 
 
@@ -286,7 +299,11 @@ class MyProfileFragment : Fragment() {
         val name = txtNameProfile.text.toString()
         val nameUser = txtNameUserProfile.text.toString()
         val pass = Utilities.hashString(txtPassProfile.text.toString())
-        val imaStr = Utilities.bitmapToBase64(this.FOTO)!!
+        var imaStr = if (this::FOTO.isInitialized){
+            Utilities.bitmapToBase64(this.FOTO)!!
+        }else{
+            user.foto
+        }
         val listaSitiosUsuario = user.places
 
         eliminarUser()

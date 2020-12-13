@@ -221,7 +221,7 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         btnSave_NewActualPlace.setOnClickListener {
 
             if (txtNamePlace_NewActualPlace.text.isNotEmpty()){
-                if (txtNamePlace_NewActualPlace.equals(getString(R.string.notFoundUbication))){
+                if (txtUbicationPlace_NewActualPlace.text.toString() == (getString(R.string.notFoundUbication))){
                     Toast.makeText(context, getString(R.string.ubicationError), Toast.LENGTH_SHORT).show()
                 }else {
                     val currentDate = Calendar.getInstance().time
