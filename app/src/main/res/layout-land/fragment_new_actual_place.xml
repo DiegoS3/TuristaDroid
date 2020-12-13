@@ -18,7 +18,7 @@
                 android:textSize="20sp"
                 android:fontFamily="@font/roboto_bold"
                 android:textColor="@color/colorLetter"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="10dp"
                 android:layout_alignParentTop="true"
                 android:layout_alignParentStart="true"
                 android:layout_marginStart="48dp"/>
@@ -42,12 +42,12 @@
                 android:maxLength="30"
                 android:background="@drawable/box_inputs"
                 android:paddingHorizontal="10dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="5dp"
                 android:layout_below="@+id/textView"
                 android:layout_alignParentStart="true"
-                android:layout_marginStart="48dp"
+                android:layout_marginStart="49dp"
                 android:layout_alignParentEnd="true"
-                android:layout_marginEnd="47dp"/>
+                android:layout_marginEnd="45dp"/>
 
         <EditText
                 android:layout_width="316dp"
@@ -70,22 +70,22 @@
                 android:paddingHorizontal="10dp"
                 android:enabled="false"
                 android:layout_alignParentStart="true"
-                android:layout_marginStart="48dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginStart="49dp"
+                android:layout_marginTop="6dp"
                 android:layout_below="@+id/txtNamePlace_NewActualPlace"
                 android:layout_alignParentEnd="true"
-                android:layout_marginEnd="47dp"/>
-
+                android:layout_marginEnd="45dp"/>
         <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/vpImagesPlace_NewActualPlace"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginTop="10dp"
-                android:layout_marginBottom="-210dp"
+                android:layout_marginBottom="-110dp"
                 android:paddingEnd="150dp"
                 android:paddingStart="150dp"
                 android:layout_below="@+id/txtUbicationPlace_NewActualPlace"
                 android:layout_above="@+id/btnAddImage_NewActualPlace"/>
+
         <Button
                 android:text="@string/btnAddImage"
                 android:layout_width="135dp"
@@ -95,24 +95,22 @@
                 android:background="@drawable/box_buttons"
                 android:textSize="18sp"
                 android:layout_alignParentEnd="true"
-                android:layout_marginEnd="100dp"
+                android:layout_marginEnd="101dp"
                 android:layout_alignParentStart="true"
-                android:layout_marginStart="100dp"
-                android:layout_marginTop="225dp"
+                android:layout_marginStart="99dp"
+                android:layout_marginTop="116dp"
                 android:layout_below="@+id/txtUbicationPlace_NewActualPlace"/>
-
         <RatingBar
                 android:id="@+id/ratingBarPlace_NewActualPlace"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:stepSize="0.5"
-                android:layout_marginStart="70dp"
+                android:layout_marginStart="10dp"
                 android:numStars="5"
-                android:layout_marginEnd="70dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginEnd="390dp"
+                android:layout_marginTop="-2dp"
                 android:theme="@style/RatingBar"
                 android:layout_below="@+id/btnAddImage_NewActualPlace"/>
-
         <Button
                 android:text="@string/btnSavePlace"
                 android:layout_width="135dp"
@@ -122,10 +120,10 @@
                 android:background="@drawable/box_buttons"
                 android:textSize="18sp"
                 android:layout_alignParentEnd="true"
-                android:layout_marginEnd="100dp"
+                android:layout_marginEnd="103dp"
                 android:layout_alignParentStart="true"
-                android:layout_marginStart="100dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginStart="383dp"
+                android:layout_marginTop="-39dp"
                 android:layout_below="@+id/ratingBarPlace_NewActualPlace"/>
 
     </RelativeLayout>
