@@ -9,7 +9,9 @@ import android.graphics.drawable.Drawable
 import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Build
+import android.provider.MediaStore
 import android.util.Base64
 import android.util.Log
 import android.widget.ImageView
@@ -62,6 +64,13 @@ object Utilities {
     fun base64ToBitmap(b64String: String): Bitmap? {
         val imageAsBytes: ByteArray = Base64.decode(b64String, Base64.DEFAULT)
         return BitmapFactory.decodeByteArray(imageAsBytes, 0, imageAsBytes.size)
+    }
+
+    fun getImageUri(inContext: Context, inImage: Bitmap): Uri? {
+        val bytes = ByteArrayOutputStream()
+        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
+        val path = MediaStore.Images.Media.insertImage(inContext.contentResolver, inImage, "Title", null)
+        return Uri.parse(path)
     }
 
     fun hashString(input: String): String {
