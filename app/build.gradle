@@ -83,5 +83,28 @@ dependencies {
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 
+    //ViewPager2
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
+
+    //RoundedImageView
+    implementation 'com.makeramen:roundedimageview:2.3.0'
+
+    // Mapa
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    // Localización
+    implementation 'com.google.android.gms:play-services-location:17.1.0'
+
+    //Dexter permisos
+    implementation 'com.karumi:dexter:6.2.1'
+    // JSON
+    implementation 'com.google.code.gson:gson:2.8.6'
+    // QR Generador
+    implementation 'com.google.zxing:core:3.4.1'
+    // QR Lector
+    implementation 'com.journeyapps:zxing-android-embedded:3.4.0'
+    // Retrofit
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+
 
 }
