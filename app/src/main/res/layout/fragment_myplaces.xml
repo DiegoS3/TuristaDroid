@@ -67,6 +67,18 @@
             android:visibility="invisible"
             android:layout_alignEnd="@+id/btnFloatAddNewPlace"/>
     <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnFloatAddQRPlace"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:layout_marginBottom="5dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:backgroundTint="@color/colorFloatingButton"
+            app:srcCompat="@drawable/ic_qr"
+            android:layout_above="@+id/btnFloatAddActualPlace"
+            android:visibility="invisible"
+            android:layout_alignEnd="@+id/btnFloatAddActualPlace"/>
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/btnFloatAddNewPlace"
             android:layout_width="55dp"
             android:layout_height="55dp"
@@ -91,6 +103,7 @@
             android:visibility="invisible"
             android:layout_toStartOf="@+id/btnFloatAddNewPlace"
             android:textSize="16sp"/>
+
     <TextView
             android:text="@string/btnAddNewPlace"
             android:layout_width="wrap_content"
@@ -104,5 +117,18 @@
             android:layout_marginEnd="9dp"
             android:textSize="16sp"
             android:layout_above="@+id/txtAddNewPlace"/>
+    <TextView
+            android:text="@string/qrButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/txtAddQRPlace"
+            android:layout_marginBottom="35dp"
+            android:textColor="@color/colorLetter"
+            android:fontFamily="@font/roboto_bold"
+            android:visibility="invisible"
+            android:layout_toStartOf="@+id/btnFloatAddActualPlace"
+            android:layout_marginEnd="9dp"
+            android:textSize="16sp"
+            android:layout_above="@+id/txtAddActualPlace"/>
 
 </RelativeLayout>

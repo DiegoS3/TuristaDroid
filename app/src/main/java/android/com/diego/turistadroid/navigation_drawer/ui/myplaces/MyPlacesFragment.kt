@@ -5,6 +5,7 @@ import android.com.diego.turistadroid.bbdd.*
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewActualPlaceFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewPlaceFragment
+import android.com.diego.turistadroid.utilities.Utilities
 import android.graphics.*
 import android.os.AsyncTask
 import android.os.Bundle
@@ -19,6 +20,9 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.zxing.client.result.VINParsedResult
+import com.google.zxing.integration.android.IntentIntegrator
+import com.journeyapps.barcodescanner.CaptureActivity
 import kotlinx.android.synthetic.main.fragment_myplaces.*
 import kotlinx.android.synthetic.main.layout_confirm_delete_item.view.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -228,6 +232,7 @@ class MyPlacesFragment : Fragment() {
         //Listener para confirmar eliminar el lugar
         mDialogView.txtConfirm.setOnClickListener {
             borrarElemento(pos)
+            Utilities.vibratePhone(context)
             mBuilder.dismiss()
         }
 
@@ -297,6 +302,9 @@ class MyPlacesFragment : Fragment() {
         btnFloatAddActualPlace.setOnClickListener {
             initNewPlaceFragment()
         }
+        btnFloatAddQRPlace.setOnClickListener {
+            scanQRCode()
+        }
     }
 
     private fun onAddButtonClicked() {
@@ -338,13 +346,17 @@ class MyPlacesFragment : Fragment() {
         if (!clicked) {
             btnFloatAddActualPlace.visibility = View.VISIBLE
             btnFloatAddNewPlace.visibility = View.VISIBLE
+            btnFloatAddQRPlace.visibility = View.VISIBLE
             txtAddActualPlace.visibility = View.VISIBLE
             txtAddNewPlace.visibility = View.VISIBLE
+            txtAddQRPlace.visibility = View.VISIBLE
         } else {
             btnFloatAddActualPlace.visibility = View.INVISIBLE
             btnFloatAddNewPlace.visibility = View.INVISIBLE
+            btnFloatAddQRPlace.visibility = View.INVISIBLE
             txtAddActualPlace.visibility = View.INVISIBLE
             txtAddNewPlace.visibility = View.INVISIBLE
+            txtAddQRPlace.visibility = View.INVISIBLE
         }
     }
 
@@ -359,15 +371,19 @@ class MyPlacesFragment : Fragment() {
         if (!clicked) {
             btnFloatAddActualPlace.startAnimation(fromBottom)
             btnFloatAddNewPlace.startAnimation(fromBottom)
+            btnFloatAddQRPlace.startAnimation(fromBottom)
             txtAddActualPlace.startAnimation(fromBottom)
             txtAddNewPlace.startAnimation(fromBottom)
+            txtAddQRPlace.startAnimation(fromBottom)
             btnFloatAddPlace_MyPlaces.startAnimation(rotateOpen)
 
         } else {
             btnFloatAddActualPlace.startAnimation(toBottom)
             btnFloatAddNewPlace.startAnimation(toBottom)
+            btnFloatAddQRPlace.startAnimation(toBottom)
             txtAddActualPlace.startAnimation(toBottom)
             txtAddNewPlace.startAnimation(toBottom)
+            txtAddQRPlace.startAnimation(toBottom)
             btnFloatAddPlace_MyPlaces.startAnimation(rotateClose)
         }
     }
@@ -376,10 +392,25 @@ class MyPlacesFragment : Fragment() {
         if (!clicked) {
             btnFloatAddActualPlace.isClickable = true
             btnFloatAddNewPlace.isClickable = true
+            btnFloatAddQRPlace.isClickable = true
         } else {
             btnFloatAddActualPlace.isClickable = false
             btnFloatAddNewPlace.isClickable = false
+            btnFloatAddQRPlace.isClickable = false
         }
+    }
+
+    /**
+     * Escanea el código
+     */
+    private fun scanQRCode() {
+        val integrator = IntentIntegrator.forSupportFragment(this).apply {
+            captureActivity = CaptureActivity::class.java
+            setOrientationLocked(false)
+            setDesiredBarcodeFormats(IntentIntegrator.ALL_CODE_TYPES)
+            setPrompt(getString(R.string.scanQR))
+        }
+        integrator.initiateScan()
     }
 
     /**

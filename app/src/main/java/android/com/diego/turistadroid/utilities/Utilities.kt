@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.location.LocationManager
@@ -11,6 +12,8 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.provider.MediaStore
 import android.util.Base64
 import android.util.Log
@@ -18,11 +21,46 @@ import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.MultiFormatWriter
+import com.google.zxing.WriterException
 import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 
 
 object Utilities {
+
+    /**
+     * Genera un código de QR
+     * @param text String
+     * @return Bitmap
+     */
+    fun generateQRCode(text: String): Bitmap {
+        val width = 500
+        val height = 500
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val codeWriter = MultiFormatWriter()
+        try {
+            val bitMatrix = codeWriter.encode(text, BarcodeFormat.QR_CODE, width, height)
+            for (x in 0 until width) {
+                for (y in 0 until height) {
+                    bitmap.setPixel(x, y, if (bitMatrix[x, y]) Color.rgb(0, 77, 64) else Color.WHITE)
+                }
+            }
+        } catch (e: WriterException) {
+            Log.d("QR", "generateQRCode: ${e.message}")
+        }
+        return bitmap
+    }
+
+    fun vibratePhone(context: Context?) {
+        val vibrator = context!!.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        if (Build.VERSION.SDK_INT >= 26) {
+            vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            vibrator.vibrate(200)
+        }
+    }
 
     fun redondearFoto(imagen: ImageView){
         val originalDrawable: Drawable = imagen.drawable

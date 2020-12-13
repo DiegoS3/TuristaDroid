@@ -235,6 +235,7 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
                     //Creamos un usuario nuevo con los datos del logeado y le incluimos los lugares
                     val newUser = User(user.email, user.nombre, user.nombreUser, user.pwd, user.foto, user.places)
                     ControllerBbdd.updateUser(newUser)
+                    Utilities.vibratePhone(context)
                     initMyPlacesFragment()
                 }
             }else{

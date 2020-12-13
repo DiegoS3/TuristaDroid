@@ -79,6 +79,8 @@
     <string name="newNamePlace">New Place\'s Name</string>
     <string name="ubicationError">Ubication not valid</string>
     <string name="fatalTwitter">No Application detected</string>
+    <string name="shareQr">Share via QR?</string>
+    <string name="scanQR">Scanning QR…</string>
 
 
 </resources>
