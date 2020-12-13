@@ -1,0 +1,107 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">Turist Droid</string>
+
+    <!--SignUp-->
+    <string name="tvTitle">Register</string>
+    <string name="txtName">Name</string>
+    <string name="txtNameUser">User name</string>
+    <string name="txtEmail">Email</string>
+    <string name="txtPass">Password</string>
+    <string name="btnRegister">Sign Up</string>
+    <string name="errorEmail">This email already exists</string>
+    <string name="errorNameUser">This user name already exists</string>
+    <string name="inputSocialMedia">Enter your username</string>
+    <string name="btnOk" tools:ignore="ExtraTranslation">Save</string>
+    <string name="btnCancel">Cancel</string>
+
+    <!--Seleccion_Camara-->
+    <string name="tvSelection">Choose your image source</string>
+    <string name="btnCamera">CAMERA</string>
+    <string name="btnGallery">GALLERY</string>
+
+    <!-- SplashScreen -->
+    <string name="developed">Development by Diego &amp; Guille</string>
+
+    <!--LogIn-->
+    <string name="btnLogin">Log In</string>
+    <string name="noAccount">Do you not have an account?</string>
+    <string name="registerLogin">
+        <u>Register</u>
+    </string>
+    <string name="action_emptyfield">There can be no empty fields</string>
+    <string name="errorLogin">Incorrect username or password</string>
+    <string name="password_strength_caption">Password Strength: {0}</string>
+    <string name="password_strength_weak">Weak</string>
+    <string name="password_strength_medium">Medium</string>
+    <string name="password_strength_strong">Strong</string>
+    <string name="password_strength_very_strong">Very Strong</string>
+    <string name="title_activity_navigation_drawer">NavigationDrawer</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+    <string name="menu_gallery">Gallery</string>
+    <string name="menu_slideshow">Slideshow</string>
+
+
+    <!-- Navigation Drawer -->
+    <string name="my_places">My Places</string>
+    <string name="my_profile">My Profile</string>
+    <string name="near_me">Near me</string>
+    <string name="lantern">Lantern</string>
+    <string name="exit">Exit</string>
+
+    <!--My Profile -->
+    <string name="btnSave">Save</string>
+    <string name="myProfileTitle">My Profile</string>
+    <string name="txtNewPassword">New Password</string>
+
+    <!--My Places-->
+    <string name="btnAddNewPlace">Place</string>
+    <string name="btnAddActualPlace">Actual Place</string>
+    <string name="newPlace">NEW PLACE</string>
+    <string name="newActualPlace">NEW ACTUAL PLACE</string>
+    <string name="namePlace">Place\'s Name</string>
+    <string name="ubicationPlace">Place\'s Ubication</string>
+    <string name="btnOpenMap">Open Map</string>
+    <string name="btnAddImage">Add Image</string>
+    <string name="btnSavePlace">Save</string>
+    <string name="deletePlace">Place Removed</string>
+    <string name="recuperarPlace">Undo</string>
+    <string name="confirmDelete">Confirm</string>
+    <string name="cancelDelete">Cancel</string>
+    <string name="questionDeletePlace">Sure you want to delete the place?</string>
+    <string name="savePoint">Select this location</string>
+    <string name="notFoundUbication">Ubication not found</string>
+    <string name="shareButton">Share</string>
+    <string name="goToButton">Go To</string>
+    <string name="qrButton">QR</string>
+    <string name="emailButton">EMAIL</string>
+    <string name="facebooklButton">FACEBOOK</string>
+    <string name="twitterButton">TWITTER</string>
+    <string name="instagramButton">INSTAGRAM</string>
+    <string name="newNamePlace">New Place\'s Name</string>
+    <string name="ubicationError">Ubication not valid</string>
+    <string name="fatalTwitter">No Application detected</string>
+    <string name="shareQr">Share via QR?</string>
+    <string name="scanQR">Scanning QR…</string>
+    <string name="importPlace">Import</string>
+
+    <string name="importData">Import data</string>
+    <string name="exportData">Export data</string>
+    <string name="importok">Import ok</string>
+    <string name="exportok">Export ok</string>
+    <string name="caution">Caution!!</string>
+    <string name="messExport">Do you want to export all?</string>
+    <string name="messImport">Do you want to import all?</string>
+
+
+    <string name="InternetON">Internet connection exists</string>
+    <string name="InternetNeed">Internet connection needed</string>
+    <string name="Connect">Connect</string>
+    <string name="invalidEmail">Invalid Email</string>
+
+
+</resources>

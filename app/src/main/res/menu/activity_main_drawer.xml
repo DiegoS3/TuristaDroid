@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:tools="http://schemas.android.com/tools"
+      tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+
+        <item
+                android:id="@+id/nav_myPlaces"
+                android:icon="@drawable/ic_my_places"
+                android:title="@string/my_places"/>
+        <item
+                android:id="@+id/nav_myProfile"
+                android:icon="@drawable/ic_my_profile"
+                android:title="@string/my_profile"/>
+        <item
+                android:id="@+id/nav_nearMe"
+                android:icon="@drawable/ic_near_me"
+                android:title="@string/near_me"/>
+        <item
+                android:id="@+id/nav_lantern"
+                android:icon="@drawable/ic_lantern"
+                android:title="@string/lantern"/>
+        <item
+                android:id="@+id/nav_export"
+                android:icon="@drawable/ic_import"
+                android:title="@string/exportData"/>
+        <item
+                android:id="@+id/nav_import"
+                android:icon="@drawable/ic_export"
+                android:title="@string/importData"/>
+        <item
+                android:id="@+id/nav_exit"
+                android:icon="@drawable/ic_exit"
+                android:title="@string/exit"/>
+    </group>
+</menu>
