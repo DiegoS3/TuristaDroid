@@ -58,4 +58,11 @@ object ControllerUser {
             it.where<User>().equalTo("email", email).findFirst()?.deleteFromRealm()
         }
     }
+
+    //Eliminar todos los usuarios
+    fun deleteAllUsers(){
+        Realm.getDefaultInstance().executeTransaction{
+            it.where<User>().findAll().deleteAllFromRealm()
+        }
+    }
 }

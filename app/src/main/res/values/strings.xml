@@ -89,6 +89,14 @@
     <string name="scanQR">Scanning QR…</string>
     <string name="importPlace">Import</string>
 
+    <string name="importData">Import data</string>
+    <string name="exportData">Export data</string>
+    <string name="importok">Import ok</string>
+    <string name="exportok">Export ok</string>
+    <string name="caution">Caution!!</string>
+    <string name="messExport">Do you want to export all?</string>
+    <string name="messImport">Do you want to import all?</string>
+
 
     <string name="InternetON">Internet connection exists</string>
     <string name="InternetNeed">Internet connection needed</string>

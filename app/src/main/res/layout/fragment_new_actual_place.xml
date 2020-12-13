@@ -103,12 +103,12 @@
 
         <RatingBar
                 android:id="@+id/ratingBarPlace_NewActualPlace"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:stepSize="0.5"
-                android:layout_marginStart="70dp"
+                android:layout_marginStart="80dp"
                 android:numStars="5"
-                android:layout_marginEnd="70dp"
+                android:layout_marginEnd="80dp"
                 android:layout_marginTop="20dp"
                 android:theme="@style/RatingBar"
                 android:layout_below="@+id/btnAddImage_NewActualPlace"/>

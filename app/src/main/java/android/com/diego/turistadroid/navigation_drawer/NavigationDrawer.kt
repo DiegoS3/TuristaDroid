@@ -11,6 +11,7 @@ import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFrag
 import android.com.diego.turistadroid.navigation_drawer.ui.myprofile.MyProfileFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.nearme.NearMeFragment
 import android.com.diego.turistadroid.splash.SplashScreenActivity
+import android.com.diego.turistadroid.utilities.UtilImpExp
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Context
 import android.content.Intent
@@ -20,6 +21,7 @@ import android.hardware.camera2.CameraManager
 import android.os.Bundle
 import android.provider.Settings
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -60,6 +62,7 @@ class NavigationDrawer : AppCompatActivity(){
         setContentView(R.layout.activity_navigation_drawer)
         toolbar = findViewById(R.id.toolbar)
 
+
         setSupportActionBar(toolbar)
         toolbar.title = getString(R.string.my_places)
 
@@ -87,6 +90,7 @@ class NavigationDrawer : AppCompatActivity(){
                 R.id.nav_myPlaces, R.id.nav_myProfile, R.id.nav_nearMe, R.id.nav_lantern
             ), drawerLayout
         )
+
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
@@ -95,6 +99,8 @@ class NavigationDrawer : AppCompatActivity(){
         comprobarConexion()
 
     }
+
+
 
     private fun userSwitch(){
         user = if(SplashScreenActivity.login) {
@@ -205,6 +211,7 @@ class NavigationDrawer : AppCompatActivity(){
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
 
+
     private fun navigationListener(navigationView: NavigationView){
         navigationView.setNavigationItemSelectedListener {
             when(it.itemId){
@@ -246,6 +253,21 @@ class NavigationDrawer : AppCompatActivity(){
                     }
                     true
                 }
+                R.id.nav_export -> {//exportar
+                    UtilImpExp.export(this)
+                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }
+                    true
+                }
+                R.id.nav_import ->{//importar
+                    UtilImpExp.import(this)
+                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }
+                    true
+                }
+
                 else -> {
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
                         drawer_layout.closeDrawer(GravityCompat.START)

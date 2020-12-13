@@ -22,10 +22,17 @@ object ControllerImages {
     }
 
     //Eliminar todos las imagenes
-    fun deleteAllPlaces(){
+    fun deleteAllImages(){
         Realm.getDefaultInstance().executeTransaction{
             it.where<Image>().findAll().deleteAllFromRealm()
         }
+    }
+
+    //Seleccionar todos las imagenes
+    fun selectImages(): MutableList<Image>?{
+        return Realm.getDefaultInstance().copyFromRealm(
+            Realm.getDefaultInstance().where<Image>().findAll()
+        )
     }
 
     fun getImageIdentity(): Long {

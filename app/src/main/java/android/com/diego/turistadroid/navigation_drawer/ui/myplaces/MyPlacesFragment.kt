@@ -22,14 +22,12 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.navigation.NavigationView
 import com.google.gson.Gson
-import com.google.zxing.client.result.VINParsedResult
 import com.google.zxing.integration.android.IntentIntegrator
 import com.journeyapps.barcodescanner.CaptureActivity
-import io.realm.Realm
 import kotlinx.android.synthetic.main.fragment_myplaces.*
 import kotlinx.android.synthetic.main.layout_confirm_delete_item.view.*
-import java.text.SimpleDateFormat
 import java.util.concurrent.ConcurrentLinkedQueue
 
 
@@ -42,6 +40,8 @@ class MyPlacesFragment : Fragment() {
     private var clicked = false
     private var clickedSort = false
     private lateinit var placeQr: Place
+    private lateinit var root: View
+    private lateinit var root2: View
 
     // Interfaz gráfica
     private lateinit var adapter: MyPlacesViewModel //Adaptador de Recycler
@@ -58,15 +58,20 @@ class MyPlacesFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_myplaces, container, false)
+        //val viewSettings = inflater.inflate(R.menu.navigation_drawer, container, false)
+
+        root = inflater.inflate(R.layout.fragment_myplaces, container, false)
+
+        return root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         // Iniciamos la interfaz
         initUI()
+
+
     }
 
     override fun onResume() {
@@ -83,6 +88,8 @@ class MyPlacesFragment : Fragment() {
         cargarDatos()
         orderSites()
     }
+
+
 
     /**
      * Iniciamos el swipe de recarga

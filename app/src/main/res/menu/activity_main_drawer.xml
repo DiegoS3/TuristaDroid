@@ -22,6 +22,14 @@
                 android:icon="@drawable/ic_lantern"
                 android:title="@string/lantern"/>
         <item
+                android:id="@+id/nav_export"
+                android:icon="@drawable/ic_import"
+                android:title="@string/exportData"/>
+        <item
+                android:id="@+id/nav_import"
+                android:icon="@drawable/ic_export"
+                android:title="@string/importData"/>
+        <item
                 android:id="@+id/nav_exit"
                 android:icon="@drawable/ic_exit"
                 android:title="@string/exit"/>
