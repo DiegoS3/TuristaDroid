@@ -64,12 +64,14 @@ class MyPlaceDetailFragment(
     private var editable: Boolean,
     private var lugar: Place,
     private var indexPlace: Int? = null,
-    private var fragmentAnterior: MyPlacesFragment? = null
+    private var fragmentAnterior: MyPlacesFragment? = null,
+    private var import : Boolean? = null
 
 ) : Fragment(), OnMapReadyCallback, RatingBar.OnRatingBarChangeListener {
 
     //Componentes Interfaz
     private lateinit var btnSave : Button
+    private lateinit var btnImport : Button
     private lateinit var floatBtnMore : FloatingActionButton
     private lateinit var floatBtnShare : FloatingActionButton
     private lateinit var floatBtnQr : FloatingActionButton
@@ -135,6 +137,7 @@ class MyPlaceDetailFragment(
         updatePlace()
         sharePlaceOnSocialNetwork()
         onClickQRBtn()
+        onImportButton()
     }
 
     private fun lugaresUsuario(){
@@ -167,6 +170,7 @@ class MyPlaceDetailFragment(
 
         viewPager2 = view.findViewById(R.id.vpImagesPlace_DetailsPlace)
         btnSave = view.findViewById(R.id.btnSave_DetailsPlace)
+        btnImport = view.findViewById(R.id.btnImport_DetailsPlace)
         floatBtnMore = view.findViewById(R.id.btnFloatShowShare_DetailsPlaces)
         floatBtnShare = view.findViewById(R.id.btnFloatSharePlace_DetailsPlace)
         floatBtnQr = view.findViewById(R.id.btnFloatQRPlace_DetailsPlace)
@@ -180,21 +184,36 @@ class MyPlaceDetailFragment(
 
     private fun initMode(){
 
-        if (editable){
+        when {
+            editable -> {
 
-            btnSave.visibility = View.VISIBLE
-            floatBtnMore.isClickable = false
-            txtTitlePlace_DetailsPlace.isClickable = true
-            viewPager2.isClickable = true
-            notClickable()
+                btnSave.visibility = View.VISIBLE
+                floatBtnMore.isClickable = false
+                txtTitlePlace_DetailsPlace.isClickable = true
+                viewPager2.isClickable = true
+                notClickable()
 
-        }else{
-            ratingBar.setIsIndicator(true)
-            ratingBar.focusable = View.NOT_FOCUSABLE
-            floatBtnMore.visibility = View.VISIBLE
-            floatBtnMore.isClickable = true
-            viewPager2.isClickable = false
-            initFloatingButtons()
+            }
+            import!! -> {
+
+                btnImport.visibility = View.VISIBLE
+                floatBtnMore.isClickable = true
+                ratingBar.setIsIndicator(true)
+                txtTitlePlace_DetailsPlace.isClickable = false
+                viewPager2.isClickable = false
+                ratingBar.focusable = View.NOT_FOCUSABLE
+                floatBtnMore.visibility = View.VISIBLE
+                initFloatingButtons()
+
+            }
+            else -> {
+                ratingBar.setIsIndicator(true)
+                ratingBar.focusable = View.NOT_FOCUSABLE
+                floatBtnMore.visibility = View.VISIBLE
+                floatBtnMore.isClickable = true
+                viewPager2.isClickable = false
+                initFloatingButtons()
+            }
         }
     }
 
@@ -332,6 +351,16 @@ class MyPlaceDetailFragment(
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.commit()
 
+    }
+
+    private fun onImportButton(){
+        btnImport.setOnClickListener {
+            val currentDate = Calendar.getInstance().time
+            val id = ControllerPlaces.getPlaceIdentity()
+            val place = Place(id, this.lugar.nombre, currentDate, this.lugar.city, this.lugar.puntuacion, this.lugar.longitud, this.lugar.latitud)
+            addImagePlaceImport(this.lugar)
+            ControllerPlaces.insertPlace(place)
+        }
     }
 
     private fun onMoreButtonClicked() {
@@ -585,6 +614,16 @@ class MyPlaceDetailFragment(
 
         }
     }
+
+    private fun addImagePlaceImport(place: Place){
+
+        for (imgPlace in this.lugar.imagenes){
+            val img = Utilities.base64ToBitmap(imgPlace.foto)!!
+            addImageBd(img)
+            place.imagenes.add(imgPlace)}
+
+    }
+
 
     private fun addImagePlace(list: MutableList<Image>, place: Place){
 

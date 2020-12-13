@@ -87,6 +87,7 @@
     <string name="fatalTwitter">No Application detected</string>
     <string name="shareQr">Share via QR?</string>
     <string name="scanQR">Scanning QR…</string>
+    <string name="importPlace">Import</string>
 
 
     <string name="InternetON">Internet connection exists</string>
