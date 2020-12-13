@@ -26,8 +26,10 @@ import com.google.gson.Gson
 import com.google.zxing.client.result.VINParsedResult
 import com.google.zxing.integration.android.IntentIntegrator
 import com.journeyapps.barcodescanner.CaptureActivity
+import io.realm.Realm
 import kotlinx.android.synthetic.main.fragment_myplaces.*
 import kotlinx.android.synthetic.main.layout_confirm_delete_item.view.*
+import java.text.SimpleDateFormat
 import java.util.concurrent.ConcurrentLinkedQueue
 
 
@@ -38,12 +40,18 @@ class MyPlacesFragment : Fragment() {
     private lateinit var place: Place
     private val user = LogInActivity.user //Usuario logeado
     private var clicked = false
-    private lateinit var placeQr : Place
+    private var clickedSort = false
+    private lateinit var placeQr: Place
 
     // Interfaz gráfica
     private lateinit var adapter: MyPlacesViewModel //Adaptador de Recycler
     private lateinit var tarea: TareaCargarDatos // Tarea en segundo plano
     private var paintSweep = Paint()
+
+    //Modos ordenacion
+    private var ascName = true
+    private var ascDate = true
+    private var ascMark = true
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -73,6 +81,7 @@ class MyPlacesFragment : Fragment() {
         // Mostramos las vistas de listas y adaptador asociado
         placeRecycler_MyPlaces.layoutManager = LinearLayoutManager(context)
         cargarDatos()
+        orderSites()
     }
 
     /**
@@ -180,25 +189,6 @@ class MyPlacesFragment : Fragment() {
         }
     }
 
-    private fun restorePlaceBD(place: Place) {
-        restoreImgPlace(place)
-        user.places.add(place)
-        val newUser = User(user.email, user.nombre, user.nombreUser, user.pwd, user.foto, user.places)
-        ControllerUser.updateUser(newUser)
-        val idPlace = ControllerPlaces.getPlaceIdentity()
-        val newPlace = Place(
-            idPlace,
-            place.nombre,
-            place.fecha,
-            place.city,
-            place.puntuacion,
-            place.longitud,
-            place.latitud,
-            place.imagenes
-        )
-        ControllerPlaces.updatePlace(newPlace)
-    }
-
     private fun deletePlaceBD(place: Place) {
 
         deleteImgPlace(place)
@@ -217,12 +207,12 @@ class MyPlacesFragment : Fragment() {
         adapter.notifyDataSetChanged()
     }
 
-    fun actualizarPlaceAdapter(place: Place, pos: Int){
+    fun actualizarPlaceAdapter(place: Place, pos: Int) {
         adapter.updateItem(place, pos)
         adapter.notifyDataSetChanged()
     }
 
-    private fun editarElemento(pos: Int){
+    private fun editarElemento(pos: Int) {
         initDetailsPlaceFragment(true, places[pos], pos, false)
     }
 
@@ -309,6 +299,9 @@ class MyPlacesFragment : Fragment() {
         btnFloatAddQRPlace.setOnClickListener {
             scanQRCode()
         }
+        btnSortPlaces_MyPlaces.setOnClickListener {
+            onSortButtonClicked()
+        }
     }
 
     private fun onAddButtonClicked() {
@@ -317,6 +310,14 @@ class MyPlacesFragment : Fragment() {
         setAnimation(clicked)
         setClickable(clicked)
         clicked = !clicked
+    }
+
+    private fun onSortButtonClicked() {
+
+        setVisibilitySort(clicked)
+        setAnimationSort(clicked)
+        setClickableSort(clicked)
+        clickedSort = !clickedSort
     }
 
     private fun initNewPlaceFragment() {
@@ -337,7 +338,7 @@ class MyPlacesFragment : Fragment() {
         transaction.commit()
     }
 
-    private fun initDetailsPlaceFragment(boolean: Boolean, place: Place, pos: Int?, import : Boolean) {
+    private fun initDetailsPlaceFragment(boolean: Boolean, place: Place, pos: Int?, import: Boolean) {
 
         val newFragment: Fragment = MyPlaceDetailFragment(boolean, place, pos, this)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
@@ -404,6 +405,48 @@ class MyPlacesFragment : Fragment() {
         }
     }
 
+    private fun setVisibilitySort(clickedSort: Boolean) {
+        if (!clickedSort) {
+            btnSortNamePlace.visibility = View.VISIBLE
+            btnSortDatePlace.visibility = View.VISIBLE
+            btnSortMarkPlace.visibility = View.VISIBLE
+        } else {
+            btnSortNamePlace.visibility = View.INVISIBLE
+            btnSortDatePlace.visibility = View.INVISIBLE
+            btnSortMarkPlace.visibility = View.INVISIBLE
+        }
+    }
+
+    private fun setAnimationSort(clickedSort: Boolean) {
+
+        //Animaciones
+        val fromBottom = AnimationUtils.loadAnimation(context, R.anim.from_bottom_anim)
+        val toBottom = AnimationUtils.loadAnimation(context, R.anim.to_bottom_anim)
+
+        if (!clickedSort) {
+            btnSortNamePlace.startAnimation(fromBottom)
+            btnSortDatePlace.startAnimation(fromBottom)
+            btnSortMarkPlace.startAnimation(fromBottom)
+
+        } else {
+            btnSortNamePlace.startAnimation(toBottom)
+            btnSortDatePlace.startAnimation(toBottom)
+            btnSortMarkPlace.startAnimation(toBottom)
+        }
+    }
+
+    private fun setClickableSort(clickedSort: Boolean) {
+        if (!clickedSort) {
+            btnSortNamePlace.isClickable = true
+            btnSortDatePlace.isClickable = true
+            btnSortMarkPlace.isClickable = true
+        } else {
+            btnSortNamePlace.isClickable = false
+            btnSortDatePlace.isClickable = false
+            btnSortMarkPlace.isClickable = false
+        }
+    }
+
     /**
      * Escanea el código
      */
@@ -416,6 +459,7 @@ class MyPlacesFragment : Fragment() {
         }
         integrator.initiateScan()
     }
+
     /**
      * Procesamos los resultados
      * @param requestCode Int
@@ -427,8 +471,7 @@ class MyPlacesFragment : Fragment() {
         if (result != null) {
             if (result.contents == null) {
                 Toast.makeText(context, "Cancelado", Toast.LENGTH_LONG).show()
-            }
-            else {
+            } else {
                 try {
                     placeQr = Gson().fromJson(result.contents, Place::class.java)
                     // Toast.makeText(context, "Recuperado: $LUGAR", Toast.LENGTH_LONG).show()
@@ -441,6 +484,60 @@ class MyPlacesFragment : Fragment() {
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data)
+        }
+    }
+
+    private fun orderSites() {
+
+        btnSortNamePlace.setOnClickListener { // Order by NAME
+            ascName = if (ascName){
+                btnSortNamePlace.setImageResource(R.drawable.ic_short_name_desc_btn)
+                btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_name_asc_btn)
+                this.places.sortWith { lugar1: Place, lugar2: Place ->
+                    lugar1.nombre.toLowerCase().compareTo(lugar2.nombre.toLowerCase()) }
+                false
+            }else{
+                btnSortNamePlace.setImageResource(R.drawable.ic_short_name_asc_btn)
+                btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_name_desc_btn)
+                this.places.sortWith { lugar1: Place, lugar2: Place ->
+                    lugar2.nombre.toLowerCase().compareTo(lugar1.nombre.toLowerCase()) }
+                true
+            }
+            adapter.notifyDataSetChanged()
+        }
+
+        btnSortDatePlace.setOnClickListener { // Order by DATE
+            ascDate = if (ascDate){
+                btnSortDatePlace.setImageResource(R.drawable.ic_short_date_desc_btn)
+                btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_date_asc_btn)
+                this.places.sortWith { lugar1: Place, lugar2: Place ->
+                    lugar1.fecha.compareTo(lugar2.fecha) }
+                false
+            }else{
+                btnSortDatePlace.setImageResource(R.drawable.ic_short_date_asc_btn)
+                btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_date_desc_btn)
+                this.places.sortWith { lugar1: Place, lugar2: Place ->
+                    lugar2.fecha.compareTo(lugar1.fecha) }
+                true
+            }
+            adapter.notifyDataSetChanged()
+        }
+
+        btnSortMarkPlace.setOnClickListener { // Order by RATINGS
+            ascMark = if (ascMark) {
+                btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_mark_asc_btn)
+                btnSortMarkPlace.setImageResource(R.drawable.ic_short_mark_desc_btn)
+                this.places.sortWith { lugar1: Place, lugar2: Place ->
+                    lugar2.puntuacion.compareTo(lugar1.puntuacion) }
+                false
+            }else{
+                btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_mark_desc_btn)
+                btnSortMarkPlace.setImageResource(R.drawable.ic_short_mark_asc_btn)
+                this.places.sortWith { lugar1: Place, lugar2: Place ->
+                    lugar1.puntuacion.compareTo(lugar2.puntuacion) }
+                true
+            }
+            adapter.notifyDataSetChanged()
         }
     }
 
