@@ -8,7 +8,9 @@ import android.com.diego.turistadroid.bbdd.ControllerPlaces
 import android.com.diego.turistadroid.bbdd.Image
 import android.com.diego.turistadroid.bbdd.Place
 import android.com.diego.turistadroid.login.LogInActivity
+import android.com.diego.turistadroid.utilities.Fotos
 import android.com.diego.turistadroid.utilities.Utilities
+import android.com.diego.turistadroid.utilities.Utilities.generateQRCode
 import android.com.diego.turistadroid.utilities.slider.SliderAdapter
 import android.com.diego.turistadroid.utilities.slider.SliderItem
 import android.content.ActivityNotFoundException
@@ -23,6 +25,7 @@ import android.net.Uri
 import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Handler
+import android.os.StrictMode
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
@@ -30,6 +33,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.RatingBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -45,6 +49,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.gson.Gson
+import com.google.zxing.qrcode.encoder.QRCode
 import io.realm.RealmList
 import kotlinx.android.synthetic.main.fragment_my_place_detail.*
 import kotlinx.android.synthetic.main.layout_change_name_place.view.*
@@ -99,6 +105,9 @@ class MyPlaceDetailFragment(
     private val GALERIA = 1
     private val CAMARA = 2
     private var foto: Uri? = null
+    private val IMAGEN_PREFIJO = "lugar"
+    private val IMAGEN_EXTENSION = ".jpg"
+    private val IMAGEN_DIRECTORY = "/TuristaDroid"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -125,6 +134,7 @@ class MyPlaceDetailFragment(
         abrirOpciones()
         updatePlace()
         sharePlaceOnSocialNetwork()
+        onClickQRBtn()
     }
 
     private fun lugaresUsuario(){
@@ -183,6 +193,7 @@ class MyPlaceDetailFragment(
             ratingBar.focusable = View.NOT_FOCUSABLE
             floatBtnMore.visibility = View.VISIBLE
             floatBtnMore.isClickable = true
+            viewPager2.isClickable = false
             initFloatingButtons()
         }
     }
@@ -489,6 +500,51 @@ class MyPlaceDetailFragment(
         val markerOptions = MarkerOptions().position(location).icon(icon)
         mMap.addMarker(markerOptions)
 
+    }
+
+    private fun onClickQRBtn(){
+        floatBtnQr.setOnClickListener {
+            shareOnQR()
+        }
+    }
+
+    private fun shareOnQR(){
+        val builder = AlertDialog.Builder(context!!)
+        val inflater = requireActivity().layoutInflater
+        val vista = inflater.inflate(R.layout.layout_share_qr_code, null)
+        val code = generateQRCode(Gson().toJson(lugar))
+        val qrCodeImageView = vista.findViewById(R.id.imagenCodigoQR) as ImageView
+        qrCodeImageView.setImageBitmap(code)
+        builder
+            .setView(vista)
+            .setIcon(R.drawable.ic_qr)
+            .setTitle(getString(R.string.shareQr))
+            .setPositiveButton(R.string.confirmDelete) { _, _ ->
+                compartirQRCode(code)
+            }
+            .setNegativeButton(R.string.cancelDelete, null)
+        builder.show()
+    }
+
+    /**
+     * Comparte un código QR
+     * @param code Bitmap
+     */
+    private fun compartirQRCode(qrCode: Bitmap) {
+        Log.i("QR", "Aceptar QR")
+        // Politicas de seguridad
+        val builder = StrictMode.VmPolicy.Builder()
+        StrictMode.setVmPolicy(builder.build())
+        val nombre = Fotos.crearNombreFoto(IMAGEN_PREFIJO, IMAGEN_EXTENSION)
+        val fichero =
+            Fotos.copiarFoto(qrCode, nombre, IMAGEN_DIRECTORY, 100, context!!)
+        Log.i("QR", "Foto salvada: " + fichero.absolutePath)
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "image/*"
+            putExtra(Intent.EXTRA_STREAM, Uri.fromFile(fichero))
+        }
+        context?.startActivity(Intent.createChooser(shareIntent, null))
+        Log.i("QR", "Foto salvada")
     }
 
     private fun sharePlaceOnSocialNetwork(){

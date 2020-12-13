@@ -4,6 +4,9 @@ import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.signup.SignUp
 import android.content.Context
 import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -12,6 +15,8 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.text.Editable
 import android.text.TextUtils
 import android.text.TextWatcher
@@ -25,6 +30,9 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.MultiFormatWriter
+import com.google.zxing.WriterException
 import androidx.core.graphics.drawable.toBitmap
 import kotlinx.android.synthetic.main.activity_sign_up.*
 import java.io.ByteArrayOutputStream
@@ -35,6 +43,38 @@ import kotlin.experimental.and
 
 
 object Utilities {
+
+    /**
+     * Genera un código de QR
+     * @param text String
+     * @return Bitmap
+     */
+    fun generateQRCode(text: String): Bitmap {
+        val width = 500
+        val height = 500
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val codeWriter = MultiFormatWriter()
+        try {
+            val bitMatrix = codeWriter.encode(text, BarcodeFormat.QR_CODE, width, height)
+            for (x in 0 until width) {
+                for (y in 0 until height) {
+                    bitmap.setPixel(x, y, if (bitMatrix[x, y]) Color.rgb(0, 77, 64) else Color.WHITE)
+                }
+            }
+        } catch (e: WriterException) {
+            Log.d("QR", "generateQRCode: ${e.message}")
+        }
+        return bitmap
+    }
+
+    fun vibratePhone(context: Context?) {
+        val vibrator = context!!.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        if (Build.VERSION.SDK_INT >= 26) {
+            vibrator.vibrate(VibrationEffect.createOneShot(200, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            vibrator.vibrate(200)
+        }
+    }
 
     var valido = false
 

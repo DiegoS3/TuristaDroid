@@ -3,6 +3,7 @@ package android.com.diego.turistadroid.bbdd
 import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
+import java.io.Serializable
 import java.util.*
 
 open class Place (@PrimaryKey var id : Long = 0,
@@ -12,6 +13,5 @@ open class Place (@PrimaryKey var id : Long = 0,
                   var puntuacion : Double = 0.0,
                   var longitud : Double = 0.0,
                   var latitud : Double = 0.0,
-                  var imagenes : RealmList<Image> = RealmList()) : RealmObject(){
-}
+                  var imagenes : RealmList<Image> = RealmList()) : RealmObject(), Serializable
 
