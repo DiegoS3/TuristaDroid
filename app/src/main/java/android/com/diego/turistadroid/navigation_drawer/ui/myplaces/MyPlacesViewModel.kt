@@ -50,6 +50,17 @@ class MyPlacesViewModel (
     }
 
     /**
+     * Añade un item de la lista
+     *
+     * @param pos
+     */
+    fun addItem(place: Place){
+        listPlaces.add(place)
+        notifyDataSetChanged()
+
+    }
+
+    /**
      * Recupera un Item de la lista
      *
      * @param item
