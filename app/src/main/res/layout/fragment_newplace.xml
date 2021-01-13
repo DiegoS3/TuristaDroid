@@ -88,16 +88,36 @@
             android:layout_alignParentStart="true"
             android:layout_marginStart="100dp"/>
 
-    <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/vpImagesPlace_NewPlace"
+    <androidx.cardview.widget.CardView
+            android:id="@+id/cv_slider_mainActivity"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="-160dp"
-            android:paddingEnd="150dp"
-            android:paddingStart="150dp"
-            android:layout_below="@+id/btnOpenMap_NewPlace"
-            android:layout_above="@+id/btnAddImage_NewPlace"/>
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="8dp"
+            android:layout_marginStart="48dp"
+            android:layout_marginEnd="48dp"
+            android:layout_marginBottom="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_below="@+id/btnOpenMap_NewPlace">
+
+        <com.smarteist.autoimageslider.SliderView
+                android:id="@+id/imageSlider"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                app:sliderAnimationDuration="600"
+                app:sliderAutoCycleDirection="back_and_forth"
+                app:sliderIndicatorAnimationDuration="600"
+                app:sliderIndicatorEnabled="true"
+                app:sliderIndicatorGravity="center_horizontal|bottom"
+                app:sliderIndicatorMargin="15dp"
+                app:sliderIndicatorOrientation="horizontal"
+                app:sliderIndicatorPadding="3dp"
+                app:sliderIndicatorRadius="2dp"
+                app:sliderIndicatorSelectedColor="#5A5A5A"
+                app:sliderIndicatorUnselectedColor="#FFF"
+                app:sliderScrollTimeInSec="1"/>
+
+    </androidx.cardview.widget.CardView>
+
     <Button
             android:text="@string/btnAddImage"
             android:layout_width="135dp"
