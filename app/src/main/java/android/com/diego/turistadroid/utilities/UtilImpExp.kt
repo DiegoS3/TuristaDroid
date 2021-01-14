@@ -5,6 +5,7 @@ import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.ControllerImages
 import android.com.diego.turistadroid.bbdd.ControllerPlaces
 import android.com.diego.turistadroid.bbdd.ControllerUser
+import android.com.diego.turistadroid.login.LogInActivity
 import android.content.Context
 import android.os.Environment
 import android.util.Log
@@ -52,9 +53,9 @@ object UtilImpExp {
         val sites = ControllerPlaces.selectPlaces()!!
         val images = ControllerImages.selectImages()!!
         val impExp = ImpExp(
-            users = users,
+            //users = users,
             sites = sites,
-            images = images
+            //images = images
         )
         val impExpGson = Gson().toJson(impExp)
         // Archivo el objeto JSON
@@ -69,6 +70,7 @@ object UtilImpExp {
     fun importFiles(context: Context) {
         //mete el json en una variable y la exporta
         val input = fileImport(context)
+        Log.i("import", input)
         val impExp = Gson().fromJson(input, ImpExp::class.java)
         if (impExp != null) {
             proccesImport(impExp,context)
@@ -113,12 +115,18 @@ object UtilImpExp {
         // Vamos a insertar el usuario
         try {
             deleteAll()
-            impExp.users.forEach { ControllerUser.insertUser(it) }
-            impExp.sites.forEach { ControllerPlaces.insertPlace(it) }
-            impExp.images.forEach { ControllerImages.insertImage(it) }
+            Log.i("import", "borrado todo")
+            //impExp.users.forEach { ControllerUser.insertUser(it) }
+            impExp.sites.forEach { ControllerPlaces.insertPlace(it)
+                LogInActivity.user.places.add(it)
+                Log.i("import", LogInActivity.user.places[0]!!.nombre)
+                ControllerUser.updateUser(LogInActivity.user)}
+
+            Log.i("import", "borrado todo")
+            //impExp.images.forEach { ControllerImages.insertImage(it) }
             Toast.makeText(context!!,context.getText(R.string.importok), Toast.LENGTH_SHORT).show()
         } catch (ex: Exception) {
-            Log.i("impor", "Error: " + ex.localizedMessage)
+            Log.i("import", "Error: " + ex.localizedMessage)
         }
     }
 
@@ -127,8 +135,8 @@ object UtilImpExp {
      */
     private fun deleteAll() {
         ControllerPlaces.deleteAllPlaces()
-        ControllerUser.deleteAllUsers()
-        ControllerImages.deleteAllImages()
+        //ControllerUser.deleteAllUsers()
+        //ControllerImages.deleteAllImages()
     }
     /**
      * Importa los datos
