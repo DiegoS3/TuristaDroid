@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
@@ -9,145 +9,113 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
-
-        <TextView
-                android:text="@string/newActualPlace"
+        <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/textView"
-                android:textSize="20sp"
-                android:fontFamily="@font/roboto_bold"
-                android:textColor="@color/colorLetter"
-                android:layout_marginTop="18dp"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentStart="true"
-                android:layout_marginStart="48dp"/>
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="10dp">
+            <TextView
+                    android:text="@string/newActualPlace"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="62dp"
+                    android:id="@+id/textView"
+                    android:textSize="20sp"
+                    android:fontFamily="@font/roboto_bold"
+                    android:textColor="@color/colorLetter"
+                    android:layout_marginTop="18dp"/>
 
-        <EditText
-                android:layout_width="316dp"
-                android:layout_height="44dp"
-                android:inputType="textPersonName"
-                android:ems="10"
-                android:id="@+id/txtNamePlace_NewActualPlace"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintHorizontal_bias="0.536"
-                android:fontFamily="@font/roboto_bold"
-                android:textColor="@color/colorLetterInput"
-                app:layout_constraintVertical_bias="0.499"
-                android:textColorHint="@color/colorLetterInput"
-                android:hint="@string/namePlace"
-                android:maxLength="30"
-                android:background="@drawable/box_inputs"
-                android:paddingHorizontal="10dp"
-                android:layout_marginTop="20dp"
-                android:layout_below="@+id/textView"
-                android:layout_alignParentStart="true"
-                android:layout_marginStart="48dp"
-                android:layout_alignParentEnd="true"
-                android:layout_marginEnd="47dp"/>
+            <EditText
+                    android:layout_width="316dp"
+                    android:layout_height="44dp"
+                    android:inputType="textPersonName"
+                    android:ems="10"
+                    android:id="@+id/txtNamePlace_NewActualPlace"
+                    android:fontFamily="@font/roboto_bold"
+                    android:textColor="@color/colorLetterInput"
+                    android:textColorHint="@color/colorLetterInput"
+                    android:hint="@string/namePlace"
+                    android:maxLength="30"
+                    android:background="@drawable/box_inputs"
+                    android:paddingHorizontal="10dp"
+                    android:layout_marginTop="20dp"/>
 
-        <EditText
-                android:layout_width="316dp"
-                android:layout_height="44dp"
-                android:inputType="textPersonName"
-                android:ems="10"
-                android:id="@+id/txtUbicationPlace_NewActualPlace"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintHorizontal_bias="0.536"
-                android:fontFamily="@font/roboto_bold"
-                android:textColor="@color/colorLetterInput"
-                app:layout_constraintVertical_bias="0.499"
-                android:autoSizeTextType="uniform"
-                android:textColorHint="@color/colorLetterInput"
-                android:hint="@string/ubicationPlace"
-                android:background="@drawable/box_inputs"
-                android:paddingHorizontal="10dp"
-                android:enabled="false"
-                android:layout_alignParentStart="true"
-                android:layout_marginStart="48dp"
-                android:layout_marginTop="20dp"
-                android:layout_below="@+id/txtNamePlace_NewActualPlace"
-                android:layout_alignParentEnd="true"
-                android:layout_marginEnd="47dp"/>
-        <androidx.cardview.widget.CardView
-                android:id="@+id/cv_slider_NewActualPlace"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="8dp"
-                android:layout_marginStart="48dp"
-                android:layout_marginEnd="48dp"
-                android:layout_marginBottom="16dp"
-                android:layout_marginTop="8dp"
-                android:layout_below="@+id/txtUbicationPlace_NewActualPlace">
+            <EditText
+                    android:layout_width="316dp"
+                    android:layout_height="44dp"
+                    android:inputType="textPersonName"
+                    android:ems="10"
+                    android:id="@+id/txtUbicationPlace_NewActualPlace"
+                    android:fontFamily="@font/roboto_bold"
+                    android:textColor="@color/colorLetterInput"
+                    android:autoSizeTextType="uniform"
+                    android:textColorHint="@color/colorLetterInput"
+                    android:hint="@string/ubicationPlace"
+                    android:background="@drawable/box_inputs"
+                    android:paddingHorizontal="10dp"
+                    android:enabled="false"
+                    android:layout_marginTop="20dp"/>
 
-            <com.smarteist.autoimageslider.SliderView
-                    android:id="@+id/imageSlider"
+            <androidx.cardview.widget.CardView
+                    android:id="@+id/cv_slider_NewActualPlace"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    app:sliderAnimationDuration="600"
-                    app:sliderAutoCycleDirection="back_and_forth"
-                    app:sliderIndicatorAnimationDuration="600"
-                    app:sliderIndicatorEnabled="true"
-                    app:sliderIndicatorGravity="center_horizontal|bottom"
-                    app:sliderIndicatorMargin="15dp"
-                    app:sliderIndicatorOrientation="horizontal"
-                    app:sliderIndicatorPadding="3dp"
-                    app:sliderIndicatorRadius="2dp"
-                    app:sliderIndicatorSelectedColor="#5A5A5A"
-                    app:sliderIndicatorUnselectedColor="#FFF"
-                    app:sliderScrollTimeInSec="1"/>
+                    android:layout_height="wrap_content"
+                    app:cardCornerRadius="8dp"
+                    android:layout_marginStart="48dp"
+                    android:layout_marginEnd="48dp"
+                    android:layout_marginBottom="16dp"
+                    android:layout_marginTop="8dp">
 
-        </androidx.cardview.widget.CardView>
+                <com.smarteist.autoimageslider.SliderView
+                        android:id="@+id/imageSlider"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        app:sliderAnimationDuration="600"
+                        app:sliderAutoCycleDirection="back_and_forth"
+                        app:sliderIndicatorAnimationDuration="600"
+                        app:sliderIndicatorEnabled="true"
+                        app:sliderIndicatorGravity="center_horizontal|bottom"
+                        app:sliderIndicatorMargin="15dp"
+                        app:sliderIndicatorOrientation="horizontal"
+                        app:sliderIndicatorPadding="3dp"
+                        app:sliderIndicatorRadius="2dp"
+                        app:sliderIndicatorSelectedColor="#5A5A5A"
+                        app:sliderIndicatorUnselectedColor="#FFF"
+                        app:sliderScrollTimeInSec="1"/>
 
-        <Button
-                android:text="@string/btnAddImage"
-                android:layout_width="135dp"
-                android:layout_height="46dp"
-                android:id="@+id/btnAddImage_NewActualPlace"
-                android:textColor="@color/colorLetter"
-                android:background="@drawable/box_buttons"
-                android:textSize="18sp"
-                android:layout_alignParentEnd="true"
-                android:layout_marginEnd="100dp"
-                android:layout_alignParentStart="true"
-                android:layout_marginStart="100dp"
-                android:layout_marginTop="225dp"
-                android:layout_below="@+id/txtUbicationPlace_NewActualPlace"/>
+            </androidx.cardview.widget.CardView>
 
-        <RatingBar
-                android:id="@+id/ratingBarPlace_NewActualPlace"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:stepSize="0.5"
-                android:layout_marginStart="80dp"
-                android:numStars="5"
-                android:layout_marginEnd="80dp"
-                android:layout_marginTop="20dp"
-                android:theme="@style/RatingBar"
-                android:layout_below="@+id/btnAddImage_NewActualPlace"/>
+            <Button
+                    android:text="@string/btnAddImage"
+                    android:layout_width="135dp"
+                    android:layout_height="46dp"
+                    android:id="@+id/btnAddImage_NewActualPlace"
+                    android:textColor="@color/colorLetter"
+                    android:background="@drawable/box_buttons"
+                    android:textSize="18sp"
+                    android:layout_marginTop="10dp"/>
 
-        <Button
-                android:text="@string/btnSavePlace"
-                android:layout_width="135dp"
-                android:layout_height="46dp"
-                android:id="@+id/btnSave_NewActualPlace"
-                android:textColor="@color/colorLetter"
-                android:background="@drawable/box_buttons"
-                android:textSize="18sp"
-                android:layout_alignParentEnd="true"
-                android:layout_marginEnd="100dp"
-                android:layout_alignParentStart="true"
-                android:layout_marginStart="100dp"
-                android:layout_marginTop="10dp"
-                android:layout_below="@+id/ratingBarPlace_NewActualPlace"/>
+            <RatingBar
+                    android:id="@+id/ratingBarPlace_NewActualPlace"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:stepSize="0.5"
+                    android:numStars="5"
+                    android:layout_marginTop="10dp"
+                    android:theme="@style/RatingBar"/>
+
+            <Button
+                    android:text="@string/btnSavePlace"
+                    android:layout_width="135dp"
+                    android:layout_height="46dp"
+                    android:id="@+id/btnSave_NewActualPlace"
+                    android:textColor="@color/colorLetter"
+                    android:background="@drawable/box_buttons"
+                    android:textSize="18sp"
+                    android:layout_marginTop="10dp"/>
+        </LinearLayout>
 
     </RelativeLayout>
 
-
-</FrameLayout>
+</RelativeLayout>
