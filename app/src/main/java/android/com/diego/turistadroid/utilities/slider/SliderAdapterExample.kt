@@ -16,7 +16,9 @@ import java.util.ArrayList
 
 
 class SliderAdapterExample(private val context: Context) : SliderViewAdapter<SliderAdapterVH>() {
+
     private var mSliderItems: MutableList<SliderImageItem> = ArrayList()
+
     fun renewItems(sliderItems: MutableList<SliderImageItem>) {
         mSliderItems = sliderItems
         notifyDataSetChanged()
@@ -27,6 +29,9 @@ class SliderAdapterExample(private val context: Context) : SliderViewAdapter<Sli
         notifyDataSetChanged()
     }
 
+    /**
+     * Funcion que añade un nuevo slider e informa al adaptador
+     */
     fun addItem(sliderItem: SliderImageItem) {
         mSliderItems.add(sliderItem)
         notifyDataSetChanged()
@@ -61,7 +66,7 @@ class SliderAdapterExample(private val context: Context) : SliderViewAdapter<Sli
     }
 
     inner class SliderAdapterVH(itemView: View) : ViewHolder(itemView) {
-        var itemViews: View = itemView
+        //var itemViews: View = itemView
         var imageViewBackground: ImageView = itemView.findViewById(R.id.iv_auto_image_slider)
         private var imageGifContainer: ImageView = itemView.findViewById(R.id.iv_gif_container)
         var textViewDescription: TextView = itemView.findViewById(R.id.tv_auto_image_slider)

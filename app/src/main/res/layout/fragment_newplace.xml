@@ -6,6 +6,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" tools:ignore="UselessParent">
 
     <TextView
             android:text="@string/newPlace"
@@ -89,7 +92,7 @@
             android:layout_marginStart="100dp"/>
 
     <androidx.cardview.widget.CardView
-            android:id="@+id/cv_slider_mainActivity"
+            android:id="@+id/cv_slider_NewPlace"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="8dp"
@@ -117,47 +120,50 @@
                 app:sliderScrollTimeInSec="1"/>
 
     </androidx.cardview.widget.CardView>
-
-    <Button
-            android:text="@string/btnAddImage"
-            android:layout_width="135dp"
-            android:layout_height="46dp"
-            android:id="@+id/btnAddImage_NewPlace"
-            android:textColor="@color/colorLetter"
-            android:background="@drawable/box_buttons"
-            android:textSize="18sp"
-            android:layout_alignParentEnd="true"
-            android:layout_marginEnd="100dp"
-            android:layout_alignParentStart="true"
-            android:layout_marginStart="100dp"
-            android:layout_marginTop="170dp"
-            android:layout_below="@+id/btnOpenMap_NewPlace"/>
-
-    <RatingBar
-            android:id="@+id/ratingBarPlace_NewPlace"
-            android:layout_width="wrap_content"
+    <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:stepSize="0.5"
-            android:layout_marginStart="80dp"
-            android:numStars="5"
-            android:layout_marginEnd="80dp"
-            android:layout_marginTop="20dp"
-            android:theme="@style/RatingBar"
-            android:layout_below="@+id/btnAddImage_NewPlace"/>
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_marginTop="400dp">
 
-    <Button
-            android:text="@string/btnSavePlace"
-            android:layout_width="135dp"
-            android:layout_height="46dp"
-            android:id="@+id/btnSave_NewPlace"
-            android:textColor="@color/colorLetter"
-            android:background="@drawable/box_buttons"
-            android:textSize="18sp"
-            android:layout_alignParentEnd="true"
-            android:layout_marginEnd="100dp"
-            android:layout_alignParentStart="true"
-            android:layout_marginStart="100dp"
-            android:layout_marginTop="10dp"
-            android:layout_below="@+id/ratingBarPlace_NewPlace"/>
+        <Button
+                android:text="@string/btnAddImage"
+                android:layout_width="135dp"
+                android:layout_height="46dp"
+                android:id="@+id/btnAddImage_NewPlace"
+                android:textColor="@color/colorLetter"
+                android:background="@drawable/box_buttons"
+                android:textSize="18sp"/>
+
+        <RatingBar
+                android:id="@+id/ratingBarPlace_NewPlace"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:stepSize="0.5"
+                android:layout_marginStart="80dp"
+                android:numStars="5"
+                android:layout_marginEnd="80dp"
+                android:layout_marginTop="20dp"
+                android:theme="@style/RatingBar"
+                android:layout_below="@+id/btnAddImage_NewPlace"/>
+
+        <Button
+                android:text="@string/btnSavePlace"
+                android:layout_width="135dp"
+                android:layout_height="46dp"
+                android:id="@+id/btnSave_NewPlace"
+                android:textColor="@color/colorLetter"
+                android:background="@drawable/box_buttons"
+                android:textSize="18sp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="100dp"
+                android:layout_alignParentStart="true"
+                android:layout_marginStart="100dp"
+                android:layout_marginTop="10dp"
+                android:layout_below="@+id/ratingBarPlace_NewPlace"/>
+
+    </LinearLayout>
+    </RelativeLayout>
 
 </RelativeLayout>

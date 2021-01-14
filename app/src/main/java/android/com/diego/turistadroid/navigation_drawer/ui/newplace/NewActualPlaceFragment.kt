@@ -4,23 +4,20 @@ import android.Manifest
 import android.app.Activity
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.*
+import android.com.diego.turistadroid.factorias.FactoriaSliderView
 import android.com.diego.turistadroid.login.LogInActivity
-import android.com.diego.turistadroid.navigation_drawer.ui.maps.MapsFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
 import android.com.diego.turistadroid.utilities.Utilities
-import android.com.diego.turistadroid.utilities.slider.SliderAdapter
-import android.com.diego.turistadroid.utilities.slider.SliderItem
+import android.com.diego.turistadroid.utilities.slider.SliderImageItem
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.location.Address
 import android.location.Geocoder
-import android.location.Location
 import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,39 +26,26 @@ import android.widget.EditText
 import android.widget.RatingBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
-import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.widget.CompositePageTransformer
-import androidx.viewpager2.widget.MarginPageTransformer
-import androidx.viewpager2.widget.ViewPager2
 import com.google.android.gms.location.*
-import com.google.android.gms.maps.model.LatLng
 import io.realm.RealmList
-import kotlinx.android.synthetic.main.app_bar_main.view.*
-import kotlinx.android.synthetic.main.fragment_my_place_detail.*
 import kotlinx.android.synthetic.main.fragment_new_actual_place.*
-import kotlinx.android.synthetic.main.fragment_newplace.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
 import java.io.IOException
 import java.util.*
-import kotlin.math.abs
 
 
 class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
 
     private lateinit var tarea: CityAsyncTask
     private lateinit var txtUbication : EditText
-    private lateinit var viewPager2 : ViewPager2
     private lateinit var ratingBar : RatingBar
     private lateinit var btnAddImage : Button
-    private lateinit var adapter: SliderAdapter
     private var mark : Double = 0.0
-    private var sliderHandler = Handler()
+
     //Lista de imagenes
-    private var sliderItems =  mutableListOf<SliderItem>()
     private var images = RealmList<Image>()
 
     //Usuario logeado
@@ -80,8 +64,9 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         // Inflate the layout for this fragment
         val root = inflater.inflate(R.layout.fragment_new_actual_place, container, false)
 
+        FactoriaSliderView.initSliderView(root, activity!!)//Iniciamos el Slider de las Imagenes
+
         txtUbication = root.findViewById(R.id.txtUbicationPlace_NewActualPlace)
-        viewPager2 = root.findViewById(R.id.vpImagesPlace_NewActualPlace)
         ratingBar = root.findViewById(R.id.ratingBarPlace_NewActualPlace)
         btnAddImage = root.findViewById(R.id.btnAddImage_NewActualPlace)
         ratingBar.onRatingBarChangeListener = this
@@ -97,39 +82,7 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
 
     private fun init(){
         getCurrentLocation()
-        initViewPager()
         abrirOpciones()
-    }
-
-    //Inciamos el adaptador del slider
-    private fun initViewPager(){
-        adapter = SliderAdapter(sliderItems, viewPager2)
-        viewPager2.adapter = adapter
-        viewPager2.clipToPadding = false
-        viewPager2.clipChildren = false
-        viewPager2.offscreenPageLimit = 3
-        viewPager2.getChildAt(0).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
-
-        val compositePageTransformer = CompositePageTransformer()
-        compositePageTransformer.addTransformer(MarginPageTransformer(20))
-        compositePageTransformer.addTransformer { page, position ->
-
-            val r: Float = 1 - abs(position)
-            page.scaleY = 0.85f + r * 0.15f
-
-        }
-
-        viewPager2.setPageTransformer(compositePageTransformer)
-
-        //Metodo para que las imagenes se pasen solas
-        viewPager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                sliderHandler.removeCallbacks(sliderRunnable)
-                sliderHandler.postDelayed(sliderRunnable, 3000)
-            }
-        })
     }
 
     //Dialos para la camara o galeria
@@ -186,13 +139,6 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         val intent = Intent(Intent.ACTION_PICK)
         intent.type = "image/*"
         startActivityForResult(intent, GALERIA)
-    }
-
-    //Añado imagen al slider del ViewAPger
-    private fun addSliderItem(bitmap: Bitmap){
-        val image = SliderItem(bitmap)
-        addImageBd(bitmap)
-        sliderItems.add(image)
     }
 
     //Añado imagen a la BD
@@ -257,6 +203,16 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK && requestCode==GALERIA) {
             try {
+                val bitmap = MediaStore.Images.Media.getBitmap(context?.contentResolver!!, data?.data)
+                val sliderItem = SliderImageItem()
+                sliderItem.description = "Slider Item Added Manually"
+                //.imageUrl =
+                //"https://images.pexels.com/photos/929778/pexels-photo-929778.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260"
+                sliderItem.image = bitmap
+                FactoriaSliderView.adapterSlider!!.addItem(sliderItem)
+
+                addImageBd(bitmap)
+
 
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -265,7 +221,14 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         }
         if (resultCode == Activity.RESULT_OK && requestCode == CAMARA) {
             val bitmap = MediaStore.Images.Media.getBitmap(context?.contentResolver!!, foto)
-            addSliderItem(bitmap)
+
+            val sliderItem = SliderImageItem()
+            sliderItem.description = "Slider Item Added Manually"
+            //sliderItem.imageUrl =
+            //"https://images.pexels.com/photos/929778/pexels-photo-929778.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260"
+            sliderItem.image = bitmap
+            FactoriaSliderView.adapterSlider!!.addItem(sliderItem)
+            addImageBd(bitmap)
         }
     }
 
@@ -276,34 +239,12 @@ class NewActualPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
             GALERIA -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
                     mostrarGaleria()
-
             }
             CAMARA -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
                     abrirCamara()
             }
         }
-    }
-
-    //HIlo Slider
-    private var sliderRunnable = Runnable {
-
-        run {
-            viewPager2.currentItem = viewPager2.currentItem + 1
-        }
-    }
-
-
-    //Pausamos hilo
-    override fun onPause() {
-        super.onPause()
-        sliderHandler.removeCallbacks(sliderRunnable)
-    }
-
-    //Activamos hilo
-    override fun onResume() {
-        super.onResume()
-        sliderHandler.postDelayed(sliderRunnable, 3000)
     }
 
     //Obtener puntuacion del sitio
