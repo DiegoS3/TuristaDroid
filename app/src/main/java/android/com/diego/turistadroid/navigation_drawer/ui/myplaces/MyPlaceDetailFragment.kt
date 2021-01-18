@@ -79,7 +79,6 @@ class MyPlaceDetailFragment(
     private lateinit var ratingBar: RatingBar
 
     //Componentes Slider Image
-    private lateinit var viewPager2 : ViewPager2
     private lateinit var adapter: SliderAdapter
     private var sliderHandler = Handler()
     //Lista de imagenes
@@ -129,11 +128,9 @@ class MyPlaceDetailFragment(
         initMapa()
         initMode()
         initChangeName()
-        initViewPager()
         userSwitch()
         lugaresUsuario()
         showDetailsPlace()
-        abrirOpciones()
         updatePlace()
         sharePlaceOnSocialNetwork()
         onClickQRBtn()
@@ -194,7 +191,6 @@ class MyPlaceDetailFragment(
      */
     private fun initUI(view: View){
 
-        viewPager2 = view.findViewById(R.id.vpImagesPlace_DetailsPlace)
         btnSave = view.findViewById(R.id.btnSave_DetailsPlace)
         btnImport = view.findViewById(R.id.btnImport_DetailsPlace)
         floatBtnMore = view.findViewById(R.id.btnFloatShowShare_DetailsPlaces)
@@ -220,7 +216,6 @@ class MyPlaceDetailFragment(
                 btnSave.visibility = View.VISIBLE
                 floatBtnMore.isClickable = false
                 txtTitlePlace_DetailsPlace.isClickable = true
-                viewPager2.isClickable = true
                 notClickable()
 
             }
@@ -230,7 +225,6 @@ class MyPlaceDetailFragment(
                 floatBtnMore.isClickable = true
                 ratingBar.setIsIndicator(true)
                 txtTitlePlace_DetailsPlace.isClickable = false
-                viewPager2.isClickable = false
                 ratingBar.focusable = View.NOT_FOCUSABLE
                 floatBtnMore.visibility = View.VISIBLE
                 initFloatingButtons()
@@ -241,7 +235,6 @@ class MyPlaceDetailFragment(
                 ratingBar.focusable = View.NOT_FOCUSABLE
                 floatBtnMore.visibility = View.VISIBLE
                 floatBtnMore.isClickable = true
-                viewPager2.isClickable = false
                 initFloatingButtons()
             }
         }
@@ -256,38 +249,7 @@ class MyPlaceDetailFragment(
         mapFragment.getMapAsync(this)
     }
 
-    /**
-     * Iniciamos el slider de las imagenes del lugar
-     */
-    private fun initViewPager(){
-        adapter = SliderAdapter(sliderItems, viewPager2)
-        viewPager2.adapter = adapter
-        viewPager2.clipToPadding = false
-        viewPager2.clipChildren = false
-        viewPager2.offscreenPageLimit = 3
-        viewPager2.getChildAt(0).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
 
-        val compositePageTransformer = CompositePageTransformer()
-        compositePageTransformer.addTransformer(MarginPageTransformer(20))
-        compositePageTransformer.addTransformer { page, position ->
-
-            val r: Float = 1 - abs(position)
-            page.scaleY = 0.85f + r * 0.15f
-
-        }
-
-        viewPager2.setPageTransformer(compositePageTransformer)
-
-        //Metodo para que las imagenes se pasen solas
-        viewPager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                sliderHandler.removeCallbacks(sliderRunnable)
-                sliderHandler.postDelayed(sliderRunnable, 3000)
-            }
-        })
-    }
 
     //Inicia funcionalidad del boton mostrar mas botones y compartir en redes
     private fun initFloatingButtons(){
@@ -541,13 +503,6 @@ class MyPlaceDetailFragment(
         sliderItems.add(image)
     }
 
-    //Hilo que mueve el slider
-    private var sliderRunnable = Runnable {
-
-        run {
-            viewPager2.currentItem = viewPager2.currentItem + 1
-        }
-    }
 
     //Añadimos imagen a la Base de Datos
     private fun addImageBd(bitmap: Bitmap){
@@ -556,18 +511,6 @@ class MyPlaceDetailFragment(
         val img = Image(id, imgStr)
         images.add(img)//Anadimos imagen en la lista que luego tendra el lugar
         ControllerImages.insertImage(img)
-    }
-
-    //Pausamos el hilo
-    override fun onPause() {
-        super.onPause()
-        sliderHandler.removeCallbacks(sliderRunnable)
-    }
-
-    //Activamos el hilo
-    override fun onResume() {
-        super.onResume()
-        sliderHandler.postDelayed(sliderRunnable, 3000)
     }
 
     /**
@@ -759,27 +702,7 @@ class MyPlaceDetailFragment(
         moveCamera()
     }
 
-    //Abrimos un dialog con las opciones para abrir camara o galeria
-    private fun abrirOpciones() {
-        viewPager2.setOnClickListener(){
-            val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_seleccion_camara, null)
-            val mBuilder = AlertDialog.Builder(context!!)
-                .setView(mDialogView).create()
-            mBuilder.show()
 
-            //Listener para abrir la camara
-            mDialogView.txtCamara.setOnClickListener {
-                abrirCamara()
-                mBuilder.dismiss()
-            }
-
-            //Listener para abrir la galeria
-            mDialogView.txtGaleria.setOnClickListener {
-                abrirGaleria()
-                mBuilder.dismiss()
-            }
-        }
-    }
 
     //muestro la camara
     private fun abrirCamara() = if (ActivityCompat.checkSelfPermission(
