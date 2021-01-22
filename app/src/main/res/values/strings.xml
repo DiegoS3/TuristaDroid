@@ -48,6 +48,7 @@
 
     <!-- Navigation Drawer -->
     <string name="my_places">My Places</string>
+    <string name="all_places">All Places</string>
     <string name="my_profile">My Profile</string>
     <string name="near_me">Near me</string>
     <string name="lantern">Lantern</string>
@@ -102,6 +103,8 @@
     <string name="InternetNeed">Internet connection needed</string>
     <string name="Connect">Connect</string>
     <string name="invalidEmail">Invalid Email</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 
 </resources>

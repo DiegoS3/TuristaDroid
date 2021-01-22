@@ -7,6 +7,7 @@ import android.com.diego.turistadroid.bbdd.ControllerSession
 import android.com.diego.turistadroid.bbdd.ControllerUser
 import android.com.diego.turistadroid.bbdd.User
 import android.com.diego.turistadroid.login.LogInActivity
+import android.com.diego.turistadroid.navigation_drawer.ui.allplaces.AllPlaces
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.myprofile.MyProfileFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.nearme.NearMeFragment
@@ -81,7 +82,7 @@ class NavigationDrawer : AppCompatActivity(){
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_myPlaces, R.id.nav_myProfile, R.id.nav_nearMe, R.id.nav_lantern
+                R.id.nav_myPlaces, R.id.nav_myProfile, R.id.nav_nearMe, R.id.nav_lantern, R.id.nav_AllPlaces
             ), drawerLayout
         )
 
@@ -221,6 +222,14 @@ class NavigationDrawer : AppCompatActivity(){
                     }
                     true
                 }
+                R.id.nav_AllPlaces -> {//Todos los lugares
+                    abrirAllPlaces()
+                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        toolbar.title = getString(R.string.all_places)
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }
+                    true
+                }
                 R.id.nav_myProfile -> {//Mi perfil
                     abrirMyProfile()
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
@@ -272,6 +281,15 @@ class NavigationDrawer : AppCompatActivity(){
     //Abrir mis lugares
     private fun abrirMyPlaces(){
         val newFragment = MyPlacesFragment()
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+    }
+
+    //Abrir todos los lugares
+    private fun abrirAllPlaces(){
+        val newFragment = AllPlaces()
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)

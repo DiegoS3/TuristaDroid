@@ -73,6 +73,10 @@ class MyPlaceDetailFragment(
     private lateinit var ratingBar: RatingBar
     private lateinit var sliderView : SliderView
 
+    //Componentes Slider Image
+    private lateinit var viewPager2 : ViewPager2
+    private lateinit var adapter: SliderAdapter
+    private var sliderHandler = Handler()
     //Lista de imagenes
     private var listaImagenes = mutableListOf<Image>()
     private var images = RealmList<Image>()
@@ -122,7 +126,6 @@ class MyPlaceDetailFragment(
         userSwitch()
         lugaresUsuario()
         showDetailsPlace()
-        abrirOpciones()
         updatePlace()
         sharePlaceOnSocialNetwork()
         onClickQRBtn()
@@ -247,6 +250,39 @@ class MyPlaceDetailFragment(
         val mapFragment = (childFragmentManager
             .findFragmentById(R.id.mapPlace_DetailsPlace) as SupportMapFragment?)!!
         mapFragment.getMapAsync(this)
+    }
+
+    /**
+     * Iniciamos el slider de las imagenes del lugar
+     */
+    private fun initViewPager(){
+        adapter = SliderAdapter(sliderItems, viewPager2)
+        viewPager2.adapter = adapter
+        viewPager2.clipToPadding = false
+        viewPager2.clipChildren = false
+        viewPager2.offscreenPageLimit = 3
+        viewPager2.getChildAt(0).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
+
+        val compositePageTransformer = CompositePageTransformer()
+        compositePageTransformer.addTransformer(MarginPageTransformer(20))
+        compositePageTransformer.addTransformer { page, position ->
+
+            val r: Float = 1 - abs(position)
+            page.scaleY = 0.85f + r * 0.15f
+
+        }
+
+        viewPager2.setPageTransformer(compositePageTransformer)
+
+        //Metodo para que las imagenes se pasen solas
+        viewPager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                sliderHandler.removeCallbacks(sliderRunnable)
+                sliderHandler.postDelayed(sliderRunnable, 3000)
+            }
+        })
     }
 
     //Inicia funcionalidad del boton mostrar mas botones y compartir en redes
@@ -495,6 +531,20 @@ class MyPlaceDetailFragment(
         }
     }
 
+    //Añadir imagen a la lista del slider
+    private fun addSliderItem(bitmap: Bitmap){
+        val image = SliderItem(bitmap)
+        sliderItems.add(image)
+    }
+
+    //Hilo que mueve el slider
+    private var sliderRunnable = Runnable {
+
+        run {
+            viewPager2.currentItem = viewPager2.currentItem + 1
+        }
+    }
+
     //Añadimos imagen a la Base de Datos
     private fun addImageBd(bitmap: Bitmap){
         val imgStr = Utilities.bitmapToBase64(bitmap)!!
@@ -701,19 +751,6 @@ class MyPlaceDetailFragment(
                 .setView(mDialogView).create()
             mBuilder.show()
 
-            //Listener para abrir la camara
-            mDialogView.txtCamara.setOnClickListener {
-                abrirCamara()
-                mBuilder.dismiss()
-            }
-
-            //Listener para abrir la galeria
-            mDialogView.txtGaleria.setOnClickListener {
-                abrirGaleria()
-                mBuilder.dismiss()
-            }
-        }
-    }
 
     //muestro la camara
     private fun abrirCamara() = if (ActivityCompat.checkSelfPermission(

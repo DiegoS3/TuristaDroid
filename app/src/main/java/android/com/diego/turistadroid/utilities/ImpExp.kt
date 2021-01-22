@@ -5,7 +5,7 @@ import android.com.diego.turistadroid.bbdd.Place
 import android.com.diego.turistadroid.bbdd.User
 
 class ImpExp(
-    val users: MutableList<User>,
+    //val users: MutableList<User>,
     val sites: MutableList<Place>,
-    val images: MutableList<Image>
+    //val images: MutableList<Image>
 )

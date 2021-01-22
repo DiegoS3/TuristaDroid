@@ -10,6 +10,10 @@
                 android:icon="@drawable/ic_my_places"
                 android:title="@string/my_places"/>
         <item
+                android:id="@+id/nav_AllPlaces"
+                android:icon="@drawable/outline_room_black_18dp"
+                android:title="@string/all_places"/>
+        <item
                 android:id="@+id/nav_myProfile"
                 android:icon="@drawable/ic_my_profile"
                 android:title="@string/my_profile"/>
