@@ -15,24 +15,77 @@
             android:layout_height="match_parent"
             android:background="@drawable/gradient"
             android:id="@+id/relative_Place">
+           <LinearLayout
+                   android:layout_width="match_parent"
+                   android:layout_height="wrap_content">
 
-        <TextView
-                android:text="Zurich - Suiza"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/txtCityPlace_Place"
-                android:textColor="@color/colorBackground"
-                android:fontFamily="@font/roboto_bold"
-                android:textSize="16sp"
-                android:layout_marginTop="5dp"
-                android:layout_marginStart="20dp"
-                android:layout_below="@+id/imgPlace_Place"/>
-        <ImageView
-                android:layout_width="match_parent"
-                android:layout_height="220dp"
-                tools:srcCompat="@drawable/ima_default_place"
-                android:id="@+id/imgPlace_Place"
-                android:scaleType="fitXY"/>
+               <ImageView
+                       android:layout_width="match_parent"
+                       android:layout_height="220dp"
+                       tools:srcCompat="@drawable/ima_default_place"
+                       android:id="@+id/imgPlace_Place"
+                       android:scaleType="fitXY"/>
+           </LinearLayout>
+
+           <LinearLayout
+                   android:layout_width="match_parent"
+                   android:layout_height="match_parent"
+                   android:orientation="horizontal">
+               <LinearLayout
+                       android:layout_width="0dp"
+                       android:layout_weight="2.2"
+                       android:layout_height="match_parent"
+                       android:orientation="vertical"
+                       android:layout_marginTop="220dp"
+                       android:padding="10dp">
+                   <TextView
+                           android:text="Zurich - Suiza"
+                           android:lines="1"
+                           android:layout_width="wrap_content"
+                           android:layout_height="wrap_content"
+                           android:id="@+id/txtCityPlace_Place"
+                           android:textColor="@color/colorBackground"
+                           android:fontFamily="@font/roboto_bold"
+                           android:textSize="16sp"/>
+                   <TextView
+                           android:text="22/11/2020"
+                           android:lines="1"
+                           android:layout_width="wrap_content"
+                           android:layout_height="wrap_content"
+                           android:id="@+id/txtDatePlace_Place"
+                           android:layout_marginTop="5dp"
+                           android:textSize="16sp"
+                           android:fontFamily="@font/roboto_bold"
+                           android:textColor="@color/colorBackground"/>
+
+               </LinearLayout>
+               <LinearLayout
+                       android:layout_width="0dp"
+                       android:layout_weight="1"
+                       android:layout_height="match_parent"
+                       android:orientation="horizontal"
+                       android:layout_marginTop="220dp"
+                       android:gravity="center"
+                       android:padding="10dp">
+                   <ImageView
+                           android:layout_width="wrap_content"
+                           android:layout_height="wrap_content"
+                           app:srcCompat="@drawable/ima_star"
+                           android:id="@+id/imgStar_Place"
+                           app:tint="@color/colorPrimary"/>
+                   <TextView
+                           android:text="144"
+                           android:layout_width="wrap_content"
+                           android:layout_height="wrap_content"
+                           android:layout_marginStart="10dp"
+                           android:id="@+id/txtMark_Place"
+                           android:textSize="20sp"
+                           android:fontFamily="@font/roboto_bold"
+                           android:textColor="@color/colorBackground"/>
+
+               </LinearLayout>
+           </LinearLayout>
+
         <TextView
                 android:text="Iglesia de San Martin"
                 android:layout_width="match_parent"
@@ -44,44 +97,7 @@
                 android:textColor="@color/colorLetter"
                 android:background="@color/colorBackgroundOpacity"
                 android:textSize="20sp"
-                android:fontFamily="@font/roboto_bold"/>
-        <TextView
-                android:text="4.3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:id="@+id/txtMark_Place"
-                android:layout_marginStart="6dp"
-                android:textSize="36sp"
-                android:fontFamily="@font/roboto_bold"
-                android:textAlignment="center"
-                android:textColor="@color/colorBackground"
-                android:layout_toEndOf="@+id/imgStar_Place"
-                android:layout_marginTop="12dp"
-                android:layout_below="@+id/imgPlace_Place"
-                android:layout_alignParentBottom="true"
-                android:layout_marginBottom="15dp"/>
-        <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:srcCompat="@drawable/ima_star"
-                android:id="@+id/imgStar_Place"
-                android:layout_marginTop="18dp"
-                android:layout_below="@+id/imgPlace_Place"
-                android:layout_alignParentBottom="true"
-                android:layout_marginBottom="18dp" android:layout_alignParentStart="true"
-                android:layout_marginStart="210dp"/>
-        <TextView
-                android:text="22/11/2020"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/txtDatePlace_Place"
-                android:layout_marginTop="10dp"
-                android:layout_marginStart="20dp"
-                android:textSize="16sp"
-                android:fontFamily="@font/roboto_bold"
-                android:textColor="@color/colorBackground"
-                android:layout_below="@+id/txtCityPlace_Place"/>
-
+                android:fontFamily="@font/roboto_bold" tools:ignore="RtlSymmetry"/>
 
     </RelativeLayout>
 </androidx.cardview.widget.CardView>
