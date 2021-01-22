@@ -2,7 +2,7 @@ package android.com.diego.turistadroid.bbdd.apibbdd.entities.users
 
 import java.io.Serializable
 
-data class User(
+data class UserApi(
     val id : String?,
     val name: String?,
     val userName: String?,

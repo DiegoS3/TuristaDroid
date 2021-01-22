@@ -6,8 +6,12 @@ import android.com.diego.turistadroid.bbdd.ControllerBbdd
 import android.com.diego.turistadroid.bbdd.ControllerUser
 import android.com.diego.turistadroid.bbdd.Place
 import android.com.diego.turistadroid.bbdd.User
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
+import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.HttpClient
+import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.ImgurREST
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.utilities.Utilities
+import android.com.diego.turistadroid.utilities.UtilsApiImgur
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -32,11 +36,14 @@ import androidx.core.graphics.drawable.toBitmap
 import io.realm.RealmList
 import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import kotlinx.android.synthetic.main.activity_sign_up.*
+import kotlinx.android.synthetic.main.fragment_gallery.*
 import kotlinx.android.synthetic.main.layout_input_instagram.*
 import kotlinx.android.synthetic.main.layout_input_instagram.view.*
 import kotlinx.android.synthetic.main.layout_input_twitter.*
 import kotlinx.android.synthetic.main.layout_input_twitter.view.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
+import okhttp3.OkHttpClient
+import java.util.*
 
 class SignUp : AppCompatActivity() {
 
@@ -50,6 +57,7 @@ class SignUp : AppCompatActivity() {
     private var ima : Bitmap? = null
     private var instagram = ""
     private var twitter = ""
+    private lateinit var clientImgur: OkHttpClient
 
     companion object{
         var valido = false
@@ -70,6 +78,12 @@ class SignUp : AppCompatActivity() {
         initSaveDatos()
         redes()
         checkUsuario()
+        initClienteImgur()
+
+    }
+
+    private fun initClienteImgur() {
+        clientImgur = HttpClient.getClient()!!
 
     }
 
@@ -127,7 +141,8 @@ class SignUp : AppCompatActivity() {
                     if(ControllerUser.uniqueUser(txtNameUser.text.toString())){
                         txtNameUser.error = getString(R.string.errorNameUser)
                     }else{
-                        registrarUsuario()
+                        //registrarUsuario()
+                        registrarUserApi()
                     }
 
                 }catch (ex: RealmPrimaryKeyConstraintException){
@@ -140,6 +155,7 @@ class SignUp : AppCompatActivity() {
     }
 
     //Registrar usuario
+    /*
     private fun registrarUsuario() {
         val passCifrada = Utilities.hashString(txtPass.text.toString())
         val imaString = Utilities.bitmapToBase64(imaUser.drawable.toBitmap())
@@ -152,6 +168,25 @@ class SignUp : AppCompatActivity() {
         Toast.makeText(applicationContext, "Usuario Registrado", Toast.LENGTH_SHORT).show()
         val intent = Intent (this, LogInActivity::class.java)
         startActivity(intent)
+    }*/
+
+    private fun registrarUserApi(){
+        val passCifrada = Utilities.hashString(txtPass.text.toString())
+        val imaString = Utilities.bitmapToBase64(imaUser.drawable.toBitmap())
+        val data = UtilsApiImgur.uploadImg(this,imaString!!,clientImgur)
+
+        val user = UserApi(
+            UUID.randomUUID().toString(),
+            txtName.text.toString(),
+            txtNameUser.text.toString(),
+            txtEmail.text.toString(),
+            passCifrada,
+            instagram,
+            twitter,
+            data.getString("link")
+        )
+        Log.i("userCreado", user.foto.toString())
+
     }
 
     //Comprobar campos vaios

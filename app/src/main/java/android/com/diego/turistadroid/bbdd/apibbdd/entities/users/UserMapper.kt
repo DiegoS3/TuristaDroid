@@ -7,7 +7,7 @@ object UserMapper {
     * @param items List<UsuarioDTO>
     * @return List<Usuario>
     */
-    fun fromDTO(items: List<UserDTO>): List<User> {
+    fun fromDTO(items: List<UserDTO>): List<UserApi> {
         return items.map { fromDTO(it) }
     }
 
@@ -16,7 +16,7 @@ object UserMapper {
     * @param items List<Usuario>
     * @return List<UsuarioDTO>
     */
-    fun toDTO(items: List<User>): List<UserDTO> {
+    fun toDTO(items: List<UserApi>): List<UserDTO> {
         return items.map { toDTO(it) }
     }
 
@@ -25,8 +25,8 @@ object UserMapper {
     * @param dto UsuarioDTO
     * @return Usuario
     */
-    fun fromDTO(dto: UserDTO): User {
-        return User(
+    fun fromDTO(dto: UserDTO): UserApi {
+        return UserApi(
             dto.id,
             dto.name,
             dto.userName,
@@ -43,7 +43,7 @@ object UserMapper {
     * @param model Usuario
     * @return UsuarioDTO
     */
-    fun toDTO(model: User): UserDTO {
+    fun toDTO(model: UserApi): UserDTO {
         return UserDTO(
             model.id!!,
             model.name!!,
