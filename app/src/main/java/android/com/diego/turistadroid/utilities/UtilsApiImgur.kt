@@ -1,22 +1,23 @@
 package android.com.diego.turistadroid.utilities
 
-import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.ImgurREST
 import android.content.Context
-import android.provider.Settings.System.getString
 import android.util.Log
 import android.widget.Toast
+import com.google.gson.JsonObject
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import org.json.JSONObject
 import java.io.IOException
-import java.util.*
 
 object UtilsApiImgur {
 
-    fun uploadImg(context: Context, foto: String, client: OkHttpClient): JSONObject{
+   lateinit var datos : JSONObject
 
-        var item = JSONObject()
+    fun uploadImg(context: Context, foto: String){
+
+        //var item = JSONObject()
+        val client = OkHttpClient().newBuilder().build()
         val mediaType: MediaType = "text/plain".toMediaTypeOrNull()!!
         val body: RequestBody = MultipartBody.Builder().setType(MultipartBody.FORM)
             .addFormDataPart("image", foto)
@@ -30,13 +31,12 @@ object UtilsApiImgur {
                 Log.i("answer","fallo")
             }
 
-
             override fun onResponse(call: Call, response: Response) {
 
                 if (response.isSuccessful){
 
                     val data = JSONObject(response.body!!.string())
-                    item = data.getJSONObject("data")
+                    setDatos(data.getJSONObject("data"))
                     Log.i("answer","OK")
                 }else
                 {
@@ -46,7 +46,10 @@ object UtilsApiImgur {
             }
 
         })
-        Log.i("answer",item.getString("link"))
-        return item
+    }
+
+    @JvmName("setDatos1")
+    fun setDatos(jsonObject: JSONObject){
+        this.datos = jsonObject
     }
 }

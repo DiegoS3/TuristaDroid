@@ -10,7 +10,9 @@ object HttpClient {
     fun getClient(): OkHttpClient? {
 
         if (okHttp == null){
+
             okHttp = OkHttpClient().newBuilder().build()
+
         }
         return okHttp
     }

@@ -21,7 +21,7 @@ object ImgurREST {
         Log.i("answer","estoy en postImage")
         return Request.Builder()
             .url(ImgurAPI.IMGUR_URL)
-            .method("POST", body)
+            .post(body)
             .addHeader("Authorization", "Client-ID "+ImgurAPI.CLIENT_ID)
             .addHeader("Content-Type", contType)
             .build()

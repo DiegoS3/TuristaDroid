@@ -7,8 +7,12 @@ import android.com.diego.turistadroid.bbdd.ControllerUser
 import android.com.diego.turistadroid.bbdd.Place
 import android.com.diego.turistadroid.bbdd.User
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.HttpClient
 import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.ImgurREST
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.utilities.Utilities
 import android.com.diego.turistadroid.utilities.UtilsApiImgur
@@ -42,7 +46,10 @@ import kotlinx.android.synthetic.main.layout_input_instagram.view.*
 import kotlinx.android.synthetic.main.layout_input_twitter.*
 import kotlinx.android.synthetic.main.layout_input_twitter.view.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
-import okhttp3.OkHttpClient
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import org.json.JSONObject
+import java.io.IOException
 import java.util.*
 
 class SignUp : AppCompatActivity() {
@@ -58,6 +65,8 @@ class SignUp : AppCompatActivity() {
     private var instagram = ""
     private var twitter = ""
     private lateinit var clientImgur: OkHttpClient
+    private lateinit var bbddRest: BBDDRest
+    private var unique = false
 
     companion object{
         var valido = false
@@ -78,13 +87,12 @@ class SignUp : AppCompatActivity() {
         initSaveDatos()
         redes()
         checkUsuario()
-        initClienteImgur()
-
+        initClients()
     }
 
-    private fun initClienteImgur() {
+    private fun initClients() {
         clientImgur = HttpClient.getClient()!!
-
+        bbddRest = BBDDApi.service
     }
 
     private fun setInsta(insta: String){
@@ -131,14 +139,53 @@ class SignUp : AppCompatActivity() {
         }
     }
 
+    private fun uniqueUser(nameUser: String){
+
+        //val dto = UserMapper.toDTO(userApi)
+        val call = bbddRest.selectUserByUserName(nameUser)
+
+        call.enqueue((object : retrofit2.Callback<UserDTO> {
+            override fun onResponse(call: retrofit2.Call<UserDTO>, response: retrofit2.Response<UserDTO>) {
+                // Si la respuesta es correcta
+                if (response.isSuccessful) {
+                    Toast.makeText(
+                        applicationContext,
+                        "Usuario insertado. Código Respuesta: " + response.code(),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    isUniqueUser(response.body() as UserDTO)
+
+                } else {
+                    Toast.makeText(
+                        applicationContext,
+                        "Error al insertar. Código Respuesta : " + response.code(),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            //Si error
+            override fun onFailure(call: retrofit2.Call<UserDTO>, t: Throwable) {
+                Toast.makeText(applicationContext, "Error al eliminar: " + t.localizedMessage, Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }))
+    }
+
+    private fun isUniqueUser(userDTO: UserDTO) {
+        if (userDTO.userName == ""){
+            unique = true
+        }
+    }
+
     //Comprobar suario
     private fun checkUsuario(){
         btnRegister.setOnClickListener {
             Log.i("valor de vacios",comprobarVacios().toString())
             if(comprobarVacios()){
                 try {
-
-                    if(ControllerUser.uniqueUser(txtNameUser.text.toString())){
+                    uniqueUser(txtNameUser.text.toString())
+                    if(!unique){
                         txtNameUser.error = getString(R.string.errorNameUser)
                     }else{
                         //registrarUsuario()
@@ -172,20 +219,89 @@ class SignUp : AppCompatActivity() {
 
     private fun registrarUserApi(){
         val passCifrada = Utilities.hashString(txtPass.text.toString())
-        val imaString = Utilities.bitmapToBase64(imaUser.drawable.toBitmap())
-        val data = UtilsApiImgur.uploadImg(this,imaString!!,clientImgur)
+        val imaString = Utilities.bitmapToBase64(imaUser.drawable.toBitmap())!!
+        //val data = UtilsApiImgur.uploadImg(this,imaString)
 
-        val user = UserApi(
-            UUID.randomUUID().toString(),
-            txtName.text.toString(),
-            txtNameUser.text.toString(),
-            txtEmail.text.toString(),
-            passCifrada,
-            instagram,
-            twitter,
-            data.getString("link")
-        )
-        Log.i("userCreado", user.foto.toString())
+        val mediaType: MediaType = "text/plain".toMediaTypeOrNull()!!
+        val body: RequestBody = MultipartBody.Builder().setType(MultipartBody.FORM)
+            .addFormDataPart("image", imaString)
+            .build()
+        val request = ImgurREST.postImage(body,"base64")
+        Log.i("answer", request.toString()+" "+request.body.toString())
+        clientImgur.newCall(request).enqueue(object : Callback {
+
+            override fun onFailure(call: Call, e: IOException) {
+                Toast.makeText(applicationContext,"Error uploading image",Toast.LENGTH_SHORT).show()
+                Log.i("answer","fallo")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+
+                if (response.isSuccessful){
+
+                    val data = JSONObject(response.body!!.string())
+                    val item = data.getJSONObject("data")
+                    Log.i("answer","OK")
+                    Log.i("answer", item.getString("link"))
+                    val user = UserApi(
+                        UUID.randomUUID().toString(),
+                        txtName.text.toString(),
+                        txtNameUser.text.toString(),
+                        txtEmail.text.toString(),
+                        passCifrada,
+                        instagram,
+                        twitter,
+                        item.getString("link")
+                    )
+                    Log.i("userCreado", user.foto.toString())
+                    insertUserApi(user)
+                }else
+                {
+                    Toast.makeText(applicationContext,"Error accessing service",Toast.LENGTH_SHORT).show()
+                    Log.i("answer","NO")
+                }
+            }
+
+        })
+    }
+
+    private fun initLogin(){
+
+        val intent = Intent (this, LogInActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun insertUserApi(userApi: UserApi){
+
+        val dto = UserMapper.toDTO(userApi)
+        val call = bbddRest.insertUser(dto)
+
+        call.enqueue((object : retrofit2.Callback<UserDTO> {
+            override fun onResponse(call: retrofit2.Call<UserDTO>, response: retrofit2.Response<UserDTO>) {
+                // Si la respuesta es correcta
+                if (response.isSuccessful) {
+                    Toast.makeText(
+                        applicationContext,
+                        "Usuario insertado. Código Respuesta: " + response.code(),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    initLogin()
+
+                } else {
+                    Toast.makeText(
+                        applicationContext,
+                        "Error al insertar. Código Respuesta : " + response.code(),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            //Si error
+            override fun onFailure(call: retrofit2.Call<UserDTO>, t: Throwable) {
+                Toast.makeText(applicationContext, "Error al eliminar: " + t.localizedMessage, Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }))
 
     }
 
