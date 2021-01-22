@@ -1,4 +1,4 @@
-package android.com.diego.turistadroid.bbdd.apibbdd.services
+package android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

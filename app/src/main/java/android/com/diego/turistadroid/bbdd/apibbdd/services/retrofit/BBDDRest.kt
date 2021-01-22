@@ -1,4 +1,4 @@
-package android.com.diego.turistadroid.bbdd.apibbdd.services
+package android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit
 
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesDTO
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesDTO

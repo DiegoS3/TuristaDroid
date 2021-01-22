@@ -1,4 +1,4 @@
-package android.com.diego.turistadroid.bbdd.apibbdd.services
+package android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit
 
 import android.com.diego.turistadroid.utilities.Constants
 

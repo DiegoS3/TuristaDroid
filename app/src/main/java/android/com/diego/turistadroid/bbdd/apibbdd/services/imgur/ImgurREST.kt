@@ -1,0 +1,29 @@
+package android.com.diego.turistadroid.bbdd.apibbdd.services.imgur
+
+import okhttp3.*
+
+interface ImgurREST {
+
+    //Obtenemos una imagen a partir de un ID
+    fun getImage(hash: String): Request{
+
+        return Request.Builder()
+            .url(ImgurAPI.IMGUR_URL+hash)
+            .method("GET", null)
+            .addHeader("Authorization", "Client-ID "+ImgurAPI.CLIENT_ID)
+            .build()
+    }
+
+    //Posteamos una imagen, pasando el body y el formato (En Base64 o URL)
+    fun postImage(body: RequestBody, contType: String): Request{
+
+        return Request.Builder()
+            .url(ImgurAPI.IMGUR_URL)
+            .method("POST", body)
+            .addHeader("Authorization", "Client-ID "+ImgurAPI.CLIENT_ID)
+            .addHeader("Content-Type", contType)
+            .build()
+    }
+
+
+}
