@@ -25,6 +25,7 @@ import android.graphics.BlendModeColorFilter
 import android.graphics.PorterDuff
 import android.net.Uri
 import android.os.Bundle
+import android.os.StrictMode
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
@@ -91,8 +92,10 @@ class SignUp : AppCompatActivity() {
     }
 
     private fun initClients() {
+
         clientImgur = HttpClient.getClient()!!
         bbddRest = BBDDApi.service
+
     }
 
     private fun setInsta(insta: String){
@@ -153,7 +156,7 @@ class SignUp : AppCompatActivity() {
                         "Usuario insertado. Código Respuesta: " + response.code(),
                         Toast.LENGTH_SHORT
                     ).show()
-                    isUniqueUser(response.body() as UserDTO)
+                    isUniqueUser(response.code())
 
                 } else {
                     Toast.makeText(
@@ -161,6 +164,7 @@ class SignUp : AppCompatActivity() {
                         "Error al insertar. Código Respuesta : " + response.code(),
                         Toast.LENGTH_SHORT
                     ).show()
+                    isUniqueUser(response.code())
                 }
             }
 
@@ -172,8 +176,8 @@ class SignUp : AppCompatActivity() {
         }))
     }
 
-    private fun isUniqueUser(userDTO: UserDTO) {
-        if (userDTO.userName == ""){
+    private fun isUniqueUser(code: Int) {
+        if (code == 404){
             unique = true
         }
     }
@@ -184,12 +188,16 @@ class SignUp : AppCompatActivity() {
             Log.i("valor de vacios",comprobarVacios().toString())
             if(comprobarVacios()){
                 try {
+
                     uniqueUser(txtNameUser.text.toString())
+
                     if(!unique){
                         txtNameUser.error = getString(R.string.errorNameUser)
                     }else{
                         //registrarUsuario()
                         registrarUserApi()
+
+
                     }
 
                 }catch (ex: RealmPrimaryKeyConstraintException){
