@@ -15,3 +15,5 @@ open class Place (@PrimaryKey var id : Long = 0,
                   var latitud : Double = 0.0,
                   var imagenes : RealmList<Image> = RealmList()) : RealmObject(), Serializable
 
+
+
