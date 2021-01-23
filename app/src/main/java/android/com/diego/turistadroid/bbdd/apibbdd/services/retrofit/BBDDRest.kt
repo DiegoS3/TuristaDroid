@@ -91,16 +91,20 @@ interface BBDDRest {
 
 
     // Obtener una sesion por el id de un usuario
-    @GET("sessions/{idUser}")
-    fun selectSessionByIdUser(@Path("idUser") idUser: String): Call<SessionsDTO>
+    @GET("sessions/{id}")
+    fun selectSessionById(@Path("id") id: String): Call<SessionsDTO>
 
     // Insertar una sesion
     @POST("sessions/")
     fun insertSession(@Body session: SessionsDTO): Call<SessionsDTO>
 
     // Eliminar una session por el id de un usuario
-    @DELETE("session/{idUser}")
-    fun deleteSession(@Path("idUser") idUser: String): Call<SessionsDTO>
+    @DELETE("sessions/{id}")
+    fun deleteSession(@Path("id") id: String): Call<SessionsDTO>
+
+    //Actualiza fecha sesion
+    @PATCH("sessions/{id}")
+    fun updateDateSession(@Path("id") id: String, @Field("fecha") fecha : String): Call<SessionsDTO>
 
 
     //--VOTES--

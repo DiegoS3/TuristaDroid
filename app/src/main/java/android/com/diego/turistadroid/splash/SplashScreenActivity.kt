@@ -2,8 +2,17 @@ package android.com.diego.turistadroid.splash
 
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.ControllerSession
+import android.com.diego.turistadroid.bbdd.Session
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.Sessions
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.SessionsDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.SessionsMapper
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
+import android.com.diego.turistadroid.utilities.Constants
+import android.com.diego.turistadroid.utilities.UtilSessions
+import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -13,13 +22,16 @@ import android.util.Log
 import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.time.LocalDateTime
+import java.util.*
 
 class SplashScreenActivity : AppCompatActivity() {
 
-    private val TIME : Long = 5000
-    companion object{
-        var login = false
-    }
+    private lateinit var bbddRest: BBDDRest
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,20 +42,80 @@ class SplashScreenActivity : AppCompatActivity() {
 
         //iniciamos las animaciones
         initAnimations()
+        bbddRest = BBDDApi.service
         comprobarSesion()
-        //initLogin()
+    }
+
+    private fun eliminarSesion(idSesion : String){
+        val call = bbddRest.deleteSession(idSesion)
+        call.enqueue(object : Callback<SessionsDTO>{
+            override fun onResponse(call: Call<SessionsDTO>, response: Response<SessionsDTO>) {
+                if (response.isSuccessful) {
+                    Log.i("sesion", "sesion eliminada")
+                } else {
+                    Log.i("sesion", "error al eliminar")
+                }
+            }
+            override fun onFailure(call: Call<SessionsDTO>, t: Throwable) {
+                Toast.makeText(applicationContext,
+                    getString(R.string.errorService),
+                    Toast.LENGTH_LONG)
+                    .show()
+            }
+        })
+    }
+
+    private fun actualizarSesion(idSesion: String, fecha: String){
+        val call = bbddRest.updateDateSession(idSesion, fecha)
+        call.enqueue(object : Callback<SessionsDTO>{
+            override fun onResponse(call: Call<SessionsDTO>, response: Response<SessionsDTO>) {
+                if (response.isSuccessful) {
+                    Log.i("sesion", "sesion actualizada")
+                } else {
+                    Log.i("sesion", "error al actualizar")
+                }
+            }
+            override fun onFailure(call: Call<SessionsDTO>, t: Throwable) {
+                Toast.makeText(applicationContext,
+                    getString(R.string.errorService),
+                    Toast.LENGTH_LONG)
+                    .show()
+            }
+        })
     }
 
     private fun comprobarSesion(){
-        //ControllerSession.deleteAllSessions()
-        val listaSessions = ControllerSession.selectSessions()!!
-        Log.i("sesiones:",listaSessions.size.toString())
-        if (listaSessions.size > 0){
-            initNavigation()
+
+        val sessionLocal = UtilSessions.getLocal(applicationContext)
+        //Si existe una sesion guardada en local
+        if (sessionLocal != null){
+            val fechaSessionLocal = Utilities.stringToDate(UtilSessions.getFecha(applicationContext))!!
+            val idSession = sessionLocal.id!!
+
+            //Si la fecha ha superado el tiempo maximo, eliminamos la sesion local y la remota
+            if (comprobarFechas(fechaSessionLocal)){
+                Log.i("sesion", "Sesion caducada" )
+                UtilSessions.eliminarSesion(applicationContext)
+                eliminarSesion(idSession)
+                initLogin()
+            }else{ //Si no actualizamos la fecha a la del actual inicio de la APP tanto en local como en remoto
+                val currentDate = Utilities.dateToString(Utilities.getSysDate())!!
+                UtilSessions.actualizarFecha(currentDate, applicationContext)
+                actualizarSesion(idSession, currentDate)
+                initNavigation()
+            }
         }else{
-            login = true
+            Log.i("sesion", "No hay sesion" )
             initLogin()
         }
+    }
+
+    private fun comprobarFechas(fechaSessionLocal : LocalDateTime) : Boolean{
+
+        val actualDate = Utilities.getSysDate()
+
+        return Utilities.difMinutes(actualDate, fechaSessionLocal) > Constants.MAX_TIME_SESSION
+
     }
 
     private fun initLogin() {
@@ -54,7 +126,7 @@ class SplashScreenActivity : AppCompatActivity() {
                 startActivity(main)
                 finish()
             }
-        }, this.TIME)
+        }, Constants.TIME_DELAYED)
     }
 
     private fun initNavigation(){
@@ -65,7 +137,7 @@ class SplashScreenActivity : AppCompatActivity() {
                 startActivity(main)
                 finish()
             }
-        }, this.TIME)
+        }, Constants.TIME_DELAYED)
     }
 
 

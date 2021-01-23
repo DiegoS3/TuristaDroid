@@ -421,17 +421,6 @@ class SignUp : AppCompatActivity() {
         startActivityForResult(intent, GALERIA)
     }
 
-
-    override fun onStop() {
-        super.onStop()
-        ControllerBbdd.close()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        ControllerBbdd.close()
-    }
-
     //Guardamos datos
     private fun initSaveDatos() {
         nombre = txtName.text.toString()

@@ -30,7 +30,11 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
 import java.io.ByteArrayOutputStream
+import java.lang.Exception
 import java.security.MessageDigest
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 
 object Utilities {
@@ -283,5 +287,36 @@ object Utilities {
             }
         }
         return false
+    }
+
+    fun getSysDate() : LocalDateTime {
+        return LocalDateTime.now()
+    }
+
+    fun stringToDate(string: String) : LocalDateTime?{
+
+        var dateTime : LocalDateTime? = null
+        try {
+            dateTime = LocalDateTime.parse(string, Constants.FORMATTER)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return dateTime
+    }
+
+     fun dateToString(dateTime: LocalDateTime) : String?{
+        var date : String? = ""
+        try {
+            date = Constants.FORMATTER.format(dateTime)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return date
+    }
+
+    fun difMinutes(date1 : LocalDateTime, date2 : LocalDateTime) : Long{
+
+        return date2.until(date1, ChronoUnit.MINUTES)
+
     }
 }

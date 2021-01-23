@@ -18,10 +18,6 @@ class MyApplication : Application(){
     var APP_PERMISOS = false
         private set
 
-    override fun onCreate() {
-        super.onCreate()
-        ControllerBbdd.initRealm(this)
-    }
 
     /**
      * Comprobamos los permisos de la aplicación

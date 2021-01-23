@@ -32,7 +32,9 @@
         <u>Register</u>
     </string>
     <string name="action_emptyfield">There can be no empty fields</string>
-    <string name="errorLogin">Incorrect username or password</string>
+    <string name="errorLoginEmail">Incorrect email</string>
+    <string name="errorLoginPWD">Incorrect password</string>
+    <string name="errorLogin">Error</string>
     <string name="password_strength_caption">Password Strength: {0}</string>
     <string name="password_strength_weak">Weak</string>
     <string name="password_strength_medium">Medium</string>

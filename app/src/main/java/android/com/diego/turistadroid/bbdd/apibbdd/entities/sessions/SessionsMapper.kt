@@ -27,6 +27,7 @@ object SessionsMapper {
     */
     fun fromDTO(dto: SessionsDTO): Sessions {
         return Sessions(
+            dto.id,
             dto.idUser,
             dto.fecha
         )
@@ -39,6 +40,7 @@ object SessionsMapper {
     */
     fun toDTO(model: Sessions): SessionsDTO {
         return SessionsDTO(
+            model.id!!,
             model.idUser!!,
             model.fecha!!
         )
