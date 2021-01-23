@@ -22,12 +22,12 @@ interface BBDDRest {
     fun selectUserById(@Path("id") id: String): Call<UserDTO>
 
     // Obtener un usuario por email
-    @GET("users/{email}")
-    fun selectUserByEmail(@Path("email") email: String): Call<UserDTO>
+    @GET("users/")
+    fun selectUserByEmail(@Query("email") email: String): Call<List<UserDTO>>
 
     // Obtener un usuario por userName
-    @GET("users/{userName}")
-    fun selectUserByUserName(@Path("userName") userName: String): Call<UserDTO>
+    @GET("users/")
+    fun selectUserByUserName(@Query("userName") userName: String): Call<List<UserDTO>>
 
     // Insertar un usuario
     @POST("users/")

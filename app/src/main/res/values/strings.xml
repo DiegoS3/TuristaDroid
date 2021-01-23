@@ -13,6 +13,9 @@
     <string name="inputSocialMedia">Enter your username</string>
     <string name="btnOk" tools:ignore="ExtraTranslation">Save</string>
     <string name="btnCancel">Cancel</string>
+    <string name="userSignUp">Successful registered user</string>
+    <string name="userNoSignUp">Error registered user</string>
+    <string name="errorService">Error accessing service</string>
 
     <!--Seleccion_Camara-->
     <string name="tvSelection">Choose your image source</string>
@@ -103,8 +106,6 @@
     <string name="InternetNeed">Internet connection needed</string>
     <string name="Connect">Connect</string>
     <string name="invalidEmail">Invalid Email</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="errorUpload">Error uploading image</string>
 
 </resources>
