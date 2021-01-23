@@ -107,5 +107,6 @@
     <string name="Connect">Connect</string>
     <string name="invalidEmail">Invalid Email</string>
     <string name="errorUpload">Error uploading image</string>
+    <string name="register">Registering user...</string>
 
 </resources>

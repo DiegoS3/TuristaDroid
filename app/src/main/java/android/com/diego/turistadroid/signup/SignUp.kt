@@ -49,6 +49,7 @@ class SignUp : AppCompatActivity() {
     private var twitter = ""
     private lateinit var clientImgur: OkHttpClient
     private lateinit var bbddRest: BBDDRest
+    private lateinit var loadingView: AlertDialog
 
     companion object {
         var valido = false
@@ -60,6 +61,10 @@ class SignUp : AppCompatActivity() {
         this.supportActionBar?.hide()
         setContentView(R.layout.activity_sign_up)
         init()
+        val builder = AlertDialog.Builder(this)
+        builder.setCancelable(false)
+        builder.setView(R.layout.loading_dialog)
+        loadingView = builder.create()
     }
 
     private fun init() {
@@ -70,8 +75,15 @@ class SignUp : AppCompatActivity() {
         redes()
         checkUsuario()
         initClients()
+        initDialog()
+
     }
 
+    private fun initDialog(){
+
+    }
+
+    //clientes para las conexiones con las API de las que consumimos datos
     private fun initClients() {
 
         clientImgur = HttpClient.getClient()!!
@@ -210,6 +222,7 @@ class SignUp : AppCompatActivity() {
      * registramos en la bbdd de nuestra API
      */
     private fun uploadImgToImgurAPI() {
+        loadingView.show()
         val passCifrada = Utilities.hashString(txtPass.text.toString())
         val imaString = Utilities.bitmapToBase64(imaUser.drawable.toBitmap())!!
 
@@ -243,6 +256,7 @@ class SignUp : AppCompatActivity() {
                         item.getString("link")
                     )
                     insertUserApi(user)
+
                 } else {
                     Toast.makeText(applicationContext, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
 
@@ -255,7 +269,7 @@ class SignUp : AppCompatActivity() {
      * Inicia la actividad del LOGIN
      */
     private fun initLogin() {
-
+        loadingView.dismiss()
         val intent = Intent(this, LogInActivity::class.java)
         startActivity(intent)
     }
@@ -265,7 +279,6 @@ class SignUp : AppCompatActivity() {
      * bbdd de nuestra API
      */
     private fun insertUserApi(userApi: UserApi) {
-
         val dto = UserMapper.toDTO(userApi)
         val call = bbddRest.insertUser(dto)
 
@@ -278,7 +291,9 @@ class SignUp : AppCompatActivity() {
                         getString(R.string.userSignUp),
                         Toast.LENGTH_SHORT
                     ).show()
+
                     Thread.sleep(500)
+
                     initLogin()
 
                 } else {
