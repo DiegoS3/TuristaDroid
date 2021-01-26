@@ -2,6 +2,7 @@ package android.com.diego.turistadroid.navigation_drawer.ui.myplaces
 
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.*
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewActualPlaceFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewPlaceFragment
@@ -32,7 +33,9 @@ import kotlinx.android.synthetic.main.layout_confirm_delete_item.view.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
 
-class MyPlacesFragment : Fragment() {
+class MyPlacesFragment(
+    private val userApi: UserApi
+) : Fragment() {
 
     // Mis variables
     private var places = mutableListOf<Place>() // Lista

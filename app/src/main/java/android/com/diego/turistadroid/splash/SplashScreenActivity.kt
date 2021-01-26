@@ -1,11 +1,7 @@
 package android.com.diego.turistadroid.splash
 
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.ControllerSession
-import android.com.diego.turistadroid.bbdd.Session
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.Sessions
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.SessionsDTO
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.SessionsMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
 import android.com.diego.turistadroid.login.LogInActivity
@@ -14,7 +10,6 @@ import android.com.diego.turistadroid.utilities.Constants
 import android.com.diego.turistadroid.utilities.UtilSessions
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -23,6 +18,7 @@ import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -44,25 +40,6 @@ class SplashScreenActivity : AppCompatActivity() {
         initAnimations()
         bbddRest = BBDDApi.service
         comprobarSesion()
-    }
-
-    private fun eliminarSesion(idSesion : String){
-        val call = bbddRest.deleteSession(idSesion)
-        call.enqueue(object : Callback<SessionsDTO>{
-            override fun onResponse(call: Call<SessionsDTO>, response: Response<SessionsDTO>) {
-                if (response.isSuccessful) {
-                    Log.i("sesion", "sesion eliminada")
-                } else {
-                    Log.i("sesion", "error al eliminar")
-                }
-            }
-            override fun onFailure(call: Call<SessionsDTO>, t: Throwable) {
-                Toast.makeText(applicationContext,
-                    getString(R.string.errorService),
-                    Toast.LENGTH_LONG)
-                    .show()
-            }
-        })
     }
 
     private fun actualizarSesion(idSesion: String, fecha: String){
@@ -95,8 +72,8 @@ class SplashScreenActivity : AppCompatActivity() {
             //Si la fecha ha superado el tiempo maximo, eliminamos la sesion local y la remota
             if (comprobarFechas(fechaSessionLocal)){
                 Log.i("sesion", "Sesion caducada" )
-                UtilSessions.eliminarSesion(applicationContext)
-                eliminarSesion(idSession)
+                UtilSessions.eliminarSesionLocal(applicationContext)
+                UtilSessions.eliminarSesionRemota(idSession, bbddRest, this)
                 initLogin()
             }else{ //Si no actualizamos la fecha a la del actual inicio de la APP tanto en local como en remoto
                 val currentDate = Utilities.dateToString(Utilities.getSysDate())!!

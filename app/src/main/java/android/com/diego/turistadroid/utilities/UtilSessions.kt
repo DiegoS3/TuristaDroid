@@ -1,9 +1,16 @@
 package android.com.diego.turistadroid.utilities
 
+import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.Sessions
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.SessionsDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
+import android.com.diego.turistadroid.utilities.Utilities.toast
 import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 object UtilSessions {
 
@@ -68,7 +75,7 @@ object UtilSessions {
         return prefs.getString("FECHA", "")!!
     }
 
-    fun eliminarSesion(context: Context){
+    fun eliminarSesionLocal(context: Context){
 
         val prefs = context.getSharedPreferences("TuristDroid", Context.MODE_PRIVATE)
         val editor = prefs.edit()
@@ -77,6 +84,23 @@ object UtilSessions {
         editor.apply()
 
     }
+
+     fun eliminarSesionRemota(idSesion : String, bbddRest: BBDDRest, applicationContext: Context){
+        val call = bbddRest.deleteSession(idSesion)
+        call.enqueue(object : Callback<SessionsDTO> {
+            override fun onResponse(call: Call<SessionsDTO>, response: Response<SessionsDTO>) {
+                if (response.isSuccessful) {
+                    Log.i("sesion", "sesion eliminada")
+                } else {
+                    Log.i("sesion", "error al eliminar")
+                }
+            }
+            override fun onFailure(call: Call<SessionsDTO>, t: Throwable) {
+                applicationContext.toast(R.string.errorService)
+            }
+        })
+    }
+
 
     /**
      * Lee los datos de una sesión local

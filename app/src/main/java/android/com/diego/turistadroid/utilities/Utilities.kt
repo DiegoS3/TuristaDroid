@@ -19,10 +19,7 @@ import android.text.TextUtils
 import android.text.TextWatcher
 import android.util.Base64
 import android.util.Log
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.ProgressBar
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
@@ -33,7 +30,6 @@ import java.io.ByteArrayOutputStream
 import java.lang.Exception
 import java.security.MessageDigest
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 
@@ -319,4 +315,7 @@ object Utilities {
         return date2.until(date1, ChronoUnit.MINUTES)
 
     }
+
+    fun Context.toast(message: Int) =
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
 }

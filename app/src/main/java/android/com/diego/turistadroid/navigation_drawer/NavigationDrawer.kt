@@ -6,6 +6,12 @@ import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.ControllerSession
 import android.com.diego.turistadroid.bbdd.ControllerUser
 import android.com.diego.turistadroid.bbdd.User
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.Sessions
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserMapper
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.ui.allplaces.AllPlaces
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
@@ -13,6 +19,7 @@ import android.com.diego.turistadroid.navigation_drawer.ui.myprofile.MyProfileFr
 import android.com.diego.turistadroid.navigation_drawer.ui.nearme.NearMeFragment
 import android.com.diego.turistadroid.splash.SplashScreenActivity
 import android.com.diego.turistadroid.utilities.UtilImpExp
+import android.com.diego.turistadroid.utilities.UtilSessions
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Context
 import android.content.Intent
@@ -38,17 +45,23 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import com.bumptech.glide.Glide
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_navigation_drawer.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class NavigationDrawer : AppCompatActivity(){
 
     private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var user: User
+    private lateinit var userApi: UserApi
+    private lateinit var sessions: Sessions
     private var CAMERA_PERMISSION = 2
     private var flashLightStatus: Boolean = false
     private lateinit var toolbar: Toolbar
+    private lateinit var bbddRest: BBDDRest
 
     companion object{
         lateinit var imaUser_nav : ImageView
@@ -61,10 +74,8 @@ class NavigationDrawer : AppCompatActivity(){
         setContentView(R.layout.activity_navigation_drawer)
         toolbar = findViewById(R.id.toolbar)
 
-
         setSupportActionBar(toolbar)
         toolbar.title = getString(R.string.my_places)
-
 
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         val navView: NavigationView = findViewById(R.id.nav_view)
@@ -73,9 +84,6 @@ class NavigationDrawer : AppCompatActivity(){
         imaUser_nav = navHeader.findViewById(R.id.imgUser_nav)
         txtNombreNav = navHeader.findViewById(R.id.txtName_nav)
         txtCorreoNav = navHeader.findViewById(R.id.txtEmail_nav)
-
-        userSwitch()
-        asignarDatosUsuario()
 
         val navController = findNavController(R.id.nav_host_fragment)
         // Passing each menu ID as a set of Ids because each
@@ -89,21 +97,54 @@ class NavigationDrawer : AppCompatActivity(){
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
+        init(navView)
+    }
+
+    private fun init(navView: NavigationView){
+
+        bbddRest = BBDDApi.service
+        getSessionActual()
+        getUser()
+        asignarDatosUsuario()
         navigationListener(navView)
         initPermisos()
         comprobarConexion()
 
     }
 
-    //usuario segunde donde entremos
-    private fun userSwitch(){
-        user = if(SplashScreenActivity.login) {
-            LogInActivity.user
-        }else{
-            val listaSesion = ControllerSession.selectSessions()!!
-            val emailSesion = listaSesion[0].emailUser
-            ControllerUser.selectByEmail(emailSesion)!!
-        }
+
+    /**
+     * Obtenemos la sesion que tenemos
+     * almacenada en local
+     */
+    private fun getSessionActual(){
+        sessions = UtilSessions.getLocal(this)!!
+    }
+
+    /**
+     * Obtenemos el usuario que tenemos en la sesión
+     * almacenada en local
+     */
+    private fun getUser(){
+
+        val idUser = sessions.idUser!!
+        val call = bbddRest.selectUserById(idUser)
+
+        call.enqueue(object : Callback<UserDTO> {
+            override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
+
+                if (response.isSuccessful){
+                    userApi = UserMapper.fromDTO(response.body()!!)
+                }else{
+                    Toast.makeText(applicationContext, getString(R.string.errorLogin), Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+            override fun onFailure(call: Call<UserDTO>, t: Throwable) {
+                Toast.makeText(applicationContext, getString(R.string.errorLogin), Toast.LENGTH_SHORT)
+                    .show()
+            }
+        })
     }
 
     /**
@@ -127,16 +168,15 @@ class NavigationDrawer : AppCompatActivity(){
      * Comprueba que haya red, si no llama a activarlo
      */
     private fun comprobarRed() {
-        if (Utilities.isNetworkAvailable(applicationContext)) {
+        if (!Utilities.isNetworkAvailable(applicationContext)) {
 
-        } else {
             val snackbar = Snackbar.make(
                 findViewById(android.R.id.content),
-                "Es necesaria una conexión a internet",
+                getString(R.string.connectNet),
                 Snackbar.LENGTH_INDEFINITE
             )
             snackbar.setActionTextColor(getColor(R.color.colorAccent))
-            snackbar.setAction("Conectar") {
+            snackbar.setAction(getString(R.string.connect)) {
                 val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
                 startActivity(intent)
             }
@@ -148,16 +188,14 @@ class NavigationDrawer : AppCompatActivity(){
      * Comprueba que existe GPS si no llama a activarlo
      */
     private fun comprobarGPS() {
-        if (Utilities.isGPSAvaliable(applicationContext)) {
-
-        } else {
+        if (!Utilities.isGPSAvaliable(applicationContext)) {
             val snackbar = Snackbar.make(
                 findViewById(android.R.id.content),
-                "Es necesaria una conexión a GPS",
+                getString(R.string.connectGPS),
                 Snackbar.LENGTH_INDEFINITE
             )
             snackbar.setActionTextColor(getColor(R.color.colorAccent))
-            snackbar.setAction("Conectar") {
+            snackbar.setAction(getString(R.string.connect)) {
                 val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                 startActivity(intent)
             }
@@ -167,15 +205,12 @@ class NavigationDrawer : AppCompatActivity(){
 
     fun asignarDatosUsuario(){
         //asigno los datos del usuario al navHeader.
-        txtNombreNav.text = user.nombre
-        txtCorreoNav.text = user.email
-
-        if (user.foto != ""){
-            imaUser_nav.setImageBitmap(Utilities.base64ToBitmap(user.foto))
-            Utilities.redondearFoto(imaUser_nav)
-        }else{
-            imaUser_nav.setImageResource(R.drawable.ima_user)
-        }
+        txtNombreNav.text = userApi.name
+        txtCorreoNav.text = userApi.email
+        Glide.with(this)
+            .load(userApi.foto)
+            .fitCenter()
+            .into(imaUser_nav)
     }
 
     private fun linterna(){
@@ -280,7 +315,7 @@ class NavigationDrawer : AppCompatActivity(){
 
     //Abrir mis lugares
     private fun abrirMyPlaces(){
-        val newFragment = MyPlacesFragment()
+        val newFragment = MyPlacesFragment(userApi)
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
@@ -289,7 +324,7 @@ class NavigationDrawer : AppCompatActivity(){
 
     //Abrir todos los lugares
     private fun abrirAllPlaces(){
-        val newFragment = AllPlaces()
+        val newFragment = AllPlaces(userApi)
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
@@ -298,7 +333,7 @@ class NavigationDrawer : AppCompatActivity(){
 
     //Abir Mu pergil
     private fun abrirMyProfile(){
-        val newFragment = MyProfileFragment()
+        val newFragment = MyProfileFragment(userApi)
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
@@ -307,7 +342,7 @@ class NavigationDrawer : AppCompatActivity(){
 
     //Abrir cerca de mi
     private fun abrirNearMe(){
-        val newFragment = NearMeFragment()
+        val newFragment = NearMeFragment(userApi)
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
@@ -316,11 +351,9 @@ class NavigationDrawer : AppCompatActivity(){
 
     //Salir al login
     private fun ejecutarExit(){
-        ControllerSession.deleteSession(user.email)
         val intent = Intent (this, LogInActivity::class.java)
         startActivity(intent)
     }
-
 
     private fun setupPermissions(){
         ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION)
@@ -332,6 +365,8 @@ class NavigationDrawer : AppCompatActivity(){
         when(requestCode){
             CAMERA_PERMISSION -> {
                 if (grantResults.isEmpty() || grantResults[0] != (PackageManager.PERMISSION_GRANTED)) {
+
+                    Toast.makeText(this, getString(R.string.noPermisos), Toast.LENGTH_SHORT).show()
 
                 } else {
                     openFlashLight()
@@ -361,13 +396,7 @@ class NavigationDrawer : AppCompatActivity(){
                 }
             }
         }else{
-            Toast.makeText(this, "This device has no flash", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.noFlashLight), Toast.LENGTH_SHORT).show()
         }
     }
-
-    override fun onBackPressed() {
-        super.onBackPressed()
-        ControllerSession.deleteSession(user.email)
-    }
-
 }

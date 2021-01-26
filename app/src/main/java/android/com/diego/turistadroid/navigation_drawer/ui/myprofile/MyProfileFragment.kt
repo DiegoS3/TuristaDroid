@@ -7,6 +7,7 @@ import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.ControllerSession
 import android.com.diego.turistadroid.bbdd.ControllerUser
 import android.com.diego.turistadroid.bbdd.User
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.splash.SplashScreenActivity
@@ -40,7 +41,9 @@ import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
 import java.io.IOException
 
 
-class MyProfileFragment : Fragment() {
+class MyProfileFragment(
+    private val userApi: UserApi
+) : Fragment() {
 
     private lateinit var user : User
     // Variables para la camara

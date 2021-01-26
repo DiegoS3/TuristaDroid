@@ -17,6 +17,7 @@ import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
@@ -45,9 +46,28 @@ class LogInActivity : AppCompatActivity() {
         this.supportActionBar?.hide()
         setContentView(R.layout.activity_log_in)
 
+        init()
+    }
+
+    private fun init(){
         bbddRest = BBDDApi.service
+        comprobarSesion()
         clickBtn()
         clickRegister()
+    }
+
+    /**
+     * Comprobamos si existe una sesión al entrar
+     * en el login, en caso positivo la eliminamos
+     */
+    private fun comprobarSesion(){
+        val sessionLocal = UtilSessions.getLocal(applicationContext)
+        //Si existe una sesion guardada en local
+        if (sessionLocal != null){
+            val idSession = sessionLocal.id!!
+            UtilSessions.eliminarSesionLocal(applicationContext)
+            UtilSessions.eliminarSesionRemota(idSession, bbddRest, this)
+        }
     }
 
     /**

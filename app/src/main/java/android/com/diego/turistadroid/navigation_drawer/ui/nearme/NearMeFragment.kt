@@ -3,6 +3,7 @@ package android.com.diego.turistadroid.navigation_drawer.ui.nearme
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.ControllerPlaces
 import android.com.diego.turistadroid.bbdd.Place
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlaceDetailFragment
 import android.com.diego.turistadroid.utilities.Utilities
 import android.graphics.*
@@ -27,7 +28,9 @@ import kotlinx.android.synthetic.main.fragment_near_me.*
 import java.util.*
 
 
-class NearMeFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener{
+class NearMeFragment(
+    private val userApi: UserApi
+) : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener{
 
     private lateinit var mMap: GoogleMap
     private var primera = true

@@ -103,6 +103,12 @@
     <string name="messExport">Do you want to export all?</string>
     <string name="messImport">Do you want to import all?</string>
 
+    <string name="noFlashLight">This device has no flash</string>
+    <string name="noPermisos">You must accept the permissions</string>
+    <string name="connect">Connect</string>
+    <string name="connectGPS">A connection to GPS is required</string>
+    <string name="connectNet">A connection to Network is required</string>
+
 
     <string name="InternetON">Internet connection exists</string>
     <string name="InternetNeed">Internet connection needed</string>
