@@ -1,6 +1,8 @@
 package android.com.diego.turistadroid.utilities
 
 import android.com.diego.turistadroid.R
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
 import android.content.Context
 import android.content.res.Resources
 import android.graphics.*
@@ -26,6 +28,7 @@ import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
+import kotlinx.android.synthetic.main.activity_sign_up.*
 import java.io.ByteArrayOutputStream
 import java.lang.Exception
 import java.security.MessageDigest
@@ -318,4 +321,5 @@ object Utilities {
 
     fun Context.toast(message: Int) =
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+
 }

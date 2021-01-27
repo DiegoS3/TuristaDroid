@@ -51,23 +51,15 @@ class SignUp : AppCompatActivity() {
     private lateinit var bbddRest: BBDDRest
     private lateinit var loadingView: AlertDialog
 
-    companion object {
-        var valido = false
-    }
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         this.supportActionBar?.hide()
         setContentView(R.layout.activity_sign_up)
         init()
-        val builder = AlertDialog.Builder(this)
-        builder.setCancelable(false)
-        builder.setView(R.layout.loading_dialog)
-        loadingView = builder.create()
     }
 
     private fun init() {
+
         abrirOpciones()
         Utilities.validarPassword(txtPass, progressBar, password_strength, this)
         Utilities.validarEmail(txtEmail, this)
@@ -76,11 +68,14 @@ class SignUp : AppCompatActivity() {
         checkUsuario()
         initClients()
         initDialog()
-
     }
 
     private fun initDialog(){
 
+        val builder = AlertDialog.Builder(this)
+        builder.setCancelable(false)
+        builder.setView(R.layout.loading_dialog)
+        loadingView = builder.create()
     }
 
     //clientes para las conexiones con las API de las que consumimos datos
@@ -259,7 +254,6 @@ class SignUp : AppCompatActivity() {
 
                 } else {
                     Toast.makeText(applicationContext, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
-
                 }
             }
         })
