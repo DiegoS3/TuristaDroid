@@ -4,6 +4,12 @@ import android.Manifest
 import android.app.Activity
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.*
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesMapper
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.Places
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
 import android.com.diego.turistadroid.factorias.FactoriaSliderView
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.splash.SplashScreenActivity
@@ -48,16 +54,20 @@ import io.realm.RealmList
 import kotlinx.android.synthetic.main.fragment_my_place_detail.*
 import kotlinx.android.synthetic.main.layout_change_name_place.view.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.IOException
 import java.util.*
 
 class MyPlaceDetailFragment(
 
     private var editable: Boolean,
-    private var lugar: Place,
+    private var lugar: Places,
     private var indexPlace: Int? = null,
     private var fragmentAnterior: MyPlacesFragment? = null,
-    private var import : Boolean = false
+    private var import : Boolean = false,
+    private var userApi: UserApi
 
 ) : Fragment(), OnMapReadyCallback, RatingBar.OnRatingBarChangeListener {
 
@@ -72,14 +82,6 @@ class MyPlaceDetailFragment(
     private lateinit var floatBtnInsta : FloatingActionButton
     private lateinit var ratingBar: RatingBar
     private lateinit var sliderView : SliderView
-
-
-    //Lista de imagenes
-    private var listaImagenes = mutableListOf<Image>()
-    private var images = RealmList<Image>()
-
-    //Usuario logeado
-    private lateinit var user : User
 
     private var clicked = false //FLoating Button More clicked
     private var clickedShare = false //FLoating Button Share clicked
@@ -100,6 +102,8 @@ class MyPlaceDetailFragment(
     private val IMAGEN_EXTENSION = ".jpg"
     private val IMAGEN_DIRECTORY = "/TuristaDroid"
 
+    private lateinit var bbddRest: BBDDRest
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -117,10 +121,10 @@ class MyPlaceDetailFragment(
 
     //Metodos del fragment
     private fun init(){
+        bbddRest = BBDDApi.service
         initMapa()
         initMode()
         initChangeName()
-        userSwitch()
         lugaresUsuario()
         showDetailsPlace()
         updatePlace()
@@ -130,20 +134,9 @@ class MyPlaceDetailFragment(
         abrirOpciones()
     }
 
-    //usuario segunde donde entremos
-    private fun userSwitch(){
-        user = if(SplashScreenActivity.login) {
-            LogInActivity.user
-        }else{
-            val listaSesion = ControllerSession.selectSessions()!!
-            val emailSesion = listaSesion[0].emailUser
-            ControllerUser.selectByEmail(emailSesion)!!
-        }
-    }
-
     /**
      *
-     * Metodo que compprueba en la lista de lugares si el lugar coincide con el
+     * Metodo que comprueba en la lista de lugares si el lugar coincide con el
      * del usuario para mostrar la puntuacion que el usuario le ha dado a dicho lugar
      *
      */
@@ -162,7 +155,7 @@ class MyPlaceDetailFragment(
      * Mostramos los detalles del lugar en el layout
      */
     private fun showDetailsPlace(){
-        txtTitlePlace_DetailsPlace.text = this.lugar.nombre
+        txtTitlePlace_DetailsPlace.text = this.lugar.name
         txtUbicationPlace_DetailsPlace.text = this.lugar.city
         ratingBar.rating = mark
         imagenesLugar()
@@ -171,17 +164,32 @@ class MyPlaceDetailFragment(
     /**
      * Cargamos las diferentes imagenes en el viewPager
      */
-    private fun imagenesLugar(){
-        for (item in this.lugar.imagenes){
-            val img = Utilities.base64ToBitmap(item.foto)!!
-            listaImagenes.add(item)
-            val sliderItem = SliderImageItem()
-            sliderItem.description = "Slider Item Added Manually"
-            //sliderItem.imageUrl =
-            //"https://images.pexels.com/photos/929778/pexels-photo-929778.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260"
-            sliderItem.image = img
-            FactoriaSliderView.adapterSlider!!.addItem(sliderItem)
-        }
+    private fun seleccionarImagenesPlace(){
+
+        val call = bbddRest.selectImageByIdLugar(this.lugar.id!!)
+
+        call.enqueue(object : Callback<List<ImagesDTO>> {
+            override fun onResponse(call: Call<List<ImagesDTO>>, response: Response<List<ImagesDTO>>) {
+                if (response.isSuccessful) {
+
+                    val listaImagenesDTO = response.body()!!
+                    val listaImagenes = ImagesMapper.fromDTO(listaImagenesDTO)
+
+                    for (imagen in listaImagenes){
+                        val sliderItem = SliderImageItem()
+                        val bitmap = Utilities.getBitmapFromURL(imagen.url!!)!!
+                        sliderItem.image = bitmap
+                        FactoriaSliderView.adapterSlider!!.addItem(sliderItem)
+                    }
+
+                } else {
+                    Log.i("imagen", "error al seleccionar")
+                }
+            }
+            override fun onFailure(call: Call<List<ImagesDTO>>, t: Throwable) {
+                Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     /**

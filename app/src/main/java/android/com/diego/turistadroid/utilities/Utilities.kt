@@ -1,8 +1,6 @@
 package android.com.diego.turistadroid.utilities
 
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserDTO
-import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
 import android.content.Context
 import android.content.res.Resources
 import android.graphics.*
@@ -34,6 +32,13 @@ import java.lang.Exception
 import java.security.MessageDigest
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+import android.graphics.BitmapFactory
+
+import android.graphics.Bitmap
+import java.io.IOException
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 
 object Utilities {
@@ -321,5 +326,19 @@ object Utilities {
 
     fun Context.toast(message: Int) =
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+
+    fun getBitmapFromURL(src: String?): Bitmap? {
+        return try {
+            val url = URL(src)
+            val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
+            connection.doInput = true
+            connection.connect()
+            val input: InputStream = connection.inputStream
+            BitmapFactory.decodeStream(input)
+        } catch (e: IOException) {
+            // Log exception
+            null
+        }
+    }
 
 }

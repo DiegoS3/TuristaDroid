@@ -9,5 +9,6 @@ class PlacesDTO(
     @SerializedName("fecha") val fecha: String,
     @SerializedName("latitude") val latitude: String,
     @SerializedName("longitude") val longitude: String,
+    @SerializedName("votos") val votos: String,
     @SerializedName("city") val city: String
 )

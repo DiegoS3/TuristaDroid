@@ -9,5 +9,6 @@ data class Places(
     val fecha: String?,
     val latitude: String?,
     val longitude: String?,
+    val votos : String?,
     val city: String?
 ):Serializable

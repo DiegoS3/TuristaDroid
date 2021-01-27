@@ -33,6 +33,7 @@ object PlacesMapper {
             dto.fecha,
             dto.latitude,
             dto.longitude,
+            dto.votos,
             dto.city
         )
     }
@@ -50,6 +51,7 @@ object PlacesMapper {
             model.fecha!!,
             model.latitude!!,
             model.longitude!!,
+            model.votos!!,
             model.city!!
         )
     }

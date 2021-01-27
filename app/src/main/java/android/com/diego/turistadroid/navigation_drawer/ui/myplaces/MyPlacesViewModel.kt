@@ -1,25 +1,34 @@
 package android.com.diego.turistadroid.navigation_drawer.ui.myplaces
 
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.Place
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesMapper
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.Places
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.utilities.Utilities
+import android.com.diego.turistadroid.utilities.UtilsREST
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import kotlinx.android.synthetic.main.activity_sign_up.*
 import kotlinx.android.synthetic.main.item_list_places.view.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.text.SimpleDateFormat
 
 class MyPlacesViewModel (
 
-    private val listPlaces: MutableList<Place>,
-    private val listener: (Place) -> Unit
+    private val listPlaces: MutableList<Places>,
+    private val listener: (Places) -> Unit
 
 ) : RecyclerView.Adapter<MyPlacesViewModel.PlaceViewHolder>(){
 
+    private val context = MyPlacesFragment.myContext
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlaceViewHolder {
 
@@ -29,12 +38,34 @@ class MyPlacesViewModel (
         )
     }
 
-    //Caramos las imagenes
-    private fun cargarImagen(holder: PlaceViewHolder, item : Place ){
-        if (item.imagenes.size > 0){
-            val image = Utilities.base64ToBitmap(item.imagenes[0]!!.foto)
-            holder.imgItemPlace.setImageBitmap(image)
-        }
+    //Cargamos las imagenes
+    private fun cargarImagen(holder: PlaceViewHolder, item : Places ){
+        val bbddRest = BBDDApi.service
+        val call = bbddRest.selectImageByIdLugar(item.id!!)
+
+        call.enqueue(object : Callback<List<ImagesDTO>>{
+            override fun onResponse(call: Call<List<ImagesDTO>>, response: Response<List<ImagesDTO>>) {
+                // Si la respuesta es correcta
+                if (response.isSuccessful) {
+                    if(response.body()!!.isNotEmpty()){
+
+                        val imagesDTO = response.body()!!
+                        val images = ImagesMapper.fromDTO(imagesDTO)
+
+                        Glide.with(context)
+                            .load(images[0].url)
+                            .fitCenter()
+                            .into(holder.imgItemPlace)
+                    }
+                } else {
+                    Toast.makeText(context, context.getString(R.string.errorLogin), Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<List<ImagesDTO>>, t: Throwable) {
+                Toast.makeText(context, context.getString(R.string.errorService), Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     /**
@@ -55,7 +86,7 @@ class MyPlacesViewModel (
      *
      * @param pos
      */
-    fun addItem(place: Place){
+    fun addItem(place: Places){
         listPlaces.add(place)
         notifyDataSetChanged()
     }
@@ -66,7 +97,7 @@ class MyPlacesViewModel (
      * @param item
      * @param position
      */
-    fun updateItem(item: Place, position: Int) {
+    fun updateItem(item: Places, position: Int) {
         listPlaces[position] = item
         notifyItemInserted(position)
         notifyItemRangeChanged(position, listPlaces.size)
@@ -78,7 +109,7 @@ class MyPlacesViewModel (
      * @param item
      * @param position
      */
-    fun restoreItem(item: Place, position: Int) {
+    fun restoreItem(item: Places, position: Int) {
         listPlaces.add(position, item)
         notifyItemInserted(position)
         notifyItemRangeChanged(position, listPlaces.size)
@@ -91,10 +122,10 @@ class MyPlacesViewModel (
         val fecha = sdf.format(item.fecha)
         cargarImagen(holder, item)
 
-        holder.txtTitleItemPlace.text = item.nombre
+        holder.txtTitleItemPlace.text = item.name
         holder.txtCityItemPlace.text = item.city
         holder.txtDateItemPlace.text = fecha
-        holder.txtMarkItemPlace.text = item.puntuacion.toString()
+        UtilsREST.getVotos(item.id, holder.txtMarkItemPlace, context)
 
         holder.itemView
             .setOnClickListener {

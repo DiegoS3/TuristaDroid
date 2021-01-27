@@ -70,6 +70,10 @@ interface BBDDRest {
     @PUT("places/{id}")
     fun updatePlace(@Path("id") id: String, @Body place: PlacesDTO): Call<PlacesDTO>
 
+    //Actualizar votos de un lugar
+    @PATCH("places/{id}")
+    fun updateVotesPlace(@Path("id") id: String, @Field("votos") votos : String): Call<PlacesDTO>
+
 
     //--IMAGES--
 
@@ -83,8 +87,8 @@ interface BBDDRest {
     fun insertImage(@Body image: ImagesDTO): Call<ImagesDTO>
 
     // Eliminar imagenes por el id del lugar
-    @DELETE("images/{idLugar}")
-    fun deleteImagesLugar(@Path("idLugar") idLugar: String): Call<ImagesDTO>
+    @DELETE("images/{id}")
+    fun deleteImagesLugar(@Path("id") id: String): Call<ImagesDTO>
 
 
     //--SESSIONS--
@@ -110,6 +114,10 @@ interface BBDDRest {
     //--VOTES--
 
 
+    // Obtener un tipo voto
+    @GET("sessions/{idPlace}")
+    fun selectVotesById(@Path("idPlace") idPlace: String): Call<VotesDTO>
+
     // Insertar un voto segun el id del Lugar y el id del usuario que vota
     @POST("votes/")
     fun insertVote(@Body vote: VotesDTO): Call<VotesDTO>
@@ -118,7 +126,9 @@ interface BBDDRest {
     @PUT("votes/{idPlace}")
     fun updateVote(@Path("idPlace") idPlace: String, @Body vote: VotesDTO): Call<VotesDTO>
 
-
+    // Eliminar la entrada en al que se guardan los votos del lugar, tras eliminar un lugar
+    @DELETE("sessions/{idPlace}")
+    fun deleteVotesFromPlace(@Path("idPlace") idPlace: String): Call<VotesDTO>
 
 
 }
