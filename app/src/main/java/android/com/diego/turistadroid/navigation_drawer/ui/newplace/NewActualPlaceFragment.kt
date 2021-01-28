@@ -173,7 +173,7 @@ class NewActualPlaceFragment(
     //Inicio Fragment mis lugares
     private fun initMyPlacesFragment(){
 
-        val newFragment: Fragment = MyPlacesFragment(userApi)
+        val newFragment: Fragment = MyPlacesFragment()
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)

@@ -119,7 +119,7 @@ class MyPlacesViewModel (
     override fun onBindViewHolder(holder: PlaceViewHolder, position: Int) {
         val item = listPlaces[position]
         val sdf = SimpleDateFormat("dd/M/yyyy")
-        val fecha = sdf.format(item.fecha)
+        val fecha = item.fecha!!.format("dd/M/yyyy")
         cargarImagen(holder, item)
 
         holder.txtTitleItemPlace.text = item.name

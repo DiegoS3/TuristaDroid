@@ -216,8 +216,8 @@ class NearMeFragment(
      */
     override fun onMarkerClick(marker: Marker): Boolean {
         Log.i("Pulsado", "sadfs")
-        val lugar = marker.tag as Place
-        Log.i("Mapa", lugar.nombre)
+        val lugar = marker.tag as Places
+        Log.i("Mapa", lugar.name!!)
         infoWindow()
         return false
     }

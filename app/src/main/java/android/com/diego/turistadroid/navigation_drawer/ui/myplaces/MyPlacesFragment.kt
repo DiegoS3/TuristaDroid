@@ -1,7 +1,7 @@
 package android.com.diego.turistadroid.navigation_drawer.ui.myplaces
 
+import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.*
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesDTO
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.Places
@@ -10,10 +10,9 @@ import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
-import android.com.diego.turistadroid.login.LogInActivity
+import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewActualPlaceFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewPlaceFragment
-import android.com.diego.turistadroid.splash.SplashScreenActivity
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Context
 import android.content.Intent
@@ -32,7 +31,6 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.navigation.NavigationView
 import com.google.gson.Gson
 import com.google.zxing.integration.android.IntentIntegrator
 import com.journeyapps.barcodescanner.CaptureActivity
@@ -41,11 +39,10 @@ import kotlinx.android.synthetic.main.layout_confirm_delete_item.view.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.util.concurrent.ConcurrentLinkedQueue
 
 
 class MyPlacesFragment(
-    private val userApi: UserApi
+
 ) : Fragment() {
 
     // Mis variables
@@ -55,6 +52,7 @@ class MyPlacesFragment(
     private var clickedSort = false
     private lateinit var placeQr: Places
     private lateinit var root: View
+    private lateinit var userApi: UserApi
 
     // Interfaz gráfica
     private lateinit var adapter: MyPlacesViewModel //Adaptador de Recycler
@@ -84,6 +82,7 @@ class MyPlacesFragment(
 
         root = inflater.inflate(R.layout.fragment_myplaces, container, false)
         myContext = context!!
+        userApi = (activity?.application as MyApplication).USUARIO_API
         return root
     }
 

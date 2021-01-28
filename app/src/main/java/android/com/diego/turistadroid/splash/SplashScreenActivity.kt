@@ -78,7 +78,7 @@ class SplashScreenActivity : AppCompatActivity() {
             }else{ //Si no actualizamos la fecha a la del actual inicio de la APP tanto en local como en remoto
                 val currentDate = Utilities.dateToString(Utilities.getSysDate())!!
                 UtilSessions.actualizarFecha(currentDate, applicationContext)
-                actualizarSesion(idSession, currentDate)
+                //actualizarSesion(idSession, currentDate)
                 initNavigation()
             }
         }else{

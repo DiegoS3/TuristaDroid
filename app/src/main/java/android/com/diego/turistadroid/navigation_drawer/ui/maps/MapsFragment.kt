@@ -1,6 +1,7 @@
 package android.com.diego.turistadroid.navigation_drawer.ui.maps
 
 import android.com.diego.turistadroid.R
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewPlaceFragment
 import android.graphics.*
 import android.os.Bundle
@@ -22,7 +23,9 @@ import kotlinx.android.synthetic.main.fragment_maps.*
 import kotlinx.android.synthetic.main.fragment_newplace.*
 import java.util.*
 
-class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
+class MapsFragment(
+    private var userApi: UserApi
+) : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     //Mis variables
     private lateinit var mMap: GoogleMap
@@ -162,7 +165,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickList
      */
     private fun initNewPlaceFragment() {
 
-        val newFragment: Fragment = NewPlaceFragment()
+        val newFragment: Fragment = NewPlaceFragment(userApi)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         //transaction.addToBackStack(null)

@@ -179,7 +179,7 @@ class NewPlaceFragment(
 
     private fun initMyPlacesFragment(){
 
-        val newFragment: Fragment = MyPlacesFragment(userApi)
+        val newFragment: Fragment = MyPlacesFragment()
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
@@ -189,7 +189,7 @@ class NewPlaceFragment(
     private fun initMapsFragment(){
 
         btnOpenMap_NewPlace.setOnClickListener {
-            val newFragment: Fragment = MapsFragment()
+            val newFragment: Fragment = MapsFragment(userApi)
             val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
             transaction.replace(R.id.nav_host_fragment, newFragment)
             transaction.addToBackStack(null)

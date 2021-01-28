@@ -18,8 +18,8 @@ interface BBDDRest {
     fun selectAllUsers(): Call<List<UserDTO>>
 
     // Obtener un usuario por id
-    @GET("users/{id}")
-    fun selectUserById(@Path("id") id: String): Call<UserDTO>
+    @GET("users/")
+    fun selectUserById(@Query("id") id: String): Call<UserDTO>
 
     // Obtener un usuario por email
     @GET("users/")
@@ -54,8 +54,8 @@ interface BBDDRest {
     fun selectPlaceById(@Path("id") id: String): Call<PlacesDTO>
 
     // Obtener los lugares segun el id del usuario
-    @GET("places/{idUser}")
-    fun selectPlaceByIdUser(@Path("idUser") idUser: String): Call<List<PlacesDTO>>
+    @GET("places/")
+    fun selectPlaceByIdUser(@Query("idUser") idUser: String): Call<List<PlacesDTO>>
 
     // Obtener los lugares cerca de la posicion actual
     //To do
@@ -83,8 +83,8 @@ interface BBDDRest {
 
 
     // Obtener imagenes por id de lugar
-    @GET("images/{idLugar}")
-    fun selectImageByIdLugar(@Path("idLugar") idLugar: String): Call<List<ImagesDTO>>
+    @GET("images/")
+    fun selectImageByIdLugar(@Query("idLugar") idLugar: String): Call<List<ImagesDTO>>
 
     // Insertar una imagen
     @POST("images/")

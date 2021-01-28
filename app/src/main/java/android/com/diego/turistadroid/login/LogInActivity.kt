@@ -1,5 +1,6 @@
 package android.com.diego.turistadroid.login
 
+import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.Session
 import android.com.diego.turistadroid.bbdd.User
@@ -32,7 +33,7 @@ class LogInActivity : AppCompatActivity() {
     //mis variables
     private var userSave = ""
     private var pwdSave = ""
-    private var sesion = Session()
+    private lateinit var sesion: Sessions
     private lateinit var bbddRest: BBDDRest
 
     companion object {
@@ -51,7 +52,7 @@ class LogInActivity : AppCompatActivity() {
 
     private fun init(){
         bbddRest = BBDDApi.service
-        comprobarSesion()
+        //comprobarSesion()
         clickBtn()
         clickRegister()
     }
@@ -94,8 +95,9 @@ class LogInActivity : AppCompatActivity() {
 
                         if (user.pwd == pwd){
                             val id = user.id
+                            (application as MyApplication).USUARIO_API = user
                             insertarSession(id)
-                            //initNavigation()
+                            initNavigation()
                             Toast.makeText(applicationContext, "exito", Toast.LENGTH_SHORT)
                                 .show()
                         }else{

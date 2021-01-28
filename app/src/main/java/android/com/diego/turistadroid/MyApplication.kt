@@ -3,6 +3,7 @@ package android.com.diego.turistadroid
 import android.Manifest
 import android.app.Application
 import android.com.diego.turistadroid.bbdd.ControllerBbdd
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
 import android.util.Log
 import android.widget.Toast
 import com.karumi.dexter.Dexter
@@ -17,6 +18,8 @@ class MyApplication : Application(){
     // Propiedades, getters and setters (visibilidad)
     var APP_PERMISOS = false
         private set
+
+    lateinit var USUARIO_API: UserApi
 
 
     /**

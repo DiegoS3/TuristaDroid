@@ -3,8 +3,6 @@ package android.com.diego.turistadroid.navigation_drawer
 import android.Manifest
 import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.ControllerSession
-import android.com.diego.turistadroid.bbdd.ControllerUser
 import android.com.diego.turistadroid.bbdd.User
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.Sessions
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
@@ -17,10 +15,10 @@ import android.com.diego.turistadroid.navigation_drawer.ui.allplaces.AllPlaces
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.myprofile.MyProfileFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.nearme.NearMeFragment
-import android.com.diego.turistadroid.splash.SplashScreenActivity
 import android.com.diego.turistadroid.utilities.UtilImpExp
 import android.com.diego.turistadroid.utilities.UtilSessions
 import android.com.diego.turistadroid.utilities.Utilities
+import android.com.diego.turistadroid.utilities.Utilities.toast
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -28,8 +26,8 @@ import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraManager
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -56,7 +54,6 @@ import retrofit2.Response
 class NavigationDrawer : AppCompatActivity(){
 
     private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var userApi: UserApi
     private lateinit var sessions: Sessions
     private var CAMERA_PERMISSION = 2
     private var flashLightStatus: Boolean = false
@@ -67,6 +64,7 @@ class NavigationDrawer : AppCompatActivity(){
         lateinit var imaUser_nav : ImageView
         lateinit var txtNombreNav : TextView
         lateinit var txtCorreoNav : TextView
+        lateinit var userApi: UserApi
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,6 +83,12 @@ class NavigationDrawer : AppCompatActivity(){
         txtNombreNav = navHeader.findViewById(R.id.txtName_nav)
         txtCorreoNav = navHeader.findViewById(R.id.txtEmail_nav)
 
+        bbddRest = BBDDApi.service
+        getSessionActual()
+        getUser2()
+        asignarDatosUsuario()
+
+
         val navController = findNavController(R.id.nav_host_fragment)
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
@@ -97,16 +101,11 @@ class NavigationDrawer : AppCompatActivity(){
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        init(navView)
+        navigationListener(navView)
+        init()
     }
 
-    private fun init(navView: NavigationView){
-
-        bbddRest = BBDDApi.service
-        getSessionActual()
-        getUser()
-        asignarDatosUsuario()
-        navigationListener(navView)
+    private fun init(){
         initPermisos()
         comprobarConexion()
 
@@ -121,30 +120,45 @@ class NavigationDrawer : AppCompatActivity(){
         sessions = UtilSessions.getLocal(this)!!
     }
 
+    private fun getUser2(){
+        userApi = (application as MyApplication).USUARIO_API
+    }
+
     /**
      * Obtenemos el usuario que tenemos en la sesión
      * almacenada en local
      */
     private fun getUser(){
-
+        Log.i("getUser: ", "esta en getUser()")
         val idUser = sessions.idUser!!
+        Log.i("idUser: ", sessions.idUser!!)
         val call = bbddRest.selectUserById(idUser)
-
+        Log.i("call", call.toString())
         call.enqueue(object : Callback<UserDTO> {
             override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
 
                 if (response.isSuccessful){
-                    userApi = UserMapper.fromDTO(response.body()!!)
+                    val user = UserMapper.fromDTO(response.body() as UserDTO)
+                    Log.i("userApi: ", user.id!!)
+                    setUserApi(user)
+
                 }else{
+                    Log.i("userApi: ", "nop")
                     Toast.makeText(applicationContext, getString(R.string.errorLogin), Toast.LENGTH_SHORT)
                         .show()
                 }
             }
             override fun onFailure(call: Call<UserDTO>, t: Throwable) {
+                Log.i("userApi: ", "nop")
                 Toast.makeText(applicationContext, getString(R.string.errorLogin), Toast.LENGTH_SHORT)
                     .show()
             }
         })
+    }
+
+    private fun setUserApi(user: UserApi){
+        userApi = user
+        Log.i("userApiSeter: ", userApi.id!!)
     }
 
     /**
@@ -315,7 +329,7 @@ class NavigationDrawer : AppCompatActivity(){
 
     //Abrir mis lugares
     private fun abrirMyPlaces(){
-        val newFragment = MyPlacesFragment(userApi)
+        val newFragment = MyPlacesFragment()
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)

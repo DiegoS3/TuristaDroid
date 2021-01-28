@@ -74,6 +74,9 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import java.io.IOException
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
 import java.util.*
 
 class MyPlaceDetailFragment(
@@ -104,6 +107,8 @@ class MyPlaceDetailFragment(
     private lateinit var mMap : GoogleMap //Mapa Google Maps
     private lateinit var location : LatLng //Localizacion
     private lateinit var tarea: CityAsyncTask
+    private lateinit var tareaImg: LoadImgAsyncTask
+    private lateinit var btm: Bitmap
 
     //Actualizar Lugar
     private var newNamePlace = ""
@@ -133,6 +138,7 @@ class MyPlaceDetailFragment(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         init()
+        FactoriaSliderView.initSliderView(view, context!!)
     }
 
     //Metodos del fragment
@@ -181,9 +187,10 @@ class MyPlaceDetailFragment(
                     val listaImagenes = ImagesMapper.fromDTO(listaImagenesDTO)
 
                     for (imagen in listaImagenes){
+                        cargarImagen(imagen.url!!)
+                        Thread.sleep(100)
                         val sliderItem = SliderImageItem()
-                        val bitmap = Utilities.getBitmapFromURL(imagen.url!!)!!
-                        sliderItem.image = bitmap
+                        sliderItem.image = btm
                         FactoriaSliderView.adapterSlider!!.addItem(sliderItem)
                     }
 
@@ -452,7 +459,7 @@ class MyPlaceDetailFragment(
     //inciar fragment Mis Lugares
     private fun initMyPlacesFragment(){
 
-        val newFragment: Fragment = MyPlacesFragment(userApi)
+        val newFragment: Fragment = MyPlacesFragment()
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.commit()
@@ -950,6 +957,35 @@ class MyPlaceDetailFragment(
             }catch (e: IOException){}
             catch (e: Exception) {}
 
+            return result
+        }
+    }
+    //Metodo en el que inicializamos la Tarea para detectar la ciudad
+    private fun cargarImagen(src: String){
+
+        tareaImg = LoadImgAsyncTask(src)
+        tareaImg.execute()
+    }
+
+    //Clase ASyncrona que detecta segun el marcador la ciudad en la que se encuentra
+    inner class LoadImgAsyncTask(src: String) : AsyncTask<String, String, String>() {
+
+        private var srcc = src
+
+        override fun doInBackground(vararg params: String?): String {
+
+            var result = ""
+             try {
+                val url = URL(srcc)
+                val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
+                connection.doInput = true
+                connection.connect()
+                val input: InputStream = connection.inputStream
+                val bitmap = BitmapFactory.decodeStream(input)
+                 btm = bitmap
+                 result = Utilities.bitmapToBase64(bitmap)!!
+            } catch (e: IOException) {
+            }
             return result
         }
     }
