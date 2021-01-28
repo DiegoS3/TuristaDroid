@@ -388,7 +388,7 @@ class MyPlacesFragment(
     //Iniciamos fragment Nuevo Lugar
     private fun initNewPlaceFragment() {
 
-        val newFragment: Fragment = NewPlaceFragment()
+        val newFragment: Fragment = NewPlaceFragment(userApi)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
@@ -398,7 +398,7 @@ class MyPlacesFragment(
     //Iniciamos fragment Nuevo Lugar Actual
     private fun initNewActualPlaceFragment() {
 
-        val newFragment: Fragment = NewActualPlaceFragment()
+        val newFragment: Fragment = NewActualPlaceFragment(userApi)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)

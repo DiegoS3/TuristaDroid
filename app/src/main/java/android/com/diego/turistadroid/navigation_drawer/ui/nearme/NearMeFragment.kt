@@ -3,9 +3,17 @@ package android.com.diego.turistadroid.navigation_drawer.ui.nearme
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.ControllerPlaces
 import android.com.diego.turistadroid.bbdd.Place
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesMapper
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.Places
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlaceDetailFragment
 import android.com.diego.turistadroid.utilities.Utilities
+import android.com.diego.turistadroid.utilities.Utilities.toast
 import android.graphics.*
 import android.os.Bundle
 import android.os.Looper
@@ -18,6 +26,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import com.bumptech.glide.Glide
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
@@ -25,6 +34,9 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
 import kotlinx.android.synthetic.main.fragment_near_me.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.*
 
 
@@ -34,6 +46,7 @@ class NearMeFragment(
 
     private lateinit var mMap: GoogleMap
     private var primera = true
+    private lateinit var bbddRest: BBDDRest
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -48,7 +61,7 @@ class NearMeFragment(
         view.setOnTouchListener { v, event ->
             return@setOnTouchListener true
         }
-
+        bbddRest = BBDDApi.service
         getCurrentLocation()
         initUI()
     }
@@ -74,7 +87,7 @@ class NearMeFragment(
                             val currentLocation = LatLng(latitud, longitud)
                             mMap.clear()
                             positionMarker(currentLocation)
-                            marcadoresLugares(currentLocation)
+                            marcadoresLugares()
                             moverCamara(currentLocation)
                             Log.i("currentLocation", "$latitud, $longitud")
                             //Toast.makeText(context, "Location update: "+latitud.toString() + ", " + longitud.toString(), Toast.LENGTH_SHORT).show()
@@ -139,7 +152,7 @@ class NearMeFragment(
     }
 
     //Creamos pin del usuario
-    private fun placeMarker(location: LatLng, place: Place){
+    private fun placeMarker(location: LatLng, place: Places){
         val icon = BitmapDescriptorFactory.fromBitmap(
             BitmapFactory.decodeResource(
                 context?.resources,
@@ -172,15 +185,28 @@ class NearMeFragment(
         mMap.setOnMarkerClickListener(this)
     }
 
-    private fun marcadoresLugares(latLng: LatLng) {
-        val listaPlaces  = ControllerPlaces.selectNearby(latLng.latitude, latLng.longitude)!!
-        //var listaPlaces  = ControllerPlaces.selectPlaces()!!
-        var i = 0
-        listaPlaces.forEach { _ ->
-            val location = LatLng(listaPlaces[i].latitud, listaPlaces[i].longitud)
-            placeMarker(location, listaPlaces[i])
-            i++
-        }
+    private fun marcadoresLugares() {
+        val call = bbddRest.selectAllPlaces()
+        call.enqueue(object : Callback<List<PlacesDTO>>{
+            override fun onResponse(call: Call<List<PlacesDTO>>, response: Response<List<PlacesDTO>>) {
+                if (response.isSuccessful){
+                    val listaPlacesDTO = response.body()!!
+                    val listaPlaces  = PlacesMapper.fromDTO(listaPlacesDTO)
+                    //var listaPlaces  = ControllerPlaces.selectPlaces()!!
+                    var i = 0
+                    listaPlaces.forEach { _ ->
+                        val location = LatLng(listaPlaces[i].latitude!!.toDouble(), listaPlaces[i].longitude!!.toDouble())
+                        placeMarker(location, listaPlaces[i])
+                        i++
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<List<PlacesDTO>>, t: Throwable) {
+                TODO("Not yet implemented")
+            }
+
+        })
     }
 
     /**
@@ -206,10 +232,35 @@ class NearMeFragment(
                 val row: View = layoutInflater.inflate(R.layout.info_place_near_me, null)
                 val txtNamePlaceInfo: TextView = row.findViewById(R.id.namePlace_infoWindow)
                 val imaPlaceInfo: ImageView = row.findViewById(R.id.imaPlace_infoWindow)
-                val place =  marker.tag as Place
-                txtNamePlaceInfo.text = place.nombre
-                imaPlaceInfo.setImageBitmap(Utilities.base64ToBitmap(place.imagenes[0]!!.foto))
+                val place =  marker.tag as Places
+                txtNamePlaceInfo.text = place.name
+                cargarImagenInfoWindow(place.id, imaPlaceInfo)
                 return row
+            }
+        })
+    }
+
+    private fun cargarImagenInfoWindow(id: String?, imaPlaceInfo: ImageView) {
+        val call = bbddRest.selectImageByIdLugar(id!!)
+
+        call.enqueue(object : Callback<List<ImagesDTO>>{
+            override fun onResponse(call: Call<List<ImagesDTO>>, response: Response<List<ImagesDTO>>) {
+                if (response.isSuccessful){
+                    val listaImagenesDTO = response.body()!!
+                    val listaImagenes = ImagesMapper.fromDTO(listaImagenesDTO)
+                    if (listaImagenes.isNotEmpty()){
+                        Glide.with(context!!)
+                            .load(listaImagenes[0])
+                            .fitCenter()
+                            .into(imaPlaceInfo)
+                    }else{
+                        context!!.toast(R.string.errorUpload)
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<List<ImagesDTO>>, t: Throwable) {
+                context!!.toast(R.string.errorService)
             }
         })
     }
@@ -217,16 +268,16 @@ class NearMeFragment(
     //Al hacer click en el infoWindow abrimos el lugar para ver sus detalles
     private fun clickInfoWindow(){
         mMap.setOnInfoWindowClickListener {
-            val place =  it.tag as Place
-            Toast.makeText(context,  "Marker: "+place.nombre , Toast.LENGTH_SHORT).show()
+            val place =  it.tag as Places
+            Toast.makeText(context,  "Marker: "+place.name , Toast.LENGTH_SHORT).show()
             abrirMyPlacesDetail(place)
         }
     }
 
     //Abrimos el fragment de lugar detalles sin modo edicion
-    private fun abrirMyPlacesDetail(lugar: Place){
+    private fun abrirMyPlacesDetail(lugar: Places){
         val editable = false
-        val newFragment: Fragment = MyPlaceDetailFragment(editable, lugar)
+        val newFragment: Fragment = MyPlaceDetailFragment(editable, lugar, null, null, false, userApi)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)

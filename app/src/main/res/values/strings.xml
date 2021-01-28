@@ -99,6 +99,8 @@
     <string name="scanQR">Scanning QR…</string>
     <string name="importPlace">Import</string>
     <string name="placeExsistente">This place already exists</string>
+    <string name="placeSignUp">Successful registered place</string>
+    <string name="placeNoSignUp">Error registered place</string>
 
     <string name="importData">Import data</string>
     <string name="exportData">Export data</string>

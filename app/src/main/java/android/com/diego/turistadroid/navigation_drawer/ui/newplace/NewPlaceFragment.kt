@@ -5,11 +5,26 @@ import android.Manifest.permission.*
 import android.app.Activity
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.*
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.Images
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesMapper
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.Places
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesMapper
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.votes.Votes
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.votes.VotesDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.votes.VotesMapper
+import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.HttpClient
+import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.ImgurREST
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
 import android.com.diego.turistadroid.factorias.FactoriaSliderView
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.ui.maps.MapsFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
 import android.com.diego.turistadroid.utilities.Utilities
+import android.com.diego.turistadroid.utilities.Utilities.toast
 import android.com.diego.turistadroid.utilities.slider.SliderImageItem
 import android.content.ContentValues
 import android.content.Intent
@@ -36,24 +51,32 @@ import com.google.android.gms.maps.model.LatLng
 import io.realm.RealmList
 import kotlinx.android.synthetic.main.fragment_newplace.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.RequestBody
+import org.json.JSONObject
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.IOException
 import java.util.*
 
 
-class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
+class NewPlaceFragment(
+    private var userApi: UserApi
+) : Fragment() {
 
     private lateinit var tarea: CityAsyncTask
     private lateinit var txtUbication : EditText
-    private lateinit var ratingBar : RatingBar
     private lateinit var btnAddImage : Button
 
-    private var mark : Double = 0.0
-    //Lista de imagenes
-    private var images = RealmList<Image>()
     private lateinit var location : LatLng
-
-    //Usuario logeado
-    private var user = LogInActivity.user
+    private lateinit var idLugar : String
+    private var bases64 = mutableListOf<String>()
+    private lateinit var bbddRest: BBDDRest
+    private lateinit var clientImgur: OkHttpClient
 
     // Variables para la camara
     private val GALERIA = 1
@@ -70,9 +93,7 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         FactoriaSliderView.initSliderView(root, activity!!)//Iniciamos el Slider de las Imagenes
 
         txtUbication = root.findViewById(R.id.txtUbicationPlace_NewPlace)
-        ratingBar = root.findViewById(R.id.ratingBarPlace_NewPlace)
         btnAddImage = root.findViewById(R.id.btnAddImage_NewPlace)
-        ratingBar.onRatingBarChangeListener = this
 
 
         // Inflate the layout for this fragment
@@ -91,14 +112,16 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
     }
 
     private fun init(){
+        initClients()
         createPlace()
         abrirOpciones()
         initMapsFragment()
     }
 
-    //Obtener puntuacion del sitio
-    override fun onRatingChanged(ratingBar: RatingBar?, rating: Float, fromUser: Boolean) {
-       mark = rating.toDouble()
+    //clientes para las conexiones con las API de las que consumimos datos
+    private fun initClients() {
+        clientImgur = HttpClient.getClient()!!
+        bbddRest = BBDDApi.service
     }
 
     private fun abrirOpciones() {
@@ -154,28 +177,13 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         startActivityForResult(intent, GALERIA)
     }
 
-    private fun addImageBd(bitmap: Bitmap){
-        val imgStr = Utilities.bitmapToBase64(bitmap)!!
-        val id = ControllerImages.getImageIdentity()
-        val img = Image(id, imgStr)
-        images.add(img)
-        ControllerImages.insertImage(img)
-    }
-
-    private fun addImagePlace(list: MutableList<Image>, place: Place){
-
-        for (imagen in list){ place.imagenes.add(imagen) }
-
-    }
-
     private fun initMyPlacesFragment(){
 
-        val newFragment: Fragment = MyPlacesFragment()
+        val newFragment: Fragment = MyPlacesFragment(userApi)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
         transaction.commit()
-
     }
 
     private fun initMapsFragment(){
@@ -198,17 +206,16 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
                 if (txtUbicationPlace_NewPlace.text.toString() == getString(R.string.notFoundUbication)){
                     Toast.makeText(context, getString(R.string.ubicationError), Toast.LENGTH_SHORT).show()
                 }else {
-                    val currentDate = Calendar.getInstance().time
+                    val currentDate = Utilities.dateToString(Utilities.getSysDate()) //Fecha actual
                     val namePlace = txtNamePlace_NewPlace.text.toString()
-                    val id = ControllerPlaces.getPlaceIdentity()
+                    idLugar = UUID.randomUUID().toString()
                     val city = txtUbication.text.toString()
-                    val place = Place(id, namePlace, currentDate, city, mark, location.longitude, location.latitude)
-                    ControllerPlaces.insertPlace(place)
-                    addImagePlace(images, place)
-                    user.places.add(place)
-                    //Creamos un usuario nuevo con los datos del logeado y le incluimos los lugares
-                    val newUser = User(user.email, user.nombre, user.nombreUser, user.pwd, user.foto, user.places)
-                    ControllerUser.updateUser(newUser)
+                    val place = Places(idLugar, userApi.id, namePlace, currentDate, location.latitude.toString(), location.longitude.toString(), "0", city)
+                    insertNewPlace(place)
+                    insertPlaceVotes(idLugar)
+                    if (bases64.size > 0){
+                        recorrerListBase64()
+                    }
                     Utilities.vibratePhone(context)
                     initMyPlacesFragment()
                 }
@@ -218,6 +225,126 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
 
             }
         }
+    }
+
+    private fun insertPlaceVotes(idLugar: String) {
+        val listaVotos = LinkedList<String>()
+        val vote = Votes(idLugar, listaVotos)
+        val dto = VotesMapper.toDTO(vote)
+        val call = bbddRest.insertVote(dto)
+
+        call.enqueue(object : Callback<VotesDTO> {
+            override fun onResponse(call: Call<VotesDTO>, response: Response<VotesDTO>) {
+                // Si la respuesta es correcta
+                if (response.isSuccessful) {
+                    Log.i("vote", "voto creado")
+
+                } else {
+                    Log.i("vote", "error crear voto")
+                }
+            }
+            override fun onFailure(call: Call<VotesDTO>, t: Throwable) {
+                context!!.toast(R.string.errorService)
+            }
+        })
+    }
+
+    //Insertamos un nuevo lugar en la BD de la API
+    private fun insertNewPlace(place: Places) {
+        val dto = PlacesMapper.toDTO(place)
+        val call = bbddRest.insertPlace(dto)
+
+        call.enqueue(object : Callback<PlacesDTO> {
+            override fun onResponse(call: Call<PlacesDTO>, response: Response<PlacesDTO>) {
+                if (response.isSuccessful){
+                    context!!.toast(R.string.placeSignUp)
+                }else{
+                    context!!.toast(R.string.errorUpdatePlace)
+                }
+            }
+            override fun onFailure(call: Call<PlacesDTO>, t: Throwable) {
+                context!!.toast(R.string.errorService)
+            }
+        })
+    }
+
+    //Metodo que recorrer la lista de bases64
+    private fun recorrerListBase64(){
+        for (i in bases64){
+            uploadImgToImgurAPI(i)
+        }
+    }
+
+    /**
+     * Subimos la imagen que ha elegido el usuario a la
+     * Api de IMGUR y creamos el usuario que posteriormente
+     * registramos en la bbdd de nuestra API
+     */
+    private fun uploadImgToImgurAPI(imaString : String) {
+        //loadingView.show()
+
+        val mediaType: MediaType = "text/plain".toMediaTypeOrNull()!!
+        val body: RequestBody = MultipartBody.Builder().setType(MultipartBody.FORM)
+            .addFormDataPart("image", imaString)
+            .build()
+        val request = ImgurREST.postImage(body, "base64")
+        Log.i("answer", request.toString() + " " + request.body.toString())
+        clientImgur.newCall(request).enqueue(object : okhttp3.Callback {
+
+            override fun onFailure(call: okhttp3.Call, e: IOException) {
+                Toast.makeText(context, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
+                    .show()
+            }
+
+            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+
+                if (response.isSuccessful) {
+
+                    val data = JSONObject(response.body!!.string())
+                    val item = data.getJSONObject("data")
+                    val image = Images(
+                        UUID.randomUUID().toString(),
+                        idLugar,
+                        item.getString("link")
+                    )
+                    insertImageApi(image)
+
+                } else {
+                    Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
+    }
+
+    /**
+     * Registramos el usuario mediante retrofit en la
+     * bbdd de nuestra API
+     */
+    private fun insertImageApi(image: Images) {
+        val dto = ImagesMapper.toDTO(image)
+        val call = bbddRest.insertImage(dto)
+
+        call.enqueue((object : Callback<ImagesDTO> {
+            override fun onResponse(call: Call<ImagesDTO>, response: Response<ImagesDTO>) {
+                // Si la respuesta es correcta
+                if (response.isSuccessful) {
+
+                    Log.i("image", "imagen subida")
+
+                } else {
+                    Log.i("image", "error subir imagen")
+                }
+            }
+
+            //Si error
+            override fun onFailure(call: Call<ImagesDTO>, t: Throwable) {
+                Toast.makeText(
+                    context,
+                    getString(R.string.userNoSignUp),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }))
     }
 
     private fun comprobarVacios() : Boolean{
@@ -231,12 +358,10 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
             try {
                 val bitmap = MediaStore.Images.Media.getBitmap(context?.contentResolver!!, data?.data)
                 val sliderItem = SliderImageItem()
-                sliderItem.description = "Slider Item Added Manually"
-                //.imageUrl =
-                    //"https://images.pexels.com/photos/929778/pexels-photo-929778.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260"
                 sliderItem.image = bitmap
                 FactoriaSliderView.adapterSlider!!.addItem(sliderItem)
-                addImageBd(bitmap)
+                val base64 = Utilities.bitmapToBase64(bitmap)!!
+                bases64.add(base64)
 
 
             } catch (e: IOException) {
@@ -246,14 +371,11 @@ class NewPlaceFragment : Fragment(), RatingBar.OnRatingBarChangeListener {
         }
         if (resultCode == Activity.RESULT_OK && requestCode == CAMARA) {
             val bitmap = MediaStore.Images.Media.getBitmap(context?.contentResolver!!, foto)
-
             val sliderItem = SliderImageItem()
-            sliderItem.description = "Slider Item Added Manually"
-            //sliderItem.imageUrl =
-                //"https://images.pexels.com/photos/929778/pexels-photo-929778.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260"
             sliderItem.image = bitmap
             FactoriaSliderView.adapterSlider!!.addItem(sliderItem)
-            addImageBd(bitmap)
+            val base64 = Utilities.bitmapToBase64(bitmap)!!
+            bases64.add(base64)
         }
     }
 

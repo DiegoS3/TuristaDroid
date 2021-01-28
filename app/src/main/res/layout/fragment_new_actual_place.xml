@@ -96,15 +96,6 @@
                     android:textSize="18sp"
                     android:layout_marginTop="10dp"/>
 
-            <RatingBar
-                    android:id="@+id/ratingBarPlace_NewActualPlace"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:stepSize="0.5"
-                    android:numStars="5"
-                    android:layout_marginTop="10dp"
-                    android:theme="@style/RatingBar"/>
-
             <Button
                     android:text="@string/btnSavePlace"
                     android:layout_width="135dp"

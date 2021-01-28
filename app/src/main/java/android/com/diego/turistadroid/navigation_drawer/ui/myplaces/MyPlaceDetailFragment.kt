@@ -101,7 +101,6 @@ class MyPlaceDetailFragment(
     private var clicked = false //FLoating Button More clicked
     private var clickedShare = false //FLoating Button Share clicked
     private var moreOrShareClick = false
-    private var mark : Float = 0f
     private lateinit var mMap : GoogleMap //Mapa Google Maps
     private lateinit var location : LatLng //Localizacion
     private lateinit var tarea: CityAsyncTask
@@ -335,8 +334,10 @@ class MyPlaceDetailFragment(
                     }
                     actualizarLugar(place) //Actaulizamos
                     this.fragmentAnterior?.actualizarPlaceAdapter(place, this.indexPlace!!)//Actualizamos el adaptador
-                    recorrerListBase64()
-                    initMyPlacesFragment()//Volvemos al anterior fragmen
+                    if (bases64.size > 0){
+                        recorrerListBase64()
+                    }
+                    initMyPlacesFragment()//Volvemos al anterior fragment
                 }
 
             }else{
@@ -347,6 +348,8 @@ class MyPlaceDetailFragment(
         }
     }
 
+
+    //Metodo que recorrer la lista de bases64
     private fun recorrerListBase64(){
 
         for (i in bases64){
@@ -407,7 +410,6 @@ class MyPlaceDetailFragment(
             override fun onResponse(call: Call<ImagesDTO>, response: Response<ImagesDTO>) {
                 // Si la respuesta es correcta
                 if (response.isSuccessful) {
-
                     Log.i("image", "imagen subida")
 
                 } else {
@@ -424,7 +426,6 @@ class MyPlaceDetailFragment(
                 ).show()
             }
         }))
-
     }
 
     private fun actualizarLugar(place: Places){
