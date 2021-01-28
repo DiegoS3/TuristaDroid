@@ -29,6 +29,10 @@ class SliderAdapterExample(private val context: Context) : SliderViewAdapter<Sli
         notifyDataSetChanged()
     }
 
+    fun getItem(): SliderImageItem {
+        return mSliderItems[0]
+    }
+
     /**
      * Funcion que añade un nuevo slider e informa al adaptador
      */

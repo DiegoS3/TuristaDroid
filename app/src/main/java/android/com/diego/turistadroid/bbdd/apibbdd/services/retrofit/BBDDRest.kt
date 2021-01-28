@@ -49,6 +49,10 @@ interface BBDDRest {
     @GET("places/")
     fun selectAllPlaces(): Call<List<PlacesDTO>>
 
+    // Elimina un lugar
+    @GET("places/{id}")
+    fun selectPlaceById(@Path("id") id: String): Call<PlacesDTO>
+
     // Obtener los lugares segun el id del usuario
     @GET("places/{idUser}")
     fun selectPlaceByIdUser(@Path("idUser") idUser: String): Call<List<PlacesDTO>>

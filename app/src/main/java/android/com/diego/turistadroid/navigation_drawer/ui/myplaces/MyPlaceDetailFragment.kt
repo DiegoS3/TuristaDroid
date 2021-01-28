@@ -4,10 +4,17 @@ import android.Manifest
 import android.app.Activity
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.*
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.Images
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesDTO
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.Places
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserMapper
+import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.HttpClient
+import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.ImgurREST
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
 import android.com.diego.turistadroid.factorias.FactoriaSliderView
@@ -16,6 +23,7 @@ import android.com.diego.turistadroid.splash.SplashScreenActivity
 import android.com.diego.turistadroid.utilities.Fotos
 import android.com.diego.turistadroid.utilities.Utilities
 import android.com.diego.turistadroid.utilities.Utilities.generateQRCode
+import android.com.diego.turistadroid.utilities.Utilities.toast
 import android.com.diego.turistadroid.utilities.slider.SliderImageItem
 import android.content.ActivityNotFoundException
 import android.content.ContentValues
@@ -41,6 +49,7 @@ import android.widget.RatingBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import com.google.android.gms.maps.*
@@ -51,9 +60,16 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
 import com.smarteist.autoimageslider.SliderView
 import io.realm.RealmList
+import kotlinx.android.synthetic.main.activity_sign_up.*
 import kotlinx.android.synthetic.main.fragment_my_place_detail.*
 import kotlinx.android.synthetic.main.layout_change_name_place.view.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
+import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.RequestBody
+import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -69,7 +85,7 @@ class MyPlaceDetailFragment(
     private var import : Boolean = false,
     private var userApi: UserApi
 
-) : Fragment(), OnMapReadyCallback, RatingBar.OnRatingBarChangeListener {
+) : Fragment(), OnMapReadyCallback {
 
     //Componentes Interfaz
     private lateinit var btnSave : Button
@@ -80,7 +96,6 @@ class MyPlaceDetailFragment(
     private lateinit var floatBtnTwitter : FloatingActionButton
     private lateinit var floatBtnEmail : FloatingActionButton
     private lateinit var floatBtnInsta : FloatingActionButton
-    private lateinit var ratingBar: RatingBar
     private lateinit var sliderView : SliderView
 
     private var clicked = false //FLoating Button More clicked
@@ -103,6 +118,8 @@ class MyPlaceDetailFragment(
     private val IMAGEN_DIRECTORY = "/TuristaDroid"
 
     private lateinit var bbddRest: BBDDRest
+    private lateinit var clientImgur: OkHttpClient
+    private var bases64 = mutableListOf<String>() //Lista donde se almacenan las nuevas imagenes
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -121,11 +138,10 @@ class MyPlaceDetailFragment(
 
     //Metodos del fragment
     private fun init(){
-        bbddRest = BBDDApi.service
+        initClients()
         initMapa()
         initMode()
         initChangeName()
-        lugaresUsuario()
         showDetailsPlace()
         updatePlace()
         sharePlaceOnSocialNetwork()
@@ -134,21 +150,12 @@ class MyPlaceDetailFragment(
         abrirOpciones()
     }
 
-    /**
-     *
-     * Metodo que comprueba en la lista de lugares si el lugar coincide con el
-     * del usuario para mostrar la puntuacion que el usuario le ha dado a dicho lugar
-     *
-     */
-    private fun lugaresUsuario(){
-        for (item in user.places){
-            if (this.lugar.id == item.id){
-                mark = item.puntuacion.toFloat()
-                Log.i("Puntuacion", mark.toString())
-            }else{
-                mark = 0f
-            }
-        }
+    //clientes para las conexiones con las API de las que consumimos datos
+    private fun initClients() {
+
+        clientImgur = HttpClient.getClient()!!
+        bbddRest = BBDDApi.service
+
     }
 
     /**
@@ -157,8 +164,7 @@ class MyPlaceDetailFragment(
     private fun showDetailsPlace(){
         txtTitlePlace_DetailsPlace.text = this.lugar.name
         txtUbicationPlace_DetailsPlace.text = this.lugar.city
-        ratingBar.rating = mark
-        imagenesLugar()
+        seleccionarImagenesPlace()
     }
 
     /**
@@ -205,8 +211,6 @@ class MyPlaceDetailFragment(
         floatBtnTwitter = view.findViewById(R.id.btnFloatShareTwitter_DetailsPlace)
         floatBtnEmail = view.findViewById(R.id.btnFloatShareEmail_DetailsPlace)
         floatBtnInsta = view.findViewById(R.id.btnFloatShareInstagram_DetailsPlace)
-        ratingBar = view.findViewById(R.id.ratingBarPlace_DetailsPlace)
-        ratingBar.onRatingBarChangeListener = this
 
     }
 
@@ -230,17 +234,13 @@ class MyPlaceDetailFragment(
 
                 btnImport.visibility = View.VISIBLE
                 floatBtnMore.isClickable = true
-                ratingBar.setIsIndicator(true)
                 txtTitlePlace_DetailsPlace.isClickable = false
                 //viewPager2.isClickable = false
-                ratingBar.focusable = View.NOT_FOCUSABLE
                 floatBtnMore.visibility = View.VISIBLE
                 initFloatingButtons()
 
             }
             else -> { //Modo Visualizar Lugar
-                ratingBar.setIsIndicator(true)
-                ratingBar.focusable = View.NOT_FOCUSABLE
                 floatBtnMore.visibility = View.VISIBLE
                 floatBtnMore.isClickable = true
                 //viewPager2.isClickable = false
@@ -298,11 +298,6 @@ class MyPlaceDetailFragment(
         }
     }
 
-    //Obtener puntuacion del sitio
-    override fun onRatingChanged(ratingBar: RatingBar?, rating: Float, fromUser: Boolean) {
-        mark = rating
-    }
-
     //metodo que actualiza un sitio al hacer click en el boton guardar
     private fun updatePlace(){
         btnSave.setOnClickListener {
@@ -316,29 +311,31 @@ class MyPlaceDetailFragment(
                     val namePlace = txtTitlePlace_DetailsPlace.text.toString()
                     val city = txtUbicationPlace_DetailsPlace.text.toString()
                     val place = if (this::location.isInitialized){
-                        Place( //Nuevo lugar en caso de nueva localizacion
+                        Places( //Nuevo lugar en caso de nueva localizacion
                             this.lugar.id,
+                            this.userApi.id,
                             namePlace,
                             this.lugar.fecha,
-                            city,
-                            mark.toDouble(),
-                            location.longitude,
-                            location.latitude
+                            location.latitude.toString(),
+                            location.longitude.toString(),
+                            this.lugar.votos,
+                            city
                         )
                     }else{
-                        Place(//Nuevo lugar en caso de no poner nueva localizacion
+                        Places(//Nuevo lugar en caso de no poner nueva localizacion
                             this.lugar.id,
+                            this.userApi.id,
                             namePlace,
                             this.lugar.fecha,
-                            city,
-                            mark.toDouble(),
-                            this.lugar.longitud,
-                            this.lugar.latitud
+                            this.lugar.latitude,
+                            this.lugar.longitude,
+                            this.lugar.votos,
+                            this.lugar.city
                         )
                     }
-                    addImagePlace(images, place) //Añadir imagenes al lugar
-                    ControllerPlaces.updatePlace(place) //Actaulizamos
+                    actualizarLugar(place) //Actaulizamos
                     this.fragmentAnterior?.actualizarPlaceAdapter(place, this.indexPlace!!)//Actualizamos el adaptador
+                    recorrerListBase64()
                     initMyPlacesFragment()//Volvemos al anterior fragmen
                 }
 
@@ -350,10 +347,111 @@ class MyPlaceDetailFragment(
         }
     }
 
+    private fun recorrerListBase64(){
+
+        for (i in bases64){
+            uploadImgToImgurAPI(i)
+        }
+    }
+
+    /**
+     * Subimos la imagen que ha elegido el usuario a la
+     * Api de IMGUR y creamos el usuario que posteriormente
+     * registramos en la bbdd de nuestra API
+     */
+    private fun uploadImgToImgurAPI(imaString : String) {
+        //loadingView.show()
+
+        val mediaType: MediaType = "text/plain".toMediaTypeOrNull()!!
+        val body: RequestBody = MultipartBody.Builder().setType(MultipartBody.FORM)
+            .addFormDataPart("image", imaString)
+            .build()
+        val request = ImgurREST.postImage(body, "base64")
+        Log.i("answer", request.toString() + " " + request.body.toString())
+        clientImgur.newCall(request).enqueue(object : okhttp3.Callback {
+
+            override fun onFailure(call: okhttp3.Call, e: IOException) {
+                Toast.makeText(context, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
+                    .show()
+            }
+
+            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+
+                if (response.isSuccessful) {
+
+                    val data = JSONObject(response.body!!.string())
+                    val item = data.getJSONObject("data")
+                    val image = Images(
+                        UUID.randomUUID().toString(),
+                        lugar.id,
+                        item.getString("link")
+                    )
+                    insertImageApi(image)
+
+                } else {
+                    Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
+    }
+
+    /**
+     * Registramos el usuario mediante retrofit en la
+     * bbdd de nuestra API
+     */
+    private fun insertImageApi(image: Images) {
+        val dto = ImagesMapper.toDTO(image)
+        val call = bbddRest.insertImage(dto)
+
+        call.enqueue((object : Callback<ImagesDTO> {
+            override fun onResponse(call: Call<ImagesDTO>, response: Response<ImagesDTO>) {
+                // Si la respuesta es correcta
+                if (response.isSuccessful) {
+
+                    Log.i("image", "imagen subida")
+
+                } else {
+                    Log.i("image", "error subir imagen")
+                }
+            }
+
+            //Si error
+            override fun onFailure(call: Call<ImagesDTO>, t: Throwable) {
+                Toast.makeText(
+                    context,
+                    getString(R.string.userNoSignUp),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }))
+
+    }
+
+    private fun actualizarLugar(place: Places){
+
+        val lugarDTO = PlacesMapper.toDTO(place)
+        val call = bbddRest.updatePlace(place.id!!, lugarDTO)
+
+        call.enqueue(object : Callback<PlacesDTO>{
+            override fun onResponse(call: Call<PlacesDTO>, response: Response<PlacesDTO>) {
+                if (response.isSuccessful){
+                    context!!.toast(R.string.updatePlace)
+                }else{
+                    context!!.toast(R.string.errorUpdatePlace)
+                }
+            }
+
+            override fun onFailure(call: Call<PlacesDTO>, t: Throwable) {
+                context!!.toast(R.string.errorService)
+            }
+        })
+
+    }
+
     //inciar fragment Mis Lugares
     private fun initMyPlacesFragment(){
 
-        val newFragment: Fragment = MyPlacesFragment()
+        val newFragment: Fragment = MyPlacesFragment(userApi)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.commit()
@@ -363,14 +461,49 @@ class MyPlaceDetailFragment(
     //Al hacer click en el boton importar insertamos un nuevo lugar en la BD
     private fun onImportButton(){
         btnImport.setOnClickListener {
-            val currentDate = Calendar.getInstance().time //Fecha actual
-            val id = ControllerPlaces.getPlaceIdentity() //Generamos un nuevo id autoIncrement
-            val place = Place(id, this.lugar.nombre, currentDate, this.lugar.city, this.lugar.puntuacion, this.lugar.longitud, this.lugar.latitud)
-            addImagePlaceImport(this.lugar)
-            ControllerPlaces.insertPlace(place)
+            val currentDate = Utilities.dateToString(Utilities.getSysDate()) //Fecha actual
+            val place = Places(this.lugar.id, this.userApi.id, this.lugar.name, currentDate,
+                this.lugar.latitude, this.lugar.longitude, "0", this.lugar.city)
+
+            val call = bbddRest.selectPlaceById(this.lugar.id!!)
+
+            call.enqueue(object : Callback<PlacesDTO>{
+                override fun onResponse(call: Call<PlacesDTO>, response: Response<PlacesDTO>) {
+
+                    if (response.isSuccessful){
+                        if (response.body() != null){
+                            Toast.makeText(context, getString(R.string.placeExsistente), Toast.LENGTH_SHORT).show()
+                        }else{
+                            insertarLugar(place)
+                        }
+                    }
+                }
+                override fun onFailure(call: Call<PlacesDTO>, t: Throwable) {
+                    Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
+                }
+            })
             this.fragmentAnterior?.insertarPlaceAdapter(place)//Actualizamos adapter
             initMyPlacesFragment()
         }
+    }
+
+    private fun insertarLugar(place: Places){
+        val placeDTO = PlacesMapper.toDTO(place)
+
+        val call = bbddRest.insertPlace(placeDTO)
+
+        call.enqueue(object : Callback<PlacesDTO>{
+            override fun onResponse(call: Call<PlacesDTO>, response: Response<PlacesDTO>) {
+               if (response.isSuccessful){
+                   Log.i("lugar", "insertado con exito")
+               }else{
+                   Log.i("lugar", "error al insertar")
+               }
+            }
+            override fun onFailure(call: Call<PlacesDTO>, t: Throwable) {
+                Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     //Metedos que se activan segun el FAB que hayamos pulsado
@@ -504,15 +637,6 @@ class MyPlaceDetailFragment(
         }
     }
 
-    //Añadimos imagen a la Base de Datos
-    private fun addImageBd(bitmap: Bitmap){
-        val imgStr = Utilities.bitmapToBase64(bitmap)!!
-        val id = ControllerImages.getImageIdentity()
-        val img = Image(id, imgStr)
-        images.add(img)//Anadimos imagen en la lista que luego tendra el lugar
-        ControllerImages.insertImage(img)
-    }
-
     /**
      * Metodo que crea un nuevo pin
      *
@@ -544,11 +668,12 @@ class MyPlaceDetailFragment(
         val inflater = requireActivity().layoutInflater
         val vista = inflater.inflate(R.layout.layout_share_qr_code, null)
 
-        //Creamos un lugar sin las iamgenes
-        val lugarSinImagenes = Place(lugar.id, lugar.nombre, lugar.fecha, lugar.city, lugar.puntuacion, lugar.longitud, lugar.latitud)
+        //Creamos un lugar sin los votos
+        val lugarSinVotos = Places(this.lugar.id, this.userApi.id, this.lugar.name, this.lugar.fecha,
+            this.lugar.latitude, this.lugar.longitude, "0", this.lugar.city)
 
         //Generamos el QR
-        val code = generateQRCode(Gson().toJson(lugarSinImagenes))
+        val code = generateQRCode(Gson().toJson(lugarSinVotos))
         val qrCodeImageView = vista.findViewById(R.id.imagenCodigoQR) as ImageView
         qrCodeImageView.setImageBitmap(code)
         builder
@@ -588,8 +713,8 @@ class MyPlaceDetailFragment(
         //Twitter
         floatBtnTwitter.setOnClickListener {
 
-            val img = Utilities.base64ToBitmap(this.lugar.imagenes[0]!!.foto)
-            val uri = Utilities.getImageUri(context!!, img!!)
+            val img = FactoriaSliderView.adapterSlider!!.getItem().image!!
+            val uri = Utilities.getImageUri(context!!, img)
             val intent = Intent(Intent.ACTION_SEND)
             intent.type = "image/*"
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -604,8 +729,8 @@ class MyPlaceDetailFragment(
 
         //Instagram
         floatBtnInsta.setOnClickListener {
-            val img = Utilities.base64ToBitmap(this.lugar.imagenes[0]!!.foto)
-            val uri = Utilities.getImageUri(context!!, img!!)
+            val img = FactoriaSliderView.adapterSlider!!.getItem().image!!
+            val uri = Utilities.getImageUri(context!!, img)
             val intent = Intent(Intent.ACTION_SEND)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             intent.putExtra(Intent.EXTRA_STREAM, uri)
@@ -619,37 +744,21 @@ class MyPlaceDetailFragment(
 
         //Email
         floatBtnEmail.setOnClickListener {
-            val img = Utilities.base64ToBitmap(this.lugar.imagenes[0]!!.foto)
-            val uri = Utilities.getImageUri(context!!, img!!)
+            val img = FactoriaSliderView.adapterSlider!!.getItem().image!!
+            val uri = Utilities.getImageUri(context!!, img)
             val intent = Intent(Intent.ACTION_SENDTO).apply {
-                data = Uri.parse("mailto:" + user.email)}
-            intent.putExtra(Intent.EXTRA_SUBJECT, lugar.nombre)
+                data = Uri.parse("mailto:" + userApi.email)}
+            intent.putExtra(Intent.EXTRA_SUBJECT, lugar.name)
             intent.putExtra(Intent.EXTRA_STREAM, uri)
             startActivity(intent)
 
         }
     }
 
-    //Anadimos Imagenes del lugar importado
-    private fun addImagePlaceImport(place: Place){
-
-        for (imgPlace in this.lugar.imagenes){
-            val img = Utilities.base64ToBitmap(imgPlace.foto)!!
-            addImageBd(img)
-            place.imagenes.add(imgPlace)}
-    }
-
-    //Añadimos imagenes del lugar
-    private fun addImagePlace(list: MutableList<Image>, place: Place){
-
-        for (imgPlace in this.lugar.imagenes){ place.imagenes.add(imgPlace)}
-        for (imagen in list){ place.imagenes.add(imagen) }
-    }
-
     //Centramos la camara
     private fun moveCamera(){
-        val latitud = this.lugar.latitud
-        val longitud = this.lugar.longitud
+        val latitud = this.lugar.latitude!!.toDouble()
+        val longitud = this.lugar.longitude!!.toDouble()
         val location = LatLng(latitud, longitud)
         if (editable) {
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15f))
@@ -767,29 +876,26 @@ class MyPlaceDetailFragment(
             try {
                 val bitmap = MediaStore.Images.Media.getBitmap(context?.contentResolver!!, data?.data)
                 val sliderItem = SliderImageItem()
-                sliderItem.description = "Slider Item Added Manually"
-                //.imageUrl =
-                //"https://images.pexels.com/photos/929778/pexels-photo-929778.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260"
                 sliderItem.image = bitmap
                 FactoriaSliderView.adapterSlider!!.addItem(sliderItem)
-                addImageBd(bitmap)
 
+                val base64 = Utilities.bitmapToBase64(bitmap)!!
+                bases64.add(base64)
 
             } catch (e: IOException) {
                 e.printStackTrace()
-                Toast.makeText(context, "¡Fallo Galeria!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.errorLogin), Toast.LENGTH_SHORT).show()
             }
         }
         if (resultCode == Activity.RESULT_OK && requestCode == CAMARA) {
             val bitmap = MediaStore.Images.Media.getBitmap(context?.contentResolver!!, foto)
 
             val sliderItem = SliderImageItem()
-            sliderItem.description = "Slider Item Added Manually"
-            //sliderItem.imageUrl =
-            //"https://images.pexels.com/photos/929778/pexels-photo-929778.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260"
             sliderItem.image = bitmap
             FactoriaSliderView.adapterSlider!!.addItem(sliderItem)
-            addImageBd(bitmap)
+
+            val base64 = Utilities.bitmapToBase64(bitmap)!!
+            bases64.add(base64)
         }
     }
 

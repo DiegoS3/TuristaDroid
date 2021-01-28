@@ -77,6 +77,8 @@
     <string name="btnAddImage">Add Image</string>
     <string name="btnSavePlace">Save</string>
     <string name="deletePlace">Place Removed</string>
+    <string name="updatePlace">Place updated successfully</string>
+    <string name="errorUpdatePlace">Error updating place</string>
     <string name="recuperarPlace">Undo</string>
     <string name="confirmDelete">Confirm</string>
     <string name="cancelDelete">Cancel</string>
@@ -96,6 +98,7 @@
     <string name="shareQr">Share via QR?</string>
     <string name="scanQR">Scanning QR…</string>
     <string name="importPlace">Import</string>
+    <string name="placeExsistente">This place already exists</string>
 
     <string name="importData">Import data</string>
     <string name="exportData">Export data</string>
