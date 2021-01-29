@@ -107,7 +107,6 @@ class MyPlaceDetailFragment(
     private lateinit var mMap : GoogleMap //Mapa Google Maps
     private lateinit var location : LatLng //Localizacion
     private lateinit var tarea: CityAsyncTask
-    private lateinit var tareaImg: LoadImgAsyncTask
     private lateinit var btm: Bitmap
 
     //Actualizar Lugar
@@ -187,10 +186,8 @@ class MyPlaceDetailFragment(
                     val listaImagenes = ImagesMapper.fromDTO(listaImagenesDTO)
 
                     for (imagen in listaImagenes){
-                        cargarImagen(imagen.url!!)
-                        Thread.sleep(100)
                         val sliderItem = SliderImageItem()
-                        sliderItem.image = btm
+                        sliderItem.imageUrl = imagen.url!!
                         FactoriaSliderView.adapterSlider!!.addItem(sliderItem)
                     }
 
@@ -957,35 +954,6 @@ class MyPlaceDetailFragment(
             }catch (e: IOException){}
             catch (e: Exception) {}
 
-            return result
-        }
-    }
-    //Metodo en el que inicializamos la Tarea para detectar la ciudad
-    private fun cargarImagen(src: String){
-
-        tareaImg = LoadImgAsyncTask(src)
-        tareaImg.execute()
-    }
-
-    //Clase ASyncrona que detecta segun el marcador la ciudad en la que se encuentra
-    inner class LoadImgAsyncTask(src: String) : AsyncTask<String, String, String>() {
-
-        private var srcc = src
-
-        override fun doInBackground(vararg params: String?): String {
-
-            var result = ""
-             try {
-                val url = URL(srcc)
-                val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
-                connection.doInput = true
-                connection.connect()
-                val input: InputStream = connection.inputStream
-                val bitmap = BitmapFactory.decodeStream(input)
-                 btm = bitmap
-                 result = Utilities.bitmapToBase64(bitmap)!!
-            } catch (e: IOException) {
-            }
             return result
         }
     }

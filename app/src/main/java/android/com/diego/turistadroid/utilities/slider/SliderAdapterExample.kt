@@ -51,10 +51,18 @@ class SliderAdapterExample(private val context: Context) : SliderViewAdapter<Sli
         viewHolder.textViewDescription.text = sliderItem.description
         viewHolder.textViewDescription.textSize = 16f
         viewHolder.textViewDescription.setTextColor(Color.WHITE)
-        Glide.with(viewHolder.itemView)
-            .load(sliderItem.image)
-            .fitCenter()
-            .into(viewHolder.imageViewBackground)
+        if (sliderItem.image != null){
+            Glide.with(viewHolder.itemView)
+                .load(sliderItem.image)
+                .fitCenter()
+                .into(viewHolder.imageViewBackground)
+        }else{
+            Glide.with(viewHolder.itemView)
+                .load(sliderItem.imageUrl)
+                .fitCenter()
+                .into(viewHolder.imageViewBackground)
+        }
+
         viewHolder.itemView.setOnClickListener {
             Toast.makeText(
                 context,

@@ -84,7 +84,7 @@ class NavigationDrawer : AppCompatActivity(){
         txtCorreoNav = navHeader.findViewById(R.id.txtEmail_nav)
 
         bbddRest = BBDDApi.service
-        getSessionActual()
+        //getSessionActual()
         getUser2()
         asignarDatosUsuario()
 
