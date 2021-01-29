@@ -148,7 +148,7 @@ class MyProfileFragment(
     private fun asignarDatosUsuario(){
         Glide.with(this)
             .load(this.userApi.foto)
-            .fitCenter()
+            .circleCrop()
             .into(imaProfile)
         txtNameProfile.text = this.userApi.name
         txtNameUserProfile.text = this.userApi.userName
@@ -310,6 +310,7 @@ class MyProfileFragment(
 
                     val data = JSONObject(response.body!!.string())
                     val item = data.getJSONObject("data")
+                    Log.i("imgur", item.getString("link"))
                     actualizarUsuario(item.getString("link"))
 
                 } else {
@@ -324,6 +325,8 @@ class MyProfileFragment(
         val name = txtNameProfile.text.toString()
         val nameUser = txtNameUserProfile.text.toString()
         val pass = Utilities.hashString(txtPassProfile.text.toString())
+
+        Log.i("imgur", "$foto estoy en actualizar")
 
         val newUser = if (passChanged()) {
             UserApi(this.userApi.id, name, nameUser, email, pass, this.userApi.insta, this.userApi.twitter, foto)
@@ -374,7 +377,7 @@ class MyProfileFragment(
         NavigationDrawer.txtCorreoNav.text = newUserApi.email
         Glide.with(this)
             .load(newUserApi.foto)
-            .fitCenter()
+            .circleCrop()
             .into(NavigationDrawer.imaUser_nav)
     }
 

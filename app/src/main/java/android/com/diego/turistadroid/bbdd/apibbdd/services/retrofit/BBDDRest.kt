@@ -111,8 +111,8 @@ interface BBDDRest {
     fun deleteSession(@Query("id") id: String): Call<SessionsDTO>
 
     //Actualiza fecha sesion
-    @PATCH("sessions/{id}")
-    fun updateDateSession(@Path("id") id: String, @Field("fecha") fecha : String): Call<SessionsDTO>
+    @PATCH("sessions/")
+    fun updateDateSession(@Query("id") id: String, @Field("fecha") fecha : String): Call<SessionsDTO>
 
 
     //--VOTES--

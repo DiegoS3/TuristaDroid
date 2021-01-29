@@ -130,6 +130,7 @@ class MyPlaceDetailFragment(
     ): View? {
         // Inflate the layout for this fragment
         val root = inflater.inflate(R.layout.fragment_my_place_detail, container, false)
+        FactoriaSliderView.initSliderView(root, context!!)
         initUI(root)
         return root
     }
@@ -137,7 +138,6 @@ class MyPlaceDetailFragment(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         init()
-        FactoriaSliderView.initSliderView(view, context!!)
     }
 
     //Metodos del fragment
@@ -186,6 +186,7 @@ class MyPlaceDetailFragment(
                     val listaImagenes = ImagesMapper.fromDTO(listaImagenesDTO)
 
                     for (imagen in listaImagenes){
+                        Thread.sleep(100)
                         val sliderItem = SliderImageItem()
                         sliderItem.imageUrl = imagen.url!!
                         FactoriaSliderView.adapterSlider!!.addItem(sliderItem)

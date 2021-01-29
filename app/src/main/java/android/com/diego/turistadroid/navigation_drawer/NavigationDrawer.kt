@@ -177,7 +177,7 @@ class NavigationDrawer : AppCompatActivity(){
         txtCorreoNav.text = userApi.email
         Glide.with(this)
             .load(userApi.foto)
-            .fitCenter()
+            .circleCrop()
             .into(imaUser_nav)
     }
 
