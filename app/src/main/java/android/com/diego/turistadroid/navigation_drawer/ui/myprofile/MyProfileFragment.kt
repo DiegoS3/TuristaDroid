@@ -310,7 +310,7 @@ class MyProfileFragment(
 
                     val data = JSONObject(response.body!!.string())
                     val item = data.getJSONObject("data")
-                    establecerURL(item.getString("link"))
+                    actualizarUsuario(item.getString("link"))
 
                 } else {
                     Toast.makeText(context!!, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
@@ -319,44 +319,35 @@ class MyProfileFragment(
         })
     }
 
-    private fun establecerURL(url : String){
-        this.url = url
-    }
-
-    //Actualizamos el usuario con los datos nuevos en la BD
-    private fun actualizarUsuario(){
-        var imgChanged = false
+    private fun actualizarUsuario(foto : String?){
         val email = txtEmailProfile.text.toString()
         val name = txtNameProfile.text.toString()
         val nameUser = txtNameUserProfile.text.toString()
         val pass = Utilities.hashString(txtPassProfile.text.toString())
+
+        val newUser = if (passChanged()) {
+            UserApi(this.userApi.id, name, nameUser, email, pass, this.userApi.insta, this.userApi.twitter, foto)
+        }else{
+            UserApi(this.userApi.id, name, nameUser, email, this.userApi.pwd, this.userApi.insta, this.userApi.twitter, foto)
+        }
+        val newUserDTO = UserMapper.toDTO(newUser)
+        actualizarUsuarioRemoto(newUserDTO)
+        asignarDatosNavigation(newUser)
+    }
+
+    //Actualizamos el usuario con los datos nuevos en la BD
+    private fun listenerChangedPhoto(){
+
         val imaStr = if (this::FOTO.isInitialized){
             Utilities.bitmapToBase64(this.FOTO)!!
         }else{
             this.userApi.foto
         }
-
         if (!imaStr.equals(this.userApi.foto)){
             uploadImgToImgurAPI(imaStr!!)
-            imgChanged = true
-        }
-
-        val newUser = if (passChanged()) {
-            if (imgChanged){
-                UserApi(this.userApi.id, name, nameUser, email, pass, this.userApi.insta, this.userApi.twitter, this.url)
-            }else{
-                UserApi(this.userApi.id, name, nameUser, email, pass, this.userApi.insta, this.userApi.twitter, imaStr)
-            }
         }else{
-            if (imgChanged){
-                UserApi(this.userApi.id, name, nameUser, email, this.userApi.pwd, this.userApi.insta, this.userApi.twitter, this.url)
-            }else{
-                UserApi(this.userApi.id, name, nameUser, email, this.userApi.pwd, this.userApi.insta, this.userApi.twitter, imaStr)
-            }
+            actualizarUsuario(this.userApi.foto)
         }
-        val newUserDTO = UserMapper.toDTO(newUser)
-        actualizarUsuarioRemoto(newUserDTO)
-        asignarDatosNavigation(newUser)
     }
 
     private fun actualizarUsuarioRemoto(newUserApi: UserDTO){
@@ -414,7 +405,7 @@ class MyProfileFragment(
                     if(response.body()!!.isNotEmpty()){
                         txtEmail.error = getString(R.string.errorEmail)
                     }else{ //en caso contrario no existe y permitimos el registro en la bbdd
-                        actualizarUsuario()
+                        listenerChangedPhoto()
                     }
                 } else {
                     Toast.makeText(context!!, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
@@ -448,7 +439,7 @@ class MyProfileFragment(
                         if (email != userApi.email){ //Si quiere cambiar su email actual
                             uniqueEmail(email) //Si no es que no existe procedemos a comprobar el email
                         }else{
-                            actualizarUsuario()
+                            listenerChangedPhoto()
                         }
                     }
                 } else {
@@ -477,7 +468,7 @@ class MyProfileFragment(
                         uniqueEmail(txtEmailProfile.text.toString())
                     }
                     else -> {
-                        actualizarUsuario()
+                        listenerChangedPhoto()
                     }
                 }
             }else{
