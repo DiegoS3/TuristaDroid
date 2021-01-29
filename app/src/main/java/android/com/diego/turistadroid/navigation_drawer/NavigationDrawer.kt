@@ -22,6 +22,7 @@ import android.com.diego.turistadroid.utilities.Utilities.toast
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraManager
 import android.os.Bundle
@@ -44,6 +45,7 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.BitmapImageViewTarget
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_navigation_drawer.*
@@ -65,6 +67,8 @@ class NavigationDrawer : AppCompatActivity(){
         lateinit var txtNombreNav : TextView
         lateinit var txtCorreoNav : TextView
         lateinit var userApi: UserApi
+        lateinit var contextNav: Context
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -83,6 +87,8 @@ class NavigationDrawer : AppCompatActivity(){
         txtNombreNav = navHeader.findViewById(R.id.txtName_nav)
         txtCorreoNav = navHeader.findViewById(R.id.txtEmail_nav)
 
+        contextNav = this
+
         val navController = findNavController(R.id.nav_host_fragment)
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
@@ -98,6 +104,17 @@ class NavigationDrawer : AppCompatActivity(){
         init(navView)
     }
 
+    fun asignarDatosUsuario(){
+        txtNombreNav.text = userApi.name
+        Log.i("contenido email: ", userApi.email.toString())
+        txtCorreoNav.text = userApi.email
+        Glide.with(this)
+            .asBitmap()
+            .load(userApi.foto)
+            .circleCrop()
+            .into(BitmapImageViewTarget(imaUser_nav))
+    }
+
     private fun init(navigationView: NavigationView){
         bbddRest = BBDDApi.service
         getUser()
@@ -106,6 +123,7 @@ class NavigationDrawer : AppCompatActivity(){
         initPermisos()
         comprobarConexion()
     }
+
 
     /**
      * Obtenemos el usuario que tenemos en la sesión
@@ -171,15 +189,8 @@ class NavigationDrawer : AppCompatActivity(){
         }
     }
 
-    fun asignarDatosUsuario(){
-        //asigno los datos del usuario al navHeader.
-        txtNombreNav.text = userApi.name
-        txtCorreoNav.text = userApi.email
-        Glide.with(this)
-            .load(userApi.foto)
-            .circleCrop()
-            .into(imaUser_nav)
-    }
+
+
 
     private fun linterna(){
         val permission = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)

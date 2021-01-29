@@ -2,6 +2,7 @@ package android.com.diego.turistadroid.navigation_drawer.ui.myprofile
 
 import android.Manifest.permission.CAMERA
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserDTO
@@ -14,6 +15,7 @@ import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.utilities.Fotos
 import android.com.diego.turistadroid.utilities.Utilities
 import android.com.diego.turistadroid.utilities.Utilities.toast
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -32,10 +34,13 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.net.toFile
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.BitmapImageViewTarget
+import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.activity_sign_up.*
 import kotlinx.android.synthetic.main.fragment_gallery.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
@@ -77,6 +82,7 @@ class MyProfileFragment(
 
     private lateinit var clientImgur: OkHttpClient
     private lateinit var bbddRest: BBDDRest
+
 
 
 
@@ -335,7 +341,30 @@ class MyProfileFragment(
         }
         val newUserDTO = UserMapper.toDTO(newUser)
         actualizarUsuarioRemoto(newUserDTO)
-        asignarDatosNavigation(newUser)
+        (activity?.application as MyApplication).USUARIO_API = newUser
+        asignarDatosUsuario(newUser)
+    }
+
+    private fun asignarDatosUsuario(newUserApi: UserApi){
+
+        Thread {
+            try {
+                Thread.sleep(100)
+
+            } catch (e: InterruptedException) {
+            }
+            activity!!.runOnUiThread {
+                NavigationDrawer.txtNombreNav.text = newUserApi.name
+                NavigationDrawer.txtCorreoNav.text = newUserApi.email
+                Glide.with(context!!)
+                    .asBitmap()
+                    .load(newUserApi.foto)
+                    .circleCrop()
+                    .into(BitmapImageViewTarget(NavigationDrawer.imaUser_nav))
+            }
+        }.start()
+
+
     }
 
     //Actualizamos el usuario con los datos nuevos en la BD
@@ -372,13 +401,16 @@ class MyProfileFragment(
     }
 
     //Modificamos los datos del navigation drawer
-    private fun asignarDatosNavigation(newUserApi: UserApi){
+    private fun asignarDatosNavigation1(newUserApi: UserApi){
         NavigationDrawer.txtNombreNav.text = newUserApi.name
+        Log.i("navi","cambiado nombre" )
         NavigationDrawer.txtCorreoNav.text = newUserApi.email
-        Glide.with(this)
+        Log.i("navi","cambiado email" )
+        Glide.with(context!!)
             .load(newUserApi.foto)
             .circleCrop()
             .into(NavigationDrawer.imaUser_nav)
+        Log.i("navi","cambiada foto" )
     }
 
     //Devuelve true si la pass ha sido modificada
