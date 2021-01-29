@@ -41,9 +41,7 @@ import retrofit2.Callback
 import retrofit2.Response
 
 
-class MyPlacesFragment(
-
-) : Fragment() {
+class MyPlacesFragment : Fragment() {
 
     // Mis variables
     private var places = mutableListOf<Places>() // Lista
@@ -56,7 +54,6 @@ class MyPlacesFragment(
 
     // Interfaz gráfica
     private lateinit var adapter: MyPlacesViewModel //Adaptador de Recycler
-    private lateinit var tarea: TareaCargarDatos // Tarea en segundo plano
     private var paintSweep = Paint()
 
     //Modos ordenacion
@@ -92,20 +89,21 @@ class MyPlacesFragment(
         initUI()
     }
 
-    override fun onResume() {
+    /*override fun onResume() {
         super.onResume()
         cargarDatos()
-    }
+    }*/
 
     private fun initUI() {
 
         bbddRest = BBDDApi.service
         initFloatingButtons()
         iniciarSwipeRecarga()
+        //cargarDatos()
+        getDatosFromBD()
         iniciarSwipeHorizontal()
         // Mostramos las vistas de listas y adaptador asociado
         placeRecycler_MyPlaces.layoutManager = LinearLayoutManager(context)
-        cargarDatos()
         orderSites()
     }
 
@@ -114,9 +112,10 @@ class MyPlacesFragment(
      */
     private fun iniciarSwipeRecarga() {
         placeSwipe_MyPlaces.setColorSchemeResources(R.color.colorPrimaryDark)
-        //datosSwipe.setProgressBackgroundColorSchemeResource(R.color.design_default_color_primary)
+        placeSwipe_MyPlaces.setProgressBackgroundColorSchemeResource(R.color.colorDialog)
         placeSwipe_MyPlaces.setOnRefreshListener {
-            cargarDatos()
+            //cargarDatos()
+            getDatosFromBD()
         }
     }
 
@@ -255,9 +254,9 @@ class MyPlacesFragment(
         //Acciones
         val deletedModel: Places = places[pos]
         adapter.deleteItem(pos)
+        adapter.notifyDataSetChanged()
         //Lo borramos
         deletePlaceBD(deletedModel)
-        adapter.notifyDataSetChanged()
     }
 
     //Actualizamos el adaptor
@@ -279,7 +278,8 @@ class MyPlacesFragment(
 
     //Dialog para que confirme el si quiere eliminar el lugar
     private fun abrirOpciones(pos: Int) {
-        cargarDatos()
+        //cargarDatos()
+        getDatosFromBD()
         val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_confirm_delete_item, null)
         val mBuilder = AlertDialog.Builder(context!!)
             .setView(mDialogView).create()
@@ -296,7 +296,6 @@ class MyPlacesFragment(
         mDialogView.txtCancel.setOnClickListener {
             mBuilder.dismiss()
         }
-
     }
 
     /**
@@ -624,15 +623,8 @@ class MyPlacesFragment(
         }
     }
 
-    /**
-     * Carga las datos
-     */
-    private fun cargarDatos() {
-        tarea = TareaCargarDatos()
-        tarea.execute()
-    }
-
-    fun getDatosFromBD() {
+    private fun getDatosFromBD() {
+        placeSwipe_MyPlaces.isRefreshing = true
         // Seleccionamos los lugares
         val call = bbddRest.selectPlaceByIdUser(userApi.id!!)
 
@@ -640,8 +632,9 @@ class MyPlacesFragment(
             override fun onResponse(call: Call<List<PlacesDTO>>, response: Response<List<PlacesDTO>>) {
 
                 if (response.isSuccessful){
-                    val listaLugaresDTO = response.body()!!
+                    val listaLugaresDTO = response.body()!! as MutableList<PlacesDTO>
                     places = PlacesMapper.fromDTO(listaLugaresDTO) as MutableList<Places>
+                    cargarLugares()
 
                 }else{
                     Toast.makeText(context, getString(R.string.errorLogin), Toast.LENGTH_SHORT).show()
@@ -656,55 +649,25 @@ class MyPlacesFragment(
     }
 
     /**
+     * cargamos los lugares y notificamos 
+     */
+    private fun cargarLugares() {
+        adapter = MyPlacesViewModel(places) {
+            eventoClicFila(it)
+        }
+        placeRecycler_MyPlaces.adapter = adapter
+        // Avismos que ha cambiado
+        adapter.notifyDataSetChanged()
+        placeRecycler_MyPlaces.setHasFixedSize(true)
+        placeSwipe_MyPlaces.isRefreshing = false
+    }
+
+    /**
      * Evento click asociado a una fila
-     * @param place Place
+     * @param place Places
      */
     private fun eventoClicFila(place: Places) {
         initDetailsPlaceFragment(false, place, null, false)
     }
 
-    inner class TareaCargarDatos : AsyncTask<String?, Void?, Void?>() {
-        /**
-         * Acciones antes de ejecutarse
-         */
-        override fun onPreExecute() {
-            if (placeSwipe_MyPlaces.isRefreshing) {
-                placeSwipe_MyPlaces.isRefreshing = false
-            }
-        }
-
-        override fun doInBackground(vararg p0: String?): Void? {
-            Log.d("Datos", "Entrado en doInBackgroud")
-            try {
-                getDatosFromBD()
-                Log.d("Datos", "Datos pre tamaño: " + places.size.toString())
-            } catch (e: Exception) {
-                Log.e("T2Plano ", e.message.toString())
-            }
-            Log.d("Datos", "onDoInBackgroud OK")
-            return null
-        }
-
-        /**
-         * Procedimiento a realizar al terminar
-         * Cargamos la lista
-         *
-         * @param args
-         */
-        override fun onPostExecute(args: Void?) {
-            Log.d("Datos", "entrando en onPostExecute")
-            adapter = MyPlacesViewModel(places) {
-                eventoClicFila(it)
-                place = it
-            }
-
-            placeRecycler_MyPlaces.adapter = adapter
-            // Avismos que ha cambiado
-            adapter.notifyDataSetChanged()
-            placeRecycler_MyPlaces.setHasFixedSize(true)
-            placeSwipe_MyPlaces.isRefreshing = false
-            Log.d("Datos", "onPostExecute OK")
-            Log.d("Datos", "Datos post tam: " + places.size.toString())
-        }
-    }
 }
