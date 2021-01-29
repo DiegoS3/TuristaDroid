@@ -33,7 +33,6 @@ class LogInActivity : AppCompatActivity() {
     //mis variables
     private var userSave = ""
     private var pwdSave = ""
-    private lateinit var sesion: Sessions
     private lateinit var bbddRest: BBDDRest
 
     companion object {
@@ -52,23 +51,8 @@ class LogInActivity : AppCompatActivity() {
 
     private fun init(){
         bbddRest = BBDDApi.service
-        //comprobarSesion()
         clickBtn()
         clickRegister()
-    }
-
-    /**
-     * Comprobamos si existe una sesión al entrar
-     * en el login, en caso positivo la eliminamos
-     */
-    private fun comprobarSesion(){
-        val sessionLocal = UtilSessions.getLocal(applicationContext)
-        //Si existe una sesion guardada en local
-        if (sessionLocal != null){
-            val idSession = sessionLocal.id!!
-            UtilSessions.eliminarSesionLocal(applicationContext)
-            UtilSessions.eliminarSesionRemota(idSession, bbddRest, this)
-        }
     }
 
     /**
@@ -97,9 +81,6 @@ class LogInActivity : AppCompatActivity() {
                             val id = user.id
                             (application as MyApplication).USUARIO_API = user
                             insertarSession(id)
-                            initNavigation()
-                            Toast.makeText(applicationContext, "exito", Toast.LENGTH_SHORT)
-                                .show()
                         }else{
                             txtPwd_Login.error = getString(R.string.errorLoginPWD)
                         }
@@ -109,13 +90,13 @@ class LogInActivity : AppCompatActivity() {
                     }
                 } else {
 
-                    Toast.makeText(applicationContext, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
+                    Toast.makeText(applicationContext, getString(R.string.errorLogin), Toast.LENGTH_SHORT)
                         .show()
                 }
             }
             //Si error
             override fun onFailure(call: Call<List<UserDTO>>, t: Throwable) {
-                Toast.makeText(applicationContext, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
+                Toast.makeText(applicationContext, getString(R.string.errorService), Toast.LENGTH_SHORT)
                     .show()
             }
         }))
@@ -190,14 +171,14 @@ class LogInActivity : AppCompatActivity() {
             override fun onResponse(call: Call<SessionsDTO>, response: Response<SessionsDTO>) {
 
                 if (response.isSuccessful){
-                    UtilSessions.crearSesion(session, currentDate, applicationContext)
+                    UtilSessions.crearSesionLocal(session, currentDate, applicationContext)
+                    initNavigation()
                 }else{
-                    Toast.makeText(applicationContext, getString(R.string.errorLogin), Toast.LENGTH_SHORT)
-                        .show()
+                    Log.i("sesion", "Error al crear la sesion en el login")
                 }
             }
             override fun onFailure(call: Call<SessionsDTO>, t: Throwable) {
-                Toast.makeText(applicationContext, getString(R.string.errorLogin), Toast.LENGTH_SHORT)
+                Toast.makeText(applicationContext, getString(R.string.errorService), Toast.LENGTH_SHORT)
                     .show()
             }
         })

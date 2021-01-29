@@ -83,12 +83,6 @@ class NavigationDrawer : AppCompatActivity(){
         txtNombreNav = navHeader.findViewById(R.id.txtName_nav)
         txtCorreoNav = navHeader.findViewById(R.id.txtEmail_nav)
 
-        bbddRest = BBDDApi.service
-        //getSessionActual()
-        getUser2()
-        asignarDatosUsuario()
-
-
         val navController = findNavController(R.id.nav_host_fragment)
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
@@ -101,27 +95,16 @@ class NavigationDrawer : AppCompatActivity(){
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        navigationListener(navView)
-        init()
+        init(navView)
     }
 
-    private fun init(){
+    private fun init(navigationView: NavigationView){
+        bbddRest = BBDDApi.service
+        getUser()
+        asignarDatosUsuario()
+        navigationListener(navigationView)
         initPermisos()
         comprobarConexion()
-
-    }
-
-
-    /**
-     * Obtenemos la sesion que tenemos
-     * almacenada en local
-     */
-    private fun getSessionActual(){
-        sessions = UtilSessions.getLocal(this)!!
-    }
-
-    private fun getUser2(){
-        userApi = (application as MyApplication).USUARIO_API
     }
 
     /**
@@ -129,36 +112,7 @@ class NavigationDrawer : AppCompatActivity(){
      * almacenada en local
      */
     private fun getUser(){
-        Log.i("getUser: ", "esta en getUser()")
-        val idUser = sessions.idUser!!
-        Log.i("idUser: ", sessions.idUser!!)
-        val call = bbddRest.selectUserById(idUser)
-        Log.i("call", call.toString())
-        call.enqueue(object : Callback<UserDTO> {
-            override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
-
-                if (response.isSuccessful){
-                    val user = UserMapper.fromDTO(response.body() as UserDTO)
-                    Log.i("userApi: ", user.id!!)
-                    setUserApi(user)
-
-                }else{
-                    Log.i("userApi: ", "nop")
-                    Toast.makeText(applicationContext, getString(R.string.errorLogin), Toast.LENGTH_SHORT)
-                        .show()
-                }
-            }
-            override fun onFailure(call: Call<UserDTO>, t: Throwable) {
-                Log.i("userApi: ", "nop")
-                Toast.makeText(applicationContext, getString(R.string.errorLogin), Toast.LENGTH_SHORT)
-                    .show()
-            }
-        })
-    }
-
-    private fun setUserApi(user: UserApi){
-        userApi = user
-        Log.i("userApiSeter: ", userApi.id!!)
+        userApi = (application as MyApplication).USUARIO_API
     }
 
     /**
@@ -239,7 +193,6 @@ class NavigationDrawer : AppCompatActivity(){
             openFlashLight()
         }
     }
-
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -365,6 +318,7 @@ class NavigationDrawer : AppCompatActivity(){
 
     //Salir al login
     private fun ejecutarExit(){
+        comprobarSesion()
         val intent = Intent (this, LogInActivity::class.java)
         startActivity(intent)
     }
@@ -411,6 +365,34 @@ class NavigationDrawer : AppCompatActivity(){
             }
         }else{
             Toast.makeText(this, getString(R.string.noFlashLight), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /**
+     * Quitamos fragment apilados, y si no hay salimos
+     */
+    override fun onBackPressed() {
+        try {
+            if (supportFragmentManager.backStackEntryCount > 0)
+                supportFragmentManager.popBackStackImmediate()
+            else
+                ejecutarExit()
+        } catch (ex: Exception) {
+            ejecutarExit()
+        }
+    }
+
+    /**
+     * Comprobamos si existe una sesión al entrar
+     * en el login, en caso positivo la eliminamos
+     */
+    private fun comprobarSesion(){
+        val sessionLocal = UtilSessions.getLocal(applicationContext)
+        //Si existe una sesion guardada en local
+        if (sessionLocal != null){
+            val idSession = sessionLocal.id!!
+            UtilSessions.eliminarSesionLocal(applicationContext)
+            UtilSessions.eliminarSesionRemota(idSession, bbddRest, this)
         }
     }
 }

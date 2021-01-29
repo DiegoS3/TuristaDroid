@@ -33,7 +33,7 @@ object UtilSessions {
      * @param session Sessions sesion actual del usuario
      * @param fecha String fecha actual
      */
-    fun crearSesion(session: Sessions, fecha : String, context: Context) {
+    fun crearSesionLocal(session: Sessions, fecha : String, context: Context) {
         // Abrimos las preferemcias en modo escritura
         val prefs = context.getSharedPreferences("TuristDroid", Context.MODE_PRIVATE)
         val editor = prefs.edit()

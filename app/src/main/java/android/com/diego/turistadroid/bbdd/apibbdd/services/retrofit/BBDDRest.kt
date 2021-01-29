@@ -107,8 +107,8 @@ interface BBDDRest {
     fun insertSession(@Body session: SessionsDTO): Call<SessionsDTO>
 
     // Eliminar una session por el id de un usuario
-    @DELETE("sessions/{id}")
-    fun deleteSession(@Path("id") id: String): Call<SessionsDTO>
+    @DELETE("sessions/")
+    fun deleteSession(@Query("id") id: String): Call<SessionsDTO>
 
     //Actualiza fecha sesion
     @PATCH("sessions/{id}")

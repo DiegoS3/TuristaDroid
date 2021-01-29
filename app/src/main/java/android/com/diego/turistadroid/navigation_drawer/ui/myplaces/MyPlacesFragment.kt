@@ -590,13 +590,17 @@ class MyPlacesFragment(
                 btnSortDatePlace.setImageResource(R.drawable.ic_short_date_desc_btn)
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_date_asc_btn)
                 this.places.sortWith { lugar1: Places, lugar2: Places ->
-                    lugar1.fecha!!.compareTo(lugar2.fecha!!) }
+                    val fecha1 = Utilities.stringToDate(lugar1.fecha!!)
+                    val fecha2 = Utilities.stringToDate(lugar2.fecha!!)
+                    fecha1!!.compareTo(fecha2!!) }
                 false
             }else{
                 btnSortDatePlace.setImageResource(R.drawable.ic_short_date_asc_btn)
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_date_desc_btn)
                 this.places.sortWith { lugar1: Places, lugar2: Places ->
-                    lugar2.fecha!!.compareTo(lugar1.fecha!!) }
+                    val fecha1 = Utilities.stringToDate(lugar1.fecha!!)
+                    val fecha2 = Utilities.stringToDate(lugar2.fecha!!)
+                    fecha2!!.compareTo(fecha1!!) }
                 true
             }
             adapter.notifyDataSetChanged()
@@ -636,14 +640,12 @@ class MyPlacesFragment(
             override fun onResponse(call: Call<List<PlacesDTO>>, response: Response<List<PlacesDTO>>) {
 
                 if (response.isSuccessful){
-
                     val listaLugaresDTO = response.body()!!
                     places = PlacesMapper.fromDTO(listaLugaresDTO) as MutableList<Places>
 
                 }else{
                     Toast.makeText(context, getString(R.string.errorLogin), Toast.LENGTH_SHORT).show()
                 }
-
             }
 
             override fun onFailure(call: Call<List<PlacesDTO>>, t: Throwable) {
