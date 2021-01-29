@@ -72,14 +72,15 @@
                            android:layout_height="wrap_content"
                            app:srcCompat="@drawable/ima_star"
                            android:id="@+id/imgStar_Place"
-                           app:tint="@color/colorPrimary"/>
+                           app:tint="@color/colorPrimary"
+                           android:clickable="true"/>
                    <TextView
                            android:text="144"
                            android:layout_width="wrap_content"
                            android:layout_height="wrap_content"
-                           android:layout_marginStart="10dp"
+                           android:layout_marginStart="5dp"
                            android:id="@+id/txtMark_Place"
-                           android:textSize="20sp"
+                           android:textSize="16sp"
                            android:fontFamily="@font/roboto_bold"
                            android:textColor="@color/colorBackground"/>
 

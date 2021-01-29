@@ -1,13 +1,19 @@
 package android.com.diego.turistadroid.navigation_drawer.ui.myplaces
 
+import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesDTO
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.Places
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.votes.Votes
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.votes.VotesDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.votes.VotesMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.utilities.Utilities
 import android.com.diego.turistadroid.utilities.UtilsREST
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,6 +35,7 @@ class MyPlacesViewModel (
 ) : RecyclerView.Adapter<MyPlacesViewModel.PlaceViewHolder>(){
 
     private val context = MyPlacesFragment.myContext
+    private val idUser = MyPlacesFragment.idUser
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlaceViewHolder {
 
@@ -125,12 +132,74 @@ class MyPlacesViewModel (
         holder.txtTitleItemPlace.text = item.name
         holder.txtCityItemPlace.text = item.city
         holder.txtDateItemPlace.text = fecha
-        UtilsREST.getVotos(item.id, holder.txtMarkItemPlace, context)
-
+        holder.txtMarkItemPlace.text = item.votos
         holder.itemView
             .setOnClickListener {
                 listener(listPlaces[position])
             }
+        holder.btnFavPlace.setOnClickListener {
+            doFavPlace(position)
+            //holder.btnFavPlace.drawable.setTintList(null)
+        }
+    }
+
+    private fun doFavPlace(position: Int) {
+        Log.i("votos","votado")
+        var votos : Int = listPlaces[position].votos!!.toInt()
+        val bbddRest = BBDDApi.service
+        val id = listPlaces[position].id!!
+        val call = bbddRest.selectVotesById(id)
+        call.enqueue(object : Callback<VotesDTO>{
+            override fun onResponse(call: Call<VotesDTO>, response: Response<VotesDTO>) {
+                if (response.isSuccessful){
+                    Log.i("votos","antes de response.body")
+                    val voteDTO = response.body()!!
+                    val vote = VotesMapper.fromDTO(voteDTO)
+                    actualizarVoto(vote, id)
+                    Log.i("votos",vote.id!!)
+                    votos++
+                    Log.i("votos",votos.toString())
+                    actualizarPlace(listPlaces[position], votos)
+                }else{
+                    Log.i("votos","fallo")
+                }
+            }
+
+            override fun onFailure(call: Call<VotesDTO>, t: Throwable) {
+                Log.i("votos","failure")
+            }
+
+        })
+
+
+    }
+
+    private fun actualizarPlace(places: Places, votos: Int) {
+        val bbddRest = BBDDApi.service
+        val call = bbddRest.updateVotesPlace(places.id!!, votos.toString())
+        call.enqueue(object : Callback<PlacesDTO>{
+            override fun onResponse(call: Call<PlacesDTO>, response: Response<PlacesDTO>) {
+
+            }
+            override fun onFailure(call: Call<PlacesDTO>, t: Throwable) {
+
+            }
+        })
+    }
+
+    private fun actualizarVoto(vote: Votes, idPlace: String){
+        val bbddRest = BBDDApi.service
+        val list = vote.votesUsers
+        list!!.add((idUser))
+        val call = bbddRest.updateVotes(idPlace, list)
+        call.enqueue(object : Callback<VotesDTO>{
+            override fun onResponse(call: Call<VotesDTO>, response: Response<VotesDTO>) {
+
+            }
+            override fun onFailure(call: Call<VotesDTO>, t: Throwable) {
+
+            }
+        })
     }
 
     override fun getItemCount(): Int {
@@ -146,6 +215,7 @@ class MyPlacesViewModel (
         var txtCityItemPlace = itemView.txtCityPlace_Place!!
         var txtDateItemPlace = itemView.txtDatePlace_Place!!
         var txtMarkItemPlace = itemView.txtMark_Place!!
+        var btnFavPlace = itemView.imgStar_Place!!
     }
 
 }

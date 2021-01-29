@@ -4,6 +4,6 @@ import java.io.Serializable
 import java.util.*
 
 data class Votes(
-    val idPlace : String?,
-    val votesUsers: LinkedList<String>?
+    val id : String?,
+    val votesUsers: MutableList<String>?
 ):Serializable

@@ -119,20 +119,24 @@ interface BBDDRest {
 
 
     // Obtener un tipo voto
-    @GET("sessions/{idPlace}")
-    fun selectVotesById(@Path("idPlace") idPlace: String): Call<VotesDTO>
+    @GET("votes/")
+    fun selectVotesById(@Query("id") id: String): Call<VotesDTO>
 
     // Insertar un voto segun el id del Lugar y el id del usuario que vota
     @POST("votes/")
     fun insertVote(@Body vote: VotesDTO): Call<VotesDTO>
 
     // Actualizar votos del lugar
-    @PUT("votes/{idPlace}")
-    fun updateVote(@Path("idPlace") idPlace: String, @Body vote: VotesDTO): Call<VotesDTO>
+    @PUT("votes/{id}")
+    fun updateVote(@Path("id") id: String, @Body vote: VotesDTO): Call<VotesDTO>
+
+    // Actualizar votos del lugar
+    @PATCH("votes/{id}")
+    fun updateVotes(@Path("id") id: String, @Field("votesUsers") vote: MutableList<String>): Call<VotesDTO>
 
     // Eliminar la entrada en al que se guardan los votos del lugar, tras eliminar un lugar
-    @DELETE("sessions/{idPlace}")
-    fun deleteVotesFromPlace(@Path("idPlace") idPlace: String): Call<VotesDTO>
+    @DELETE("sessions/{id}")
+    fun deleteVotesFromPlace(@Path("id") id: String): Call<VotesDTO>
 
 
 }

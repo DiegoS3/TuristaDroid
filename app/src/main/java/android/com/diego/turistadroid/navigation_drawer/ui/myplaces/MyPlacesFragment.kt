@@ -66,6 +66,7 @@ class MyPlacesFragment : Fragment() {
     companion object{
 
         lateinit var myContext: Context
+        lateinit var idUser: String
 
     }
 
@@ -80,6 +81,7 @@ class MyPlacesFragment : Fragment() {
         root = inflater.inflate(R.layout.fragment_myplaces, container, false)
         myContext = context!!
         userApi = (activity?.application as MyApplication).USUARIO_API
+        idUser = userApi.id!!
         return root
     }
 

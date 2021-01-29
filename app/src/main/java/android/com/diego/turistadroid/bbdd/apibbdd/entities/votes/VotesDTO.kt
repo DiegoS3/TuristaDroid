@@ -4,6 +4,6 @@ import com.google.gson.annotations.SerializedName
 import java.util.*
 
 class VotesDTO(
-    @SerializedName("idPlace") val idPlace : String,
-    @SerializedName("votesUsers") val votesUsers : LinkedList<String>
+    @SerializedName("id") val id : String,
+    @SerializedName("votesUsers") val votesUsers : MutableList<String>
 )
