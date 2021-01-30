@@ -1,18 +1,14 @@
 package android.com.diego.turistadroid.navigation_drawer.ui.myplaces
 
-import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesDTO
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.Places
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.votes.Votes
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.votes.VotesDTO
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.votes.VotesMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
-import android.com.diego.turistadroid.utilities.Utilities
-import android.com.diego.turistadroid.utilities.UtilsREST
-import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -132,72 +128,62 @@ class MyPlacesViewModel (
         holder.txtTitleItemPlace.text = item.name
         holder.txtCityItemPlace.text = item.city
         holder.txtDateItemPlace.text = fecha
-        holder.txtMarkItemPlace.text = item.votos
+        holder.txtMarkItemPlace.text = item.votos!!.size.toString()
+
+        if (yaVotado(listPlaces[position])){
+            holder.btnFavPlace.drawable.setTint(R.color.colorPrimary)
+        }else{
+            holder.btnFavPlace.drawable.setTintList(null)
+        }
+
         holder.itemView
             .setOnClickListener {
                 listener(listPlaces[position])
             }
         holder.btnFavPlace.setOnClickListener {
             doFavPlace(position, holder)
-            //holder.btnFavPlace.drawable.setTintList(null)
         }
     }
 
     private fun doFavPlace(position: Int, holder: PlaceViewHolder) {
         Log.i("votos","votado")
-        var votos : Int = listPlaces[position].votos!!.toInt()
-        //val bbddRest = BBDDApi.service
+        actualizarPlace(listPlaces[position], holder)
+        val votos : Int = listPlaces[position].votos!!.size
         val id = listPlaces[position].id!!
-        //val call = bbddRest.selectVotesById(id)
-        UtilsREST.getVotos(id,holder.txtMarkItemPlace,context)
-        /*call.enqueue(object : Callback<List<VotesDTO>>{
-            override fun onResponse(call: Call<List<VotesDTO>>, response: Response<List<VotesDTO>>) {
-                if (response.isSuccessful){
-                    Log.i("votos","antes de response.body")
-                    val voteDTO = response.body()!! as MutableList<VotesDTO>
-                    val vote = VotesMapper.fromDTO(voteDTO[0])
-                    actualizarVoto(vote, id)
-                    Log.i("votos",vote.id!!)
-                    votos++
-                    Log.i("votos",votos.toString())
-                    actualizarPlace(listPlaces[position], votos)
-                }else{
-                    Log.i("votos","fallo" + response.errorBody())
-                }
-            }
-
-            override fun onFailure(call: Call<List<VotesDTO>>, t: Throwable) {
-                Log.i("votos","failure "+ t.localizedMessage )
-            }
-
-        })*/
-
-
+        holder.txtMarkItemPlace.text = votos.toString()
     }
 
-    private fun actualizarPlace(places: Places, votos: Int) {
+    private fun yaVotado(places: Places): Boolean {
+        var votado = false
+        for (id in places.votos!!){
+            if (id == idUser){
+                votado = true
+            }
+        }
+        return votado
+    }
+
+    private fun actualizarPlace(place: Places, holder: PlaceViewHolder) {
+
         val bbddRest = BBDDApi.service
-        val call = bbddRest.updateVotesPlace(places.id!!, votos.toString())
+        var listaVotos: MutableList<String>
+        if (yaVotado(place)){
+            place.votos!!.remove(idUser)
+            listaVotos = place.votos
+            holder.btnFavPlace.drawable.setTint(R.color.colorPrimary)
+        }else{
+            place.votos!!.add(idUser)
+            listaVotos = place.votos
+            holder.btnFavPlace.drawable.setTintList(null)
+        }
+        //val newPlace = Places(place.id, place.idUser, place.name, place.fecha, place.latitude, place.longitude, place.votos, place.city)
+        //val call = bbddRest.updatePlace(place.id!!, PlacesMapper.toDTO(newPlace))
+        val call = bbddRest.updateVotesPlace(place.id!!, listaVotos)
         call.enqueue(object : Callback<PlacesDTO>{
             override fun onResponse(call: Call<PlacesDTO>, response: Response<PlacesDTO>) {
 
             }
             override fun onFailure(call: Call<PlacesDTO>, t: Throwable) {
-
-            }
-        })
-    }
-
-    private fun actualizarVoto(vote: Votes, idPlace: String){
-        val bbddRest = BBDDApi.service
-        val list = vote.votesUsers
-        list!!.add((idUser))
-        val call = bbddRest.updateVotes(idPlace, list)
-        call.enqueue(object : Callback<VotesDTO>{
-            override fun onResponse(call: Call<VotesDTO>, response: Response<VotesDTO>) {
-
-            }
-            override fun onFailure(call: Call<VotesDTO>, t: Throwable) {
 
             }
         })

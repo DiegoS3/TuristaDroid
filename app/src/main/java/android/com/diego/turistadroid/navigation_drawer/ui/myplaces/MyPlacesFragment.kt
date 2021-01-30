@@ -612,13 +612,13 @@ class MyPlacesFragment : Fragment() {
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_mark_asc_btn)
                 btnSortMarkPlace.setImageResource(R.drawable.ic_short_mark_desc_btn)
                 this.places.sortWith { lugar1: Places, lugar2: Places ->
-                    lugar2.votos!!.compareTo(lugar1.votos!!) }
+                    lugar2.votos!!.size.compareTo(lugar1.votos!!.size) }
                 false
             }else{
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_mark_asc_btn)
                 btnSortMarkPlace.setImageResource(R.drawable.ic_short_mark_desc_btn)
                 this.places.sortWith { lugar1: Places, lugar2: Places ->
-                    lugar1.votos!!.compareTo(lugar2.votos!!) }
+                    lugar1.votos!!.size.compareTo(lugar2.votos!!.size) }
                 true
             }
             adapter.notifyDataSetChanged()

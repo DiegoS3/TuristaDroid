@@ -35,6 +35,7 @@ import android.location.Geocoder
 import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
+import android.text.Editable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -49,6 +50,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import com.google.android.gms.maps.model.LatLng
 import io.realm.RealmList
+import kotlinx.android.synthetic.main.activity_sign_up.*
 import kotlinx.android.synthetic.main.fragment_newplace.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
 import okhttp3.MediaType
@@ -83,6 +85,12 @@ class NewPlaceFragment(
     private val CAMARA = 2
     private var foto: Uri? = null
 
+    //Variables de OnSave/OnRestore
+    private var namePlace = ""
+    private var listaImg = arrayListOf<String>()
+
+
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -92,6 +100,7 @@ class NewPlaceFragment(
 
         FactoriaSliderView.initSliderView(root, activity!!)//Iniciamos el Slider de las Imagenes
 
+
         txtUbication = root.findViewById(R.id.txtUbicationPlace_NewPlace)
         btnAddImage = root.findViewById(R.id.btnAddImage_NewPlace)
 
@@ -100,9 +109,9 @@ class NewPlaceFragment(
         return root
     }
 
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         init()
         if (MapsFragment.maps){
             this.location = MapsFragment.location
@@ -210,9 +219,10 @@ class NewPlaceFragment(
                     val namePlace = txtNamePlace_NewPlace.text.toString()
                     idLugar = UUID.randomUUID().toString()
                     val city = txtUbication.text.toString()
-                    val place = Places(idLugar, userApi.id, namePlace, currentDate, location.latitude.toString(), location.longitude.toString(), "0", city)
+                    val listaVotos = mutableListOf<String>()
+                    val place = Places(idLugar, userApi.id, namePlace, currentDate, location.latitude.toString(), location.longitude.toString(), listaVotos, city)
                     insertNewPlace(place)
-                    insertPlaceVotes(idLugar)
+                    //insertPlaceVotes(idLugar)
                     if (bases64.size > 0){
                         recorrerListBase64()
                     }
@@ -225,28 +235,6 @@ class NewPlaceFragment(
 
             }
         }
-    }
-
-    private fun insertPlaceVotes(idLugar: String) {
-        val listaVotos = LinkedList<String>()
-        val vote = Votes(idLugar, listaVotos)
-        val dto = VotesMapper.toDTO(vote)
-        val call = bbddRest.insertVote(dto)
-
-        call.enqueue(object : Callback<VotesDTO> {
-            override fun onResponse(call: Call<VotesDTO>, response: Response<VotesDTO>) {
-                // Si la respuesta es correcta
-                if (response.isSuccessful) {
-                    Log.i("vote", "voto creado")
-
-                } else {
-                    Log.i("vote", "error crear voto")
-                }
-            }
-            override fun onFailure(call: Call<VotesDTO>, t: Throwable) {
-                context!!.toast(R.string.errorService)
-            }
-        })
     }
 
     //Insertamos un nuevo lugar en la BD de la API
@@ -403,6 +391,29 @@ class NewPlaceFragment(
         }
     }
 
+    // Para salvar el estado por ejemplo es usando un Bundle en el ciclo de vida
+    override fun onSaveInstanceState(outState: Bundle) {
+        // Salvamos en un bundle estas variables o estados de la interfaz
+        outState.run {
+            // Actualizamos los datos o los recogemos de la interfaz
+            putString("NAME", namePlace)
+            putStringArrayList("IMAGENES", listaImg)
+        }
+        // Siempre se llama a la superclase para salvar las cosas
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        // Recuperamos del Bundle
+        savedInstanceState?.run {
+            namePlace = getString("NAME").toString()
+            listaImg = getStringArrayList("IMAGENES")!!
+
+        }
+    }
+
+
     private fun cargarCiudad(latitude: Double, longiude : Double){
 
         tarea = CityAsyncTask(latitude, longiude)
@@ -438,4 +449,6 @@ class NewPlaceFragment(
             return result
         }
     }
+
+
 }

@@ -18,8 +18,10 @@ interface BBDDRest {
     fun selectAllUsers(): Call<List<UserDTO>>
 
     // Obtener un usuario por id
-    @GET("users/")
-    fun selectUserById(@Query("id") id: String): Call<UserDTO>
+    @GET("users/{id}")
+    fun selectUserById(@Path("id") id: String): Call<UserDTO>
+    // Obtener un usuario por id
+
 
     // Obtener un usuario por email
     @GET("users/")
@@ -71,12 +73,13 @@ interface BBDDRest {
     fun deletePlace(@Path("id") id: String): Call<PlacesDTO>
 
     // Actualizar un lugar
-    @PUT("places/{id}")
-    fun updatePlace(@Path("id") id: String, @Body place: PlacesDTO): Call<PlacesDTO>
+    @PUT("places/")
+    fun updatePlace(@Query("id") id: String, @Body place: PlacesDTO): Call<PlacesDTO>
 
     //Actualizar votos de un lugar
+    @FormUrlEncoded
     @PATCH("places/{id}")
-    fun updateVotesPlace(@Path("id") id: String, @Field("votos") votos : String): Call<PlacesDTO>
+    fun updateVotesPlace(@Path("id") id: String, @Field("votos") votos : MutableList<String>): Call<PlacesDTO>
 
 
     //--IMAGES--
@@ -107,36 +110,12 @@ interface BBDDRest {
     fun insertSession(@Body session: SessionsDTO): Call<SessionsDTO>
 
     // Eliminar una session por el id de un usuario
-    @DELETE("sessions/")
-    fun deleteSession(@Query("id") id: String): Call<SessionsDTO>
+    @DELETE("sessions/{id}")
+    fun deleteSession(@Path("id") id: String): Call<SessionsDTO>
 
     //Actualiza fecha sesion
-    @PATCH("sessions/")
-    fun updateDateSession(@Query("id") id: String, @Field("fecha") fecha : String): Call<SessionsDTO>
-
-
-    //--VOTES--
-
-
-    // Obtener un tipo voto
-    @GET("votes/")
-    fun selectVotesById(@Query("id") id: String): Call<VotesDTO>
-
-    // Insertar un voto segun el id del Lugar y el id del usuario que vota
-    @POST("votes/")
-    fun insertVote(@Body vote: VotesDTO): Call<VotesDTO>
-
-    // Actualizar votos del lugar
-    @PUT("votes/{id}")
-    fun updateVote(@Path("id") id: String, @Body vote: VotesDTO): Call<VotesDTO>
-
-    // Actualizar votos del lugar
-    @PATCH("votes/{id}")
-    fun updateVotes(@Path("id") id: String, @Field("votesUsers") vote: MutableList<String>): Call<VotesDTO>
-
-    // Eliminar la entrada en al que se guardan los votos del lugar, tras eliminar un lugar
-    @DELETE("sessions/{id}")
-    fun deleteVotesFromPlace(@Path("id") id: String): Call<VotesDTO>
-
+    @FormUrlEncoded
+    @PATCH("sessions/{id}")
+    fun updateDateSession(@Path("id") id: String, @Field("fecha") fecha : String): Call<SessionsDTO>
 
 }

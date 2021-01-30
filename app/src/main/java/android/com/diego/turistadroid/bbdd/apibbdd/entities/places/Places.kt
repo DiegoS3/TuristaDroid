@@ -9,6 +9,6 @@ data class Places(
     val fecha: String?,
     val latitude: String?,
     val longitude: String?,
-    val votos : String?,
+    val votos : MutableList<String>?,
     val city: String?
 ):Serializable

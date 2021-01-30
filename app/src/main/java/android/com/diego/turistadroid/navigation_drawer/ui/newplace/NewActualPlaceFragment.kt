@@ -194,9 +194,10 @@ class NewActualPlaceFragment(
                     val namePlace = txtNamePlace_NewActualPlace.text.toString()
                     val city = txtUbication.text.toString()
                     idLugar = UUID.randomUUID().toString()
-                    val place = Places(idLugar, userApi.id, namePlace, currentDate, latitude.toString(), longitude.toString(), "0", city)
+                    val listaVotos = mutableListOf<String>()
+                    val place = Places(idLugar, userApi.id, namePlace, currentDate, latitude.toString(), longitude.toString(), listaVotos, city)
                     insertNewPlace(place)
-                    insertPlaceVotes(idLugar)
+                    //insertPlaceVotes(idLugar)
                     if (bases64.size > 0){
                         recorrerListBase64()
                     }
@@ -207,28 +208,6 @@ class NewActualPlaceFragment(
                 Toast.makeText(context, getString(R.string.action_emptyfield), Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-    private fun insertPlaceVotes(idLugar: String) {
-        val listaVotos = LinkedList<String>()
-        val vote = Votes(idLugar, listaVotos)
-        val dto = VotesMapper.toDTO(vote)
-        val call = bbddRest.insertVote(dto)
-
-        call.enqueue(object : Callback<VotesDTO>{
-            override fun onResponse(call: Call<VotesDTO>, response: Response<VotesDTO>) {
-                // Si la respuesta es correcta
-                if (response.isSuccessful) {
-                    Log.i("vote", "voto creado")
-
-                } else {
-                    Log.i("vote", "error crear voto")
-                }
-            }
-            override fun onFailure(call: Call<VotesDTO>, t: Throwable) {
-                context!!.toast(R.string.errorService)
-            }
-        })
     }
 
     //Insertamos un nuevo lugar en la BD de la API

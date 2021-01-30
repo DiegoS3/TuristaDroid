@@ -1,7 +1,11 @@
 package android.com.diego.turistadroid.splash
 
+import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.Sessions
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.SessionsDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
 import android.com.diego.turistadroid.login.LogInActivity
@@ -9,6 +13,7 @@ import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.utilities.Constants
 import android.com.diego.turistadroid.utilities.UtilSessions
 import android.com.diego.turistadroid.utilities.Utilities
+import android.com.diego.turistadroid.utilities.Utilities.toast
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -77,13 +82,32 @@ class SplashScreenActivity : AppCompatActivity() {
             }else{ //Si no actualizamos la fecha a la del actual inicio de la APP tanto en local como en remoto
                 val currentDate = Utilities.dateToString(Utilities.getSysDate())!!
                 UtilSessions.actualizarFecha(currentDate, applicationContext)
-                //actualizarSesion(idSession, currentDate)
+                actualizarSesion(idSession, currentDate)
+                getUserFromSession(sessionLocal)
                 initNavigation()
             }
         }else{
             Log.i("sesion", "No hay sesion" )
             initLogin()
         }
+    }
+
+    private fun getUserFromSession(sessions: Sessions) {
+        val idUser = sessions.idUser!!
+        val call = bbddRest.selectUserById(idUser)
+        call.enqueue(object : Callback<UserDTO>{
+            override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
+                if(response.isSuccessful){
+                    val userDto = response.body()!!
+                    (application as MyApplication).USUARIO_API = UserMapper.fromDTO(userDto)
+                    Log.i("user", (application as MyApplication).USUARIO_API.id!!)
+                }
+            }
+            override fun onFailure(call: Call<UserDTO>, t: Throwable) {
+                applicationContext.toast(R.string.errorService)
+                Log.i("user","fallo al getUser Splash")
+            }
+        })
     }
 
     private fun comprobarFechas(fechaSessionLocal : LocalDateTime) : Boolean{

@@ -76,12 +76,12 @@
                     android:layout_marginStart="48dp"
                     android:layout_marginEnd="48dp"
                     android:layout_marginBottom="16dp"
-                    android:layout_marginTop="8dp">
+                    android:layout_marginTop="20dp">
 
                 <com.smarteist.autoimageslider.SliderView
                         android:id="@+id/imageSlider"
                         android:layout_width="match_parent"
-                        android:layout_height="150dp"
+                        android:layout_height="200dp"
                         app:sliderAnimationDuration="600"
                         app:sliderAutoCycleDirection="back_and_forth"
                         app:sliderIndicatorAnimationDuration="600"
@@ -97,34 +97,25 @@
 
             </androidx.cardview.widget.CardView>
 
-                <Button
-                        android:text="@string/btnAddImage"
-                        android:layout_width="135dp"
-                        android:layout_height="46dp"
-                        android:id="@+id/btnAddImage_NewPlace"
-                        android:textColor="@color/colorLetter"
-                        android:background="@drawable/box_buttons"
-                        android:textSize="18sp"/>
+            <Button
+                    android:text="@string/btnAddImage"
+                    android:layout_width="135dp"
+                    android:layout_height="46dp"
+                    android:id="@+id/btnAddImage_NewPlace"
+                    android:textColor="@color/colorLetter"
+                    android:background="@drawable/box_buttons"
+                    android:textSize="18sp"
+                    android:layout_marginTop="10dp"/>
 
-                <RatingBar
-                        android:id="@+id/ratingBarPlace_NewPlace"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:stepSize="0.5"
-                        android:numStars="5"
-                        android:layout_marginTop="10dp"
-                        android:theme="@style/RatingBar"/>
-
-                <Button
-                        android:text="@string/btnSavePlace"
-                        android:layout_width="135dp"
-                        android:layout_height="46dp"
-                        android:id="@+id/btnSave_NewPlace"
-                        android:textColor="@color/colorLetter"
-                        android:background="@drawable/box_buttons"
-                        android:textSize="18sp"
-                        android:layout_marginTop="5dp"/>
-
+            <Button
+                    android:text="@string/btnSavePlace"
+                    android:layout_width="135dp"
+                    android:layout_height="46dp"
+                    android:id="@+id/btnSave_NewPlace"
+                    android:textColor="@color/colorLetter"
+                    android:background="@drawable/box_buttons"
+                    android:textSize="18sp"
+                    android:layout_marginTop="10dp"/>
         </LinearLayout>
 
     </RelativeLayout>
