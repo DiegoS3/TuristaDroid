@@ -2,6 +2,7 @@ package android.com.diego.turistadroid.utilities
 
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.votes.Votes
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.votes.VotesDTO
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.votes.VotesMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
@@ -32,7 +33,7 @@ object UtilsREST {
 
                     val numVotos = votes.votesUsers!!.size
 
-                    actualizarLugar(id, numVotos, context)
+                    //actualizarLugar(id, numVotos, context)
 
                     txtVotes!!.text = numVotos.toString()
 
@@ -64,4 +65,19 @@ object UtilsREST {
         })
 
     }
+
+    /*private fun actualizarVoto(vote: Votes, idPlace: String){
+        val bbddRest = BBDDApi.service
+        val list = vote.votesUsers
+        list!!.add((idUser))
+        val call = bbddRest.updateVotes(idPlace, list)
+        call.enqueue(object : Callback<VotesDTO>{
+            override fun onResponse(call: Call<VotesDTO>, response: Response<VotesDTO>) {
+
+            }
+            override fun onFailure(call: Call<VotesDTO>, t: Throwable) {
+
+            }
+        })
+    }*/
 }

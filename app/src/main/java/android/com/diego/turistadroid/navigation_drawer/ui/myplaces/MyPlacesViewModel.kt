@@ -138,38 +138,39 @@ class MyPlacesViewModel (
                 listener(listPlaces[position])
             }
         holder.btnFavPlace.setOnClickListener {
-            doFavPlace(position)
+            doFavPlace(position, holder)
             //holder.btnFavPlace.drawable.setTintList(null)
         }
     }
 
-    private fun doFavPlace(position: Int) {
+    private fun doFavPlace(position: Int, holder: PlaceViewHolder) {
         Log.i("votos","votado")
         var votos : Int = listPlaces[position].votos!!.toInt()
-        val bbddRest = BBDDApi.service
+        //val bbddRest = BBDDApi.service
         val id = listPlaces[position].id!!
-        val call = bbddRest.selectVotesById(id)
-        call.enqueue(object : Callback<VotesDTO>{
-            override fun onResponse(call: Call<VotesDTO>, response: Response<VotesDTO>) {
+        //val call = bbddRest.selectVotesById(id)
+        UtilsREST.getVotos(id,holder.txtMarkItemPlace,context)
+        /*call.enqueue(object : Callback<List<VotesDTO>>{
+            override fun onResponse(call: Call<List<VotesDTO>>, response: Response<List<VotesDTO>>) {
                 if (response.isSuccessful){
                     Log.i("votos","antes de response.body")
-                    val voteDTO = response.body()!!
-                    val vote = VotesMapper.fromDTO(voteDTO)
+                    val voteDTO = response.body()!! as MutableList<VotesDTO>
+                    val vote = VotesMapper.fromDTO(voteDTO[0])
                     actualizarVoto(vote, id)
                     Log.i("votos",vote.id!!)
                     votos++
                     Log.i("votos",votos.toString())
                     actualizarPlace(listPlaces[position], votos)
                 }else{
-                    Log.i("votos","fallo")
+                    Log.i("votos","fallo" + response.errorBody())
                 }
             }
 
-            override fun onFailure(call: Call<VotesDTO>, t: Throwable) {
-                Log.i("votos","failure")
+            override fun onFailure(call: Call<List<VotesDTO>>, t: Throwable) {
+                Log.i("votos","failure "+ t.localizedMessage )
             }
 
-        })
+        })*/
 
 
     }
