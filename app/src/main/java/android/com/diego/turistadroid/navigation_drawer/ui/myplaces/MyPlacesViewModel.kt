@@ -121,16 +121,15 @@ class MyPlacesViewModel (
 
     override fun onBindViewHolder(holder: PlaceViewHolder, position: Int) {
         val item = listPlaces[position]
-        val sdf = SimpleDateFormat("dd/M/yyyy")
         val fecha = item.fecha!!.format("dd/M/yyyy")
         cargarImagen(holder, item)
 
         holder.txtTitleItemPlace.text = item.name
         holder.txtCityItemPlace.text = item.city
         holder.txtDateItemPlace.text = fecha
-        holder.txtMarkItemPlace.text = item.votos!!.size.toString()
+        checkNumVotos(listPlaces[position], holder)
 
-        if (yaVotado(listPlaces[position])){
+        if (!yaVotado(listPlaces[position])){
             holder.btnFavPlace.drawable.setTint(R.color.colorPrimary)
         }else{
             holder.btnFavPlace.drawable.setTintList(null)
@@ -148,9 +147,7 @@ class MyPlacesViewModel (
     private fun doFavPlace(position: Int, holder: PlaceViewHolder) {
         Log.i("votos","votado")
         actualizarPlace(listPlaces[position], holder)
-        val votos : Int = listPlaces[position].votos!!.size
-        val id = listPlaces[position].id!!
-        holder.txtMarkItemPlace.text = votos.toString()
+        checkNumVotos(listPlaces[position], holder)
     }
 
     private fun yaVotado(places: Places): Boolean {
@@ -166,18 +163,17 @@ class MyPlacesViewModel (
     private fun actualizarPlace(place: Places, holder: PlaceViewHolder) {
 
         val bbddRest = BBDDApi.service
-        var listaVotos: MutableList<String>
+        val listaVotos: ArrayList<String>
         if (yaVotado(place)){
             place.votos!!.remove(idUser)
             listaVotos = place.votos
             holder.btnFavPlace.drawable.setTint(R.color.colorPrimary)
         }else{
             place.votos!!.add(idUser)
+            checkSizeVotos(place)
             listaVotos = place.votos
             holder.btnFavPlace.drawable.setTintList(null)
         }
-        //val newPlace = Places(place.id, place.idUser, place.name, place.fecha, place.latitude, place.longitude, place.votos, place.city)
-        //val call = bbddRest.updatePlace(place.id!!, PlacesMapper.toDTO(newPlace))
         val call = bbddRest.updateVotesPlace(place.id!!, listaVotos)
         call.enqueue(object : Callback<PlacesDTO>{
             override fun onResponse(call: Call<PlacesDTO>, response: Response<PlacesDTO>) {
@@ -187,6 +183,20 @@ class MyPlacesViewModel (
 
             }
         })
+    }
+
+    private fun checkSizeVotos(place: Places){
+        if (place.votos!!.size == 1){
+            place.votos.add("a")
+        }
+    }
+
+    private fun checkNumVotos(place: Places, holder: PlaceViewHolder){
+        if (place.votos!!.size < 2){
+            holder.txtMarkItemPlace.text = "0"
+        }else if(place.votos.size >= 2){
+            holder.txtMarkItemPlace.text = (place.votos.size - 1).toString()
+        }
     }
 
     override fun getItemCount(): Int {

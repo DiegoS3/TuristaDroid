@@ -219,7 +219,7 @@ class NewPlaceFragment(
                     val namePlace = txtNamePlace_NewPlace.text.toString()
                     idLugar = UUID.randomUUID().toString()
                     val city = txtUbication.text.toString()
-                    val listaVotos = mutableListOf<String>()
+                    val listaVotos = arrayListOf<String>()
                     val place = Places(idLugar, userApi.id, namePlace, currentDate, location.latitude.toString(), location.longitude.toString(), listaVotos, city)
                     insertNewPlace(place)
                     //insertPlaceVotes(idLugar)

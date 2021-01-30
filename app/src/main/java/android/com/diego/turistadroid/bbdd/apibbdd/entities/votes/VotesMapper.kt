@@ -27,8 +27,7 @@ object VotesMapper {
     */
     fun fromDTO(dto: VotesDTO): Votes {
         return Votes(
-            dto.id,
-            dto.votesUsers
+            dto.id
         )
     }
 
@@ -39,8 +38,7 @@ object VotesMapper {
     */
     fun toDTO(model: Votes): VotesDTO {
         return VotesDTO(
-            model.id!!,
-            model.votesUsers!!
+            model.id!!
         )
     }
 

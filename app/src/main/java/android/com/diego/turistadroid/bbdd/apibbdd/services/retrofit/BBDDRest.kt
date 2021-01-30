@@ -79,7 +79,7 @@ interface BBDDRest {
     //Actualizar votos de un lugar
     @FormUrlEncoded
     @PATCH("places/{id}")
-    fun updateVotesPlace(@Path("id") id: String, @Field("votos") votos : MutableList<String>): Call<PlacesDTO>
+    fun updateVotesPlace(@Path("id") id: String, @Field("votos") votos : ArrayList<String>): Call<PlacesDTO>
 
 
     //--IMAGES--

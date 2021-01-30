@@ -673,7 +673,7 @@ class MyPlaceDetailFragment(
         val builder = AlertDialog.Builder(context!!)
         val inflater = requireActivity().layoutInflater
         val vista = inflater.inflate(R.layout.layout_share_qr_code, null)
-        val listaVotos = mutableListOf<String>()
+        val listaVotos = arrayListOf<String>()
 
         //Creamos un lugar sin los votos
         val lugarSinVotos = Places(this.lugar.id, this.userApi.id, this.lugar.name, this.lugar.fecha,

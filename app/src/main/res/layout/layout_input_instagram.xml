@@ -10,7 +10,7 @@
         android:background="@drawable/image_selection_background">
     <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="170dp"
             android:background="@drawable/gradient"
             android:id="@+id/relative_Place">
         <LinearLayout
@@ -47,7 +47,7 @@
                     android:textColorHint="@color/colorLetterInput"
                     android:hint="@string/txtNameUser"
                     android:background="@drawable/box_inputs"
-                    android:paddingHorizontal="10dp"
+                    android:paddingHorizontal="20dp"
                     android:importantForAutofill="no"/>
         </LinearLayout>
 

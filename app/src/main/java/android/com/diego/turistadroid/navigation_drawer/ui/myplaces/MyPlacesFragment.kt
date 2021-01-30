@@ -91,17 +91,15 @@ class MyPlacesFragment : Fragment() {
         initUI()
     }
 
-    /*override fun onResume() {
+    override fun onResume() {
         super.onResume()
-        cargarDatos()
-    }*/
+        getDatosFromBD()
+    }
 
     private fun initUI() {
-
         bbddRest = BBDDApi.service
         initFloatingButtons()
         iniciarSwipeRecarga()
-        //cargarDatos()
         getDatosFromBD()
         iniciarSwipeHorizontal()
         // Mostramos las vistas de listas y adaptador asociado
@@ -649,6 +647,7 @@ class MyPlacesFragment : Fragment() {
 
         })
     }
+
 
     /**
      * cargamos los lugares y notificamos 
