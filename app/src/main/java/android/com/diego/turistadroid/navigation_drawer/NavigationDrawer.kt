@@ -302,7 +302,7 @@ class NavigationDrawer : AppCompatActivity(){
 
     //Abrir todos los lugares
     private fun abrirAllPlaces(){
-        val newFragment = AllPlaces(userApi)
+        val newFragment = AllPlaces()
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
