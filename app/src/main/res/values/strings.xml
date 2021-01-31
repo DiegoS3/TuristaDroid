@@ -124,5 +124,6 @@
     <string name="invalidEmail">Invalid Email</string>
     <string name="errorUpload">Error uploading image</string>
     <string name="register">Registering user...</string>
+    <string name="weather_dialog">Loading weather...</string>
 
 </resources>

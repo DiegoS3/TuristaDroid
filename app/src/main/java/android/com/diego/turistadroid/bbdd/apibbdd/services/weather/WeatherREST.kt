@@ -14,4 +14,7 @@ interface WeatherREST {
         @Query("lang") lang: String,
     ): Call<WeatherResponse>
 
+    @GET("data/2.5/weather?q=London&appid=9b52b9134d03b436565d97fdbaf4411e")
+    fun get():Call<WeatherResponse>
+
 }

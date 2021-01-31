@@ -9,6 +9,6 @@ object WeatherAPI {
     val UNITS: String = "metric"
     val LANG: String = "en"
     val service: WeatherREST
-        get() = RetrofitClient.getClient(API_URL)!!.create(WeatherREST::class.java)
+        get() = WeatherClient.getClient(API_URL)!!.create(WeatherREST::class.java)
 
 }

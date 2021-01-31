@@ -11,6 +11,7 @@ import android.com.diego.turistadroid.navigation_drawer.ui.allplaces.AllPlaces
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.myprofile.MyProfileFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.nearme.NearMeFragment
+import android.com.diego.turistadroid.navigation_drawer.ui.weather.WeatherFragment
 import android.com.diego.turistadroid.utilities.UtilImpExp
 import android.com.diego.turistadroid.utilities.UtilSessions
 import android.com.diego.turistadroid.utilities.Utilities
@@ -84,7 +85,8 @@ class NavigationDrawer : AppCompatActivity(){
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_myPlaces, R.id.nav_myProfile, R.id.nav_nearMe, R.id.nav_lantern, R.id.nav_AllPlaces
+                R.id.nav_myPlaces, R.id.nav_myProfile, R.id.nav_nearMe, R.id.nav_lantern, R.id.nav_AllPlaces,
+                R.id.nav_Weather
             ), drawerLayout
         )
 
@@ -249,6 +251,14 @@ class NavigationDrawer : AppCompatActivity(){
                     }
                     true
                 }
+                R.id.nav_Weather -> {//Weather
+                    abrirWeather()
+                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        toolbar.title = getString(R.string.weather)
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }
+                    true
+                }
                 R.id.nav_exit -> {//Salir
                     ejecutarExit()
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
@@ -279,6 +289,14 @@ class NavigationDrawer : AppCompatActivity(){
                 }
             }
         }
+    }
+
+    private fun abrirWeather() {
+        val newFragment = WeatherFragment()
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
     }
 
     //Abrir mis lugares
