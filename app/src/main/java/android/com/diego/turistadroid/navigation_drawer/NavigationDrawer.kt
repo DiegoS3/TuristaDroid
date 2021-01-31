@@ -3,11 +3,7 @@ package android.com.diego.turistadroid.navigation_drawer
 import android.Manifest
 import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.User
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.Sessions
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserDTO
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
 import android.com.diego.turistadroid.login.LogInActivity
@@ -18,11 +14,9 @@ import android.com.diego.turistadroid.navigation_drawer.ui.nearme.NearMeFragment
 import android.com.diego.turistadroid.utilities.UtilImpExp
 import android.com.diego.turistadroid.utilities.UtilSessions
 import android.com.diego.turistadroid.utilities.Utilities
-import android.com.diego.turistadroid.utilities.Utilities.toast
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraManager
 import android.os.Bundle
@@ -49,14 +43,10 @@ import com.bumptech.glide.request.target.BitmapImageViewTarget
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_navigation_drawer.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 class NavigationDrawer : AppCompatActivity(){
 
     private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var sessions: Sessions
     private var CAMERA_PERMISSION = 2
     private var flashLightStatus: Boolean = false
     private lateinit var toolbar: Toolbar
@@ -267,14 +257,14 @@ class NavigationDrawer : AppCompatActivity(){
                     true
                 }
                 R.id.nav_export -> {//exportar
-                    UtilImpExp.export(this)
+                    UtilImpExp.export(this, userApi)
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
                         drawer_layout.closeDrawer(GravityCompat.START)
                     }
                     true
                 }
                 R.id.nav_import ->{//importar
-                    UtilImpExp.import(this)
+                    //UtilImpExp.import(this)
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
                         drawer_layout.closeDrawer(GravityCompat.START)
                     }

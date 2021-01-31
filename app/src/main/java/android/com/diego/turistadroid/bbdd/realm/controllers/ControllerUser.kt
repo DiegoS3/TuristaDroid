@@ -1,5 +1,6 @@
-package android.com.diego.turistadroid.bbdd
+package android.com.diego.turistadroid.bbdd.realm.controllers
 
+import android.com.diego.turistadroid.bbdd.realm.entities.User
 import io.realm.Realm
 import io.realm.RealmResults
 import io.realm.kotlin.where
@@ -8,6 +9,13 @@ import io.realm.kotlin.where
 object ControllerUser {
 
     //QUERIES TABLA USER
+
+    /*ARREGLAR EXPORTAR DATOS, -- 15 MIN
+    IMPLEMENTAR TIEMPO, -- 30 MIN
+    ARREGLAR VOTOS. -- 20 MIN
+    DOCUMENTACION Y VIDEO. -- 2 HORAS
+    CAMBIAR ICONOS APP Y MENUS
+    */
 
     //Insertar Usuario
     fun insertUser(user: User){

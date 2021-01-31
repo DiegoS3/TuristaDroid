@@ -11,7 +11,8 @@
                 android:title="@string/my_places"/>
         <item
                 android:id="@+id/nav_AllPlaces"
-                android:icon="@drawable/outline_room_black_18dp"
+                android:icon="@drawable/logo"
+                android:iconTint="@color/colorBackground"
                 android:title="@string/all_places"/>
         <item
                 android:id="@+id/nav_myProfile"
@@ -21,6 +22,10 @@
                 android:id="@+id/nav_nearMe"
                 android:icon="@drawable/ic_near_me"
                 android:title="@string/near_me"/>
+        <item
+                android:id="@+id/nav_Weather"
+                android:icon="@drawable/ic_weather"
+                android:title="@string/weather"/>
         <item
                 android:id="@+id/nav_lantern"
                 android:icon="@drawable/ic_lantern"

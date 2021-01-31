@@ -2,10 +2,8 @@ package android.com.diego.turistadroid
 
 import android.Manifest
 import android.app.Application
-import android.com.diego.turistadroid.bbdd.ControllerBbdd
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
 import android.util.Log
-import android.widget.Toast
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken

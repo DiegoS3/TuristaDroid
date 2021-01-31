@@ -1,8 +1,6 @@
 package android.com.diego.turistadroid.navigation_drawer.ui.nearme
 
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.ControllerPlaces
-import android.com.diego.turistadroid.bbdd.Place
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesDTO
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.Places
@@ -12,7 +10,6 @@ import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlaceDetailFragment
-import android.com.diego.turistadroid.utilities.Utilities
 import android.com.diego.turistadroid.utilities.Utilities.toast
 import android.graphics.*
 import android.os.Bundle

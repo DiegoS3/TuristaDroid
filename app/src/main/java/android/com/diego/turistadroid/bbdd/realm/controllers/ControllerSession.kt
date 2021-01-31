@@ -1,5 +1,6 @@
-package android.com.diego.turistadroid.bbdd
+package android.com.diego.turistadroid.bbdd.realm.controllers
 
+import android.com.diego.turistadroid.bbdd.realm.entities.Session
 import io.realm.Realm
 import io.realm.kotlin.where
 

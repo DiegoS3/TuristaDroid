@@ -2,7 +2,6 @@ package android.com.diego.turistadroid.signup
 
 import android.app.Activity
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.ControllerBbdd
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserDTO
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserMapper

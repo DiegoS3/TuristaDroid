@@ -2,8 +2,7 @@ package android.com.diego.turistadroid.login
 
 import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.Session
-import android.com.diego.turistadroid.bbdd.User
+import android.com.diego.turistadroid.bbdd.realm.entities.User
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.Sessions
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.SessionsDTO
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.SessionsMapper
@@ -45,7 +44,6 @@ class LogInActivity : AppCompatActivity() {
         // Ocultamos la barra de action
         this.supportActionBar?.hide()
         setContentView(R.layout.activity_log_in)
-
         init()
     }
 
