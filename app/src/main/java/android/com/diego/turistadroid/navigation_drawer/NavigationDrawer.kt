@@ -3,15 +3,17 @@ package android.com.diego.turistadroid.navigation_drawer
 import android.Manifest
 import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.ControllerSession
-import android.com.diego.turistadroid.bbdd.ControllerUser
-import android.com.diego.turistadroid.bbdd.User
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
 import android.com.diego.turistadroid.login.LogInActivity
+import android.com.diego.turistadroid.navigation_drawer.ui.allplaces.AllPlaces
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.myprofile.MyProfileFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.nearme.NearMeFragment
-import android.com.diego.turistadroid.splash.SplashScreenActivity
+import android.com.diego.turistadroid.navigation_drawer.ui.weather.WeatherFragment
 import android.com.diego.turistadroid.utilities.UtilImpExp
+import android.com.diego.turistadroid.utilities.UtilSessions
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Context
 import android.content.Intent
@@ -20,8 +22,8 @@ import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraManager
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -37,6 +39,8 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.BitmapImageViewTarget
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_navigation_drawer.*
@@ -44,15 +48,18 @@ import kotlinx.android.synthetic.main.activity_navigation_drawer.*
 class NavigationDrawer : AppCompatActivity(){
 
     private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var user: User
     private var CAMERA_PERMISSION = 2
     private var flashLightStatus: Boolean = false
     private lateinit var toolbar: Toolbar
+    private lateinit var bbddRest: BBDDRest
 
     companion object{
         lateinit var imaUser_nav : ImageView
         lateinit var txtNombreNav : TextView
         lateinit var txtCorreoNav : TextView
+        lateinit var userApi: UserApi
+        lateinit var contextNav: Context
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,10 +67,8 @@ class NavigationDrawer : AppCompatActivity(){
         setContentView(R.layout.activity_navigation_drawer)
         toolbar = findViewById(R.id.toolbar)
 
-
         setSupportActionBar(toolbar)
         toolbar.title = getString(R.string.my_places)
-
 
         val drawerLayout: DrawerLayout = findViewById(R.id.drawer_layout)
         val navView: NavigationView = findViewById(R.id.nav_view)
@@ -73,36 +78,51 @@ class NavigationDrawer : AppCompatActivity(){
         txtNombreNav = navHeader.findViewById(R.id.txtName_nav)
         txtCorreoNav = navHeader.findViewById(R.id.txtEmail_nav)
 
-        userSwitch()
-        asignarDatosUsuario()
+        contextNav = this
 
         val navController = findNavController(R.id.nav_host_fragment)
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_myPlaces, R.id.nav_myProfile, R.id.nav_nearMe, R.id.nav_lantern
+                R.id.nav_myPlaces, R.id.nav_myProfile, R.id.nav_nearMe, R.id.nav_lantern, R.id.nav_AllPlaces,
+                R.id.nav_Weather
             ), drawerLayout
         )
 
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
-        navigationListener(navView)
-        initPermisos()
-        comprobarConexion()
-
+        init(navView)
     }
 
-    //usuario segunde donde entremos
-    private fun userSwitch(){
-        user = if(SplashScreenActivity.login) {
-            LogInActivity.user
-        }else{
-            val listaSesion = ControllerSession.selectSessions()!!
-            val emailSesion = listaSesion[0].emailUser
-            ControllerUser.selectByEmail(emailSesion)!!
-        }
+    fun asignarDatosUsuario(){
+        txtNombreNav.text = userApi.name
+        Log.i("contenido email: ", userApi.email.toString())
+        txtCorreoNav.text = userApi.email
+        Glide.with(this)
+            .asBitmap()
+            .load(userApi.foto)
+            .circleCrop()
+            .into(BitmapImageViewTarget(imaUser_nav))
+    }
+
+    private fun init(navigationView: NavigationView){
+        bbddRest = BBDDApi.service
+        getUser()
+        asignarDatosUsuario()
+        navigationListener(navigationView)
+        initPermisos()
+        comprobarConexion()
+    }
+
+
+    /**
+     * Obtenemos el usuario que tenemos en la sesión
+     * almacenada en local
+     */
+    private fun getUser(){
+        userApi = (application as MyApplication).USUARIO_API
     }
 
     /**
@@ -126,16 +146,15 @@ class NavigationDrawer : AppCompatActivity(){
      * Comprueba que haya red, si no llama a activarlo
      */
     private fun comprobarRed() {
-        if (Utilities.isNetworkAvailable(applicationContext)) {
+        if (!Utilities.isNetworkAvailable(applicationContext)) {
 
-        } else {
             val snackbar = Snackbar.make(
                 findViewById(android.R.id.content),
-                "Es necesaria una conexión a internet",
+                getString(R.string.connectNet),
                 Snackbar.LENGTH_INDEFINITE
             )
             snackbar.setActionTextColor(getColor(R.color.colorAccent))
-            snackbar.setAction("Conectar") {
+            snackbar.setAction(getString(R.string.connect)) {
                 val intent = Intent(Settings.ACTION_WIFI_SETTINGS)
                 startActivity(intent)
             }
@@ -147,16 +166,14 @@ class NavigationDrawer : AppCompatActivity(){
      * Comprueba que existe GPS si no llama a activarlo
      */
     private fun comprobarGPS() {
-        if (Utilities.isGPSAvaliable(applicationContext)) {
-
-        } else {
+        if (!Utilities.isGPSAvaliable(applicationContext)) {
             val snackbar = Snackbar.make(
                 findViewById(android.R.id.content),
-                "Es necesaria una conexión a GPS",
+                getString(R.string.connectGPS),
                 Snackbar.LENGTH_INDEFINITE
             )
             snackbar.setActionTextColor(getColor(R.color.colorAccent))
-            snackbar.setAction("Conectar") {
+            snackbar.setAction(getString(R.string.connect)) {
                 val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                 startActivity(intent)
             }
@@ -164,18 +181,8 @@ class NavigationDrawer : AppCompatActivity(){
         }
     }
 
-    fun asignarDatosUsuario(){
-        //asigno los datos del usuario al navHeader.
-        txtNombreNav.text = user.nombre
-        txtCorreoNav.text = user.email
 
-        if (user.foto != ""){
-            imaUser_nav.setImageBitmap(Utilities.base64ToBitmap(user.foto))
-            Utilities.redondearFoto(imaUser_nav)
-        }else{
-            imaUser_nav.setImageResource(R.drawable.ima_user)
-        }
-    }
+
 
     private fun linterna(){
         val permission = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
@@ -189,7 +196,6 @@ class NavigationDrawer : AppCompatActivity(){
             openFlashLight()
         }
     }
-
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -221,6 +227,14 @@ class NavigationDrawer : AppCompatActivity(){
                     }
                     true
                 }
+                R.id.nav_AllPlaces -> {//Todos los lugares
+                    abrirAllPlaces()
+                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        toolbar.title = getString(R.string.all_places)
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }
+                    true
+                }
                 R.id.nav_myProfile -> {//Mi perfil
                     abrirMyProfile()
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
@@ -237,6 +251,14 @@ class NavigationDrawer : AppCompatActivity(){
                     }
                     true
                 }
+                R.id.nav_Weather -> {//Weather
+                    abrirWeather()
+                    if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
+                        toolbar.title = getString(R.string.weather)
+                        drawer_layout.closeDrawer(GravityCompat.START)
+                    }
+                    true
+                }
                 R.id.nav_exit -> {//Salir
                     ejecutarExit()
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
@@ -245,14 +267,14 @@ class NavigationDrawer : AppCompatActivity(){
                     true
                 }
                 R.id.nav_export -> {//exportar
-                    UtilImpExp.export(this)
+                    UtilImpExp.export(this, userApi)
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
                         drawer_layout.closeDrawer(GravityCompat.START)
                     }
                     true
                 }
                 R.id.nav_import ->{//importar
-                    UtilImpExp.import(this)
+                    //UtilImpExp.import(this)
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
                         drawer_layout.closeDrawer(GravityCompat.START)
                     }
@@ -269,6 +291,14 @@ class NavigationDrawer : AppCompatActivity(){
         }
     }
 
+    private fun abrirWeather() {
+        val newFragment = WeatherFragment()
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+    }
+
     //Abrir mis lugares
     private fun abrirMyPlaces(){
         val newFragment = MyPlacesFragment()
@@ -278,9 +308,18 @@ class NavigationDrawer : AppCompatActivity(){
         transaction.commit()
     }
 
+    //Abrir todos los lugares
+    private fun abrirAllPlaces(){
+        val newFragment = AllPlaces()
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.replace(R.id.nav_host_fragment, newFragment)
+        transaction.addToBackStack(null)
+        transaction.commit()
+    }
+
     //Abir Mu pergil
     private fun abrirMyProfile(){
-        val newFragment = MyProfileFragment()
+        val newFragment = MyProfileFragment(userApi)
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
@@ -289,7 +328,7 @@ class NavigationDrawer : AppCompatActivity(){
 
     //Abrir cerca de mi
     private fun abrirNearMe(){
-        val newFragment = NearMeFragment()
+        val newFragment = NearMeFragment(userApi)
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
@@ -298,11 +337,10 @@ class NavigationDrawer : AppCompatActivity(){
 
     //Salir al login
     private fun ejecutarExit(){
-        ControllerSession.deleteSession(user.email)
+        comprobarSesion()
         val intent = Intent (this, LogInActivity::class.java)
         startActivity(intent)
     }
-
 
     private fun setupPermissions(){
         ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION)
@@ -314,6 +352,8 @@ class NavigationDrawer : AppCompatActivity(){
         when(requestCode){
             CAMERA_PERMISSION -> {
                 if (grantResults.isEmpty() || grantResults[0] != (PackageManager.PERMISSION_GRANTED)) {
+
+                    Toast.makeText(this, getString(R.string.noPermisos), Toast.LENGTH_SHORT).show()
 
                 } else {
                     openFlashLight()
@@ -343,13 +383,35 @@ class NavigationDrawer : AppCompatActivity(){
                 }
             }
         }else{
-            Toast.makeText(this, "This device has no flash", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.noFlashLight), Toast.LENGTH_SHORT).show()
         }
     }
 
+    /**
+     * Quitamos fragment apilados, y si no hay salimos
+     */
     override fun onBackPressed() {
-        super.onBackPressed()
-        ControllerSession.deleteSession(user.email)
+        try {
+            if (supportFragmentManager.backStackEntryCount > 0)
+                supportFragmentManager.popBackStackImmediate()
+            else
+                ejecutarExit()
+        } catch (ex: Exception) {
+            ejecutarExit()
+        }
     }
 
+    /**
+     * Comprobamos si existe una sesión al entrar
+     * en el login, en caso positivo la eliminamos
+     */
+    private fun comprobarSesion(){
+        val sessionLocal = UtilSessions.getLocal(applicationContext)
+        //Si existe una sesion guardada en local
+        if (sessionLocal != null){
+            val idSession = sessionLocal.id!!
+            UtilSessions.eliminarSesionLocal(applicationContext)
+            UtilSessions.eliminarSesionRemota(idSession, bbddRest, this)
+        }
+    }
 }

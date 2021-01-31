@@ -1,25 +1,38 @@
 package android.com.diego.turistadroid.login
 
+import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.*
+import android.com.diego.turistadroid.bbdd.realm.entities.User
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.Sessions
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.SessionsDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.SessionsMapper
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserMapper
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
 import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.signup.SignUp
+import android.com.diego.turistadroid.utilities.UtilSessions
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
-import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_log_in.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.util.*
 
 class LogInActivity : AppCompatActivity() {
 
     //mis variables
     private var userSave = ""
     private var pwdSave = ""
-    private var sesion = Session()
+    private lateinit var bbddRest: BBDDRest
 
     companion object {
         var user = User() //usuario que compartiremos con activities y fragments
@@ -31,40 +44,60 @@ class LogInActivity : AppCompatActivity() {
         // Ocultamos la barra de action
         this.supportActionBar?.hide()
         setContentView(R.layout.activity_log_in)
+        init()
+    }
 
+    private fun init(){
+        bbddRest = BBDDApi.service
         clickBtn()
         clickRegister()
-    }
-
-    //Al parar la actividad
-    override fun onStop() {
-        super.onStop()
-        //Cerramos el realm
-        ControllerBbdd.close()
-    }
-
-    //Al destruir la actividad
-    override fun onDestroy() {
-        super.onDestroy()
-        //Cerramos el realm
-        ControllerBbdd.close()
     }
 
     /**
      * Comprueba que los datos del usuario existen en la tabla
      *
      * @param email Email introducido por el usuario
-     * @param pwf Contraseña introducida por el usuario
+     * @param pwd Contraseña introducida por el usuario
      *
      * @return true si el email y la pwd coinciden con los de la BD
      *         false en caso de que alguno de los dos no coincida
+     *
      */
-    private fun comprobarLogin(email: String, pwd: String): Boolean {
-        try {
-            user = ControllerUser.selectByEmail(email)!! //Seleccionamos el usuario en la BD por el email introducido
-        } catch (e: IllegalArgumentException) {
-        }
-        return pwd == user.pwd
+    private fun comprobarLogin(email: String, pwd: String){
+
+        val call = bbddRest.selectUserByEmail(email)
+
+        call.enqueue((object : Callback<List<UserDTO>> {
+            override fun onResponse(call: Call<List<UserDTO>>, response: Response<List<UserDTO>>) {
+                // Si la respuesta es correcta
+                if (response.isSuccessful) {
+                    //Si el body no esta vacio ese email ya esta registrado
+                    if(response.body()!!.isNotEmpty()){
+                        val user = UserMapper.fromDTO(response.body()!![0])
+
+                        if (user.pwd == pwd){
+                            val id = user.id
+                            (application as MyApplication).USUARIO_API = user
+                            insertarSession(id)
+                        }else{
+                            txtPwd_Login.error = getString(R.string.errorLoginPWD)
+                        }
+
+                    }else{ //en caso contrario no existe
+                        txtUser_Login.error = getString(R.string.errorLoginEmail) //en caso contraio seteamos el error
+                    }
+                } else {
+
+                    Toast.makeText(applicationContext, getString(R.string.errorLogin), Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+            //Si error
+            override fun onFailure(call: Call<List<UserDTO>>, t: Throwable) {
+                Toast.makeText(applicationContext, getString(R.string.errorService), Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }))
     }
 
     /**
@@ -89,15 +122,7 @@ class LogInActivity : AppCompatActivity() {
 
             // en caso de no estar ninguno de los EditText vacios
             if (email.isNotEmpty() and pwd.isNotEmpty()) {
-                //Lamamos al metodo que comprueba que coincidan con los de la BD
-                if (comprobarLogin(email, pwd)) {
-                    if (comprobarRed()) {//si coinciden comprobamos que existe conexion a internet
-                        insertarSession(email) //creamos la sesion con el email del usuario
-                        initNavigation() //iniciamos la actividad del Navigation Drawer
-                    }
-                } else {
-                    txtUser_Login.error = getString(R.string.errorLogin) //en caso contraio seteamos el error
-                }
+                comprobarLogin(email, pwd)
             }
         }
     }
@@ -133,9 +158,28 @@ class LogInActivity : AppCompatActivity() {
     /**
      * Metodo que inserta al usuario en la tabla de sesiones
      */
-    private fun insertarSession(email: String) {
-        sesion = Session(email)
-        ControllerSession.insertSession(sesion)
+    private fun insertarSession(idUser: String?) {
+        val currentDate = Utilities.dateToString(Utilities.getSysDate())!!
+        val idSession = UUID.randomUUID().toString()
+        val session = Sessions(idSession, idUser, currentDate)
+        val sessionDTO = SessionsMapper.toDTO(session)
+        val call = bbddRest.insertSession(sessionDTO)
+
+        call.enqueue(object : Callback<SessionsDTO> {
+            override fun onResponse(call: Call<SessionsDTO>, response: Response<SessionsDTO>) {
+
+                if (response.isSuccessful){
+                    UtilSessions.crearSesionLocal(session, currentDate, applicationContext)
+                    initNavigation()
+                }else{
+                    Log.i("sesion", "Error al crear la sesion en el login")
+                }
+            }
+            override fun onFailure(call: Call<SessionsDTO>, t: Throwable) {
+                Toast.makeText(applicationContext, getString(R.string.errorService), Toast.LENGTH_SHORT)
+                    .show()
+            }
+        })
     }
 
     /**

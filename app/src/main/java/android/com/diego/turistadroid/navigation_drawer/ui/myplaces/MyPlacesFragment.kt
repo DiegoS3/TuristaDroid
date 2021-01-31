@@ -1,12 +1,20 @@
 package android.com.diego.turistadroid.navigation_drawer.ui.myplaces
 
+import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.*
-import android.com.diego.turistadroid.login.LogInActivity
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.images.ImagesMapper
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.Places
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesMapper
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
+import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewActualPlaceFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewPlaceFragment
-import android.com.diego.turistadroid.splash.SplashScreenActivity
 import android.com.diego.turistadroid.utilities.Utilities
+import android.content.Context
 import android.content.Intent
 import android.graphics.*
 import android.os.AsyncTask
@@ -23,30 +31,29 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.navigation.NavigationView
 import com.google.gson.Gson
 import com.google.zxing.integration.android.IntentIntegrator
 import com.journeyapps.barcodescanner.CaptureActivity
 import kotlinx.android.synthetic.main.fragment_myplaces.*
 import kotlinx.android.synthetic.main.layout_confirm_delete_item.view.*
-import java.util.concurrent.ConcurrentLinkedQueue
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 
 class MyPlacesFragment : Fragment() {
 
     // Mis variables
-    private var places = mutableListOf<Place>() // Lista
-    private lateinit var place: Place
-    private lateinit var user : User //Usuario logeado
+    private var places = mutableListOf<Places>() // Lista
+    private lateinit var place: Places
     private var clicked = false
     private var clickedSort = false
-    private lateinit var placeQr: Place
+    private lateinit var placeQr: Places
     private lateinit var root: View
-    private lateinit var root2: View
+    private lateinit var userApi: UserApi
 
     // Interfaz gráfica
     private lateinit var adapter: MyPlacesViewModel //Adaptador de Recycler
-    private lateinit var tarea: TareaCargarDatos // Tarea en segundo plano
     private var paintSweep = Paint()
 
     //Modos ordenacion
@@ -54,16 +61,27 @@ class MyPlacesFragment : Fragment() {
     private var ascDate = true
     private var ascMark = true
 
+    private lateinit var bbddRest: BBDDRest
+
+    companion object{
+
+        lateinit var myContext: Context
+        lateinit var idUser: String
+
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         // Inflate the layout for this fragment
         //val viewSettings = inflater.inflate(R.menu.navigation_drawer, container, false)
 
         root = inflater.inflate(R.layout.fragment_myplaces, container, false)
-
+        myContext = context!!
+        userApi = (activity?.application as MyApplication).USUARIO_API
+        idUser = userApi.id!!
         return root
     }
 
@@ -71,37 +89,33 @@ class MyPlacesFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         // Iniciamos la interfaz
         initUI()
-
-
     }
 
     override fun onResume() {
         super.onResume()
-        cargarDatos()
+        getDatosFromBD()
     }
 
     private fun initUI() {
-
+        bbddRest = BBDDApi.service
         initFloatingButtons()
         iniciarSwipeRecarga()
+        getDatosFromBD()
         iniciarSwipeHorizontal()
         // Mostramos las vistas de listas y adaptador asociado
         placeRecycler_MyPlaces.layoutManager = LinearLayoutManager(context)
-        userSwitch()
-        cargarDatos()
         orderSites()
     }
-
-
 
     /**
      * Iniciamos el swipe de recarga
      */
     private fun iniciarSwipeRecarga() {
         placeSwipe_MyPlaces.setColorSchemeResources(R.color.colorPrimaryDark)
-        //datosSwipe.setProgressBackgroundColorSchemeResource(R.color.design_default_color_primary)
+        placeSwipe_MyPlaces.setProgressBackgroundColorSchemeResource(R.color.colorDialog)
         placeSwipe_MyPlaces.setOnRefreshListener {
-            cargarDatos()
+            //cargarDatos()
+            getDatosFromBD()
         }
     }
 
@@ -169,58 +183,90 @@ class MyPlacesFragment : Fragment() {
         itemTouchHelper.attachToRecyclerView(placeRecycler_MyPlaces)
     }
 
-    private fun userSwitch(){
-        user = if(SplashScreenActivity.login) {
-            LogInActivity.user
-        }else{
-            val listaSesion = ControllerSession.selectSessions()!!
-            val emailSesion = listaSesion[0].emailUser
-            ControllerUser.selectByEmail(emailSesion)!!
-        }
+
+    private fun seleccionarImagenesPlace(idPlace: String){
+
+        val call = bbddRest.selectImageByIdLugar(idPlace)
+
+        call.enqueue(object : Callback<List<ImagesDTO>>{
+            override fun onResponse(call: Call<List<ImagesDTO>>, response: Response<List<ImagesDTO>>) {
+                if (response.isSuccessful) {
+
+                    val listaImagenesDTO = response.body()!!
+                    val listaImagenes = ImagesMapper.fromDTO(listaImagenesDTO)
+
+                    for (imagen in listaImagenes){
+                        deleteImgPlace(imagen.id!!)
+                    }
+
+                } else {
+                    Log.i("imagen", "error al seleccionar")
+                }
+            }
+            override fun onFailure(call: Call<List<ImagesDTO>>, t: Throwable) {
+                Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     //Eliminamos la imagen del lugar
-    private fun deleteImgPlace(place: Place) {
+    private fun deleteImgPlace(id : String) {
 
-        val list = ConcurrentLinkedQueue<Image>()
+        val call = bbddRest.deleteImagesLugar(id)
 
-        for (img in place.imagenes) {
-            list.add(img)
-        }
-        list.forEachIndexed { index, image ->
-            place.imagenes.remove(image)
-            ControllerImages.deleteImage(image.id)
-        }
+        call.enqueue(object : Callback<ImagesDTO>{
+            override fun onResponse(call: Call<ImagesDTO>, response: Response<ImagesDTO>) {
+                if (response.isSuccessful) {
+                    Log.i("imagen", "imagenes eliminadas")
+                } else {
+                    Log.i("imagen", "error al eliminar")
+                }
+            }
+            override fun onFailure(call: Call<ImagesDTO>, t: Throwable) {
+                Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     //Eliminamos el lugar
-    private fun deletePlaceBD(place: Place) {
-        deleteImgPlace(place)
-        user.places.remove(place)
-        val newUser = User(user.email, user.nombre, user.nombreUser, user.pwd, user.foto, user.places)
-        ControllerUser.updateUser(newUser)
-        ControllerPlaces.deletePlace(place.id)
-    }
+    private fun deletePlaceBD(place: Places) {
 
+        val call = bbddRest.deletePlace(place.id!!)
+
+        call.enqueue(object : Callback<PlacesDTO>{
+            override fun onResponse(call: Call<PlacesDTO>, response: Response<PlacesDTO>) {
+                if (response.isSuccessful) {
+                    Log.i("lugar", "lugar eliminado")
+                } else {
+                    Log.i("lugar", "error al eliminar")
+                }
+            }
+            override fun onFailure(call: Call<PlacesDTO>, t: Throwable) {
+                Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
+            }
+        })
+
+        seleccionarImagenesPlace(place.id)
+    }
 
     //Borramos elemento del adaptador
     private fun borrarElemento(pos: Int) {
         //Acciones
-        val deletedModel: Place = places[pos]
+        val deletedModel: Places = places[pos]
         adapter.deleteItem(pos)
+        adapter.notifyDataSetChanged()
         //Lo borramos
         deletePlaceBD(deletedModel)
-        adapter.notifyDataSetChanged()
     }
 
     //Actualizamos el adaptor
-    fun actualizarPlaceAdapter(place: Place, pos: Int) {
+    fun actualizarPlaceAdapter(place: Places, pos: Int) {
         adapter.updateItem(place, pos)
         adapter.notifyDataSetChanged()
     }
 
     //Insertamos lugar nuevo en el adaptador
-    fun insertarPlaceAdapter(place: Place){
+    fun insertarPlaceAdapter(place: Places){
         adapter.addItem(place)
         adapter.notifyDataSetChanged()
     }
@@ -232,7 +278,8 @@ class MyPlacesFragment : Fragment() {
 
     //Dialog para que confirme el si quiere eliminar el lugar
     private fun abrirOpciones(pos: Int) {
-        cargarDatos()
+        //cargarDatos()
+        getDatosFromBD()
         val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_confirm_delete_item, null)
         val mBuilder = AlertDialog.Builder(context!!)
             .setView(mDialogView).create()
@@ -249,7 +296,6 @@ class MyPlacesFragment : Fragment() {
         mDialogView.txtCancel.setOnClickListener {
             mBuilder.dismiss()
         }
-
     }
 
     /**
@@ -340,7 +386,7 @@ class MyPlacesFragment : Fragment() {
     //Iniciamos fragment Nuevo Lugar
     private fun initNewPlaceFragment() {
 
-        val newFragment: Fragment = NewPlaceFragment()
+        val newFragment: Fragment = NewPlaceFragment(userApi)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
@@ -350,7 +396,7 @@ class MyPlacesFragment : Fragment() {
     //Iniciamos fragment Nuevo Lugar Actual
     private fun initNewActualPlaceFragment() {
 
-        val newFragment: Fragment = NewActualPlaceFragment()
+        val newFragment: Fragment = NewActualPlaceFragment(userApi)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
@@ -366,9 +412,9 @@ class MyPlacesFragment : Fragment() {
      * @param import modo importar
      *
      */
-    private fun initDetailsPlaceFragment(editable: Boolean, place: Place, pos: Int?, import: Boolean) {
+    private fun initDetailsPlaceFragment(editable: Boolean, place: Places, pos: Int?, import: Boolean) {
 
-        val newFragment: Fragment = MyPlaceDetailFragment(editable, place, pos, this, import)
+        val newFragment: Fragment = MyPlaceDetailFragment(editable, place, pos, this, import, userApi)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
@@ -507,7 +553,7 @@ class MyPlacesFragment : Fragment() {
                 Toast.makeText(context, getString(R.string.btnCancel), Toast.LENGTH_LONG).show()
             } else {
                 try {
-                    placeQr = Gson().fromJson(result.contents, Place::class.java)
+                    placeQr = Gson().fromJson(result.contents, Places::class.java)
                     initDetailsPlaceFragment(false, placeQr, null, true)
                 } catch (ex: Exception) {
                     Toast.makeText(context, getString(R.string.errorEmail), Toast.LENGTH_LONG).show()
@@ -525,14 +571,14 @@ class MyPlacesFragment : Fragment() {
             ascName = if (ascName){
                 btnSortNamePlace.setImageResource(R.drawable.ic_short_name_desc_btn)
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_name_asc_btn)
-                this.places.sortWith { lugar1: Place, lugar2: Place ->
-                    lugar1.nombre.toLowerCase().compareTo(lugar2.nombre.toLowerCase()) }
+                this.places.sortWith { lugar1: Places, lugar2: Places ->
+                    lugar1.name!!.toLowerCase().compareTo(lugar2.name!!.toLowerCase()) }
                 false
             }else{
                 btnSortNamePlace.setImageResource(R.drawable.ic_short_name_asc_btn)
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_name_desc_btn)
-                this.places.sortWith { lugar1: Place, lugar2: Place ->
-                    lugar2.nombre.toLowerCase().compareTo(lugar1.nombre.toLowerCase()) }
+                this.places.sortWith { lugar1: Places, lugar2: Places ->
+                    lugar2.name!!.toLowerCase().compareTo(lugar1.name!!.toLowerCase()) }
                 true
             }
             adapter.notifyDataSetChanged()
@@ -542,14 +588,18 @@ class MyPlacesFragment : Fragment() {
             ascDate = if (ascDate){
                 btnSortDatePlace.setImageResource(R.drawable.ic_short_date_desc_btn)
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_date_asc_btn)
-                this.places.sortWith { lugar1: Place, lugar2: Place ->
-                    lugar1.fecha.compareTo(lugar2.fecha) }
+                this.places.sortWith { lugar1: Places, lugar2: Places ->
+                    val fecha1 = Utilities.stringToDate(lugar1.fecha!!)
+                    val fecha2 = Utilities.stringToDate(lugar2.fecha!!)
+                    fecha1!!.compareTo(fecha2!!) }
                 false
             }else{
                 btnSortDatePlace.setImageResource(R.drawable.ic_short_date_asc_btn)
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_date_desc_btn)
-                this.places.sortWith { lugar1: Place, lugar2: Place ->
-                    lugar2.fecha.compareTo(lugar1.fecha) }
+                this.places.sortWith { lugar1: Places, lugar2: Places ->
+                    val fecha1 = Utilities.stringToDate(lugar1.fecha!!)
+                    val fecha2 = Utilities.stringToDate(lugar2.fecha!!)
+                    fecha2!!.compareTo(fecha1!!) }
                 true
             }
             adapter.notifyDataSetChanged()
@@ -559,84 +609,66 @@ class MyPlacesFragment : Fragment() {
             ascMark = if (ascMark) {
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_mark_asc_btn)
                 btnSortMarkPlace.setImageResource(R.drawable.ic_short_mark_desc_btn)
-                this.places.sortWith { lugar1: Place, lugar2: Place ->
-                    lugar2.puntuacion.compareTo(lugar1.puntuacion) }
+                this.places.sortWith { lugar1: Places, lugar2: Places ->
+                    lugar2.votos!!.size.compareTo(lugar1.votos!!.size) }
                 false
             }else{
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_mark_asc_btn)
                 btnSortMarkPlace.setImageResource(R.drawable.ic_short_mark_desc_btn)
-                this.places.sortWith { lugar1: Place, lugar2: Place ->
-                    lugar1.puntuacion.compareTo(lugar2.puntuacion) }
+                this.places.sortWith { lugar1: Places, lugar2: Places ->
+                    lugar1.votos!!.size.compareTo(lugar2.votos!!.size) }
                 true
             }
             adapter.notifyDataSetChanged()
         }
     }
 
-    /**
-     * Carga las datos
-     */
-    private fun cargarDatos() {
-        tarea = TareaCargarDatos()
-        tarea.execute()
+    private fun getDatosFromBD() {
+        placeSwipe_MyPlaces.isRefreshing = true
+        // Seleccionamos los lugares
+        val call = bbddRest.selectPlaceByIdUser(userApi.id!!)
+
+        call.enqueue(object : Callback<List<PlacesDTO>>{
+            override fun onResponse(call: Call<List<PlacesDTO>>, response: Response<List<PlacesDTO>>) {
+
+                if (response.isSuccessful){
+                    val listaLugaresDTO = response.body()!! as MutableList<PlacesDTO>
+                    places = PlacesMapper.fromDTO(listaLugaresDTO) as MutableList<Places>
+                    cargarLugares()
+
+                }else{
+                    Toast.makeText(context, getString(R.string.errorLogin), Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<List<PlacesDTO>>, t: Throwable) {
+                Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
+            }
+
+        })
     }
 
-    fun getDatosFromBD() {
-        // Seleccionamos los lugares
-        places = user.places
-        //places = ControllerPlaces.selectPlaces()!!
+
+    /**
+     * cargamos los lugares y notificamos 
+     */
+    private fun cargarLugares() {
+        adapter = MyPlacesViewModel(places) {
+            eventoClicFila(it)
+        }
+        placeRecycler_MyPlaces.adapter = adapter
+        // Avismos que ha cambiado
+        adapter.notifyDataSetChanged()
+        placeRecycler_MyPlaces.setHasFixedSize(true)
+        placeSwipe_MyPlaces.isRefreshing = false
     }
 
     /**
      * Evento click asociado a una fila
-     * @param place Place
+     * @param place Places
      */
-    private fun eventoClicFila(place: Place) {
+    private fun eventoClicFila(place: Places) {
         initDetailsPlaceFragment(false, place, null, false)
     }
 
-    inner class TareaCargarDatos : AsyncTask<String?, Void?, Void?>() {
-        /**
-         * Acciones antes de ejecutarse
-         */
-        override fun onPreExecute() {
-            if (placeSwipe_MyPlaces.isRefreshing) {
-                placeSwipe_MyPlaces.isRefreshing = false
-            }
-        }
-
-        override fun doInBackground(vararg p0: String?): Void? {
-            Log.d("Datos", "Entrado en doInBackgroud")
-            try {
-                getDatosFromBD()
-                Log.d("Datos", "Datos pre tamaño: " + places.size.toString())
-            } catch (e: Exception) {
-                Log.e("T2Plano ", e.message.toString())
-            }
-            Log.d("Datos", "onDoInBackgroud OK")
-            return null
-        }
-
-        /**
-         * Procedimiento a realizar al terminar
-         * Cargamos la lista
-         *
-         * @param args
-         */
-        override fun onPostExecute(args: Void?) {
-            Log.d("Datos", "entrando en onPostExecute")
-            adapter = MyPlacesViewModel(places) {
-                eventoClicFila(it)
-                place = it
-            }
-
-            placeRecycler_MyPlaces.adapter = adapter
-            // Avismos que ha cambiado
-            adapter.notifyDataSetChanged()
-            placeRecycler_MyPlaces.setHasFixedSize(true)
-            placeSwipe_MyPlaces.isRefreshing = false
-            Log.d("Datos", "onPostExecute OK")
-            Log.d("Datos", "Datos post tam: " + places.size.toString())
-        }
-    }
 }

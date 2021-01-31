@@ -13,6 +13,9 @@
     <string name="inputSocialMedia">Enter your username</string>
     <string name="btnOk" tools:ignore="ExtraTranslation">Save</string>
     <string name="btnCancel">Cancel</string>
+    <string name="userSignUp">Successful registered user</string>
+    <string name="userNoSignUp">Error registered user</string>
+    <string name="errorService">Error accessing service</string>
 
     <!--Seleccion_Camara-->
     <string name="tvSelection">Choose your image source</string>
@@ -29,7 +32,9 @@
         <u>Register</u>
     </string>
     <string name="action_emptyfield">There can be no empty fields</string>
-    <string name="errorLogin">Incorrect username or password</string>
+    <string name="errorLoginEmail">Incorrect email</string>
+    <string name="errorLoginPWD">Incorrect password</string>
+    <string name="errorLogin">Error</string>
     <string name="password_strength_caption">Password Strength: {0}</string>
     <string name="password_strength_weak">Weak</string>
     <string name="password_strength_medium">Medium</string>
@@ -48,8 +53,10 @@
 
     <!-- Navigation Drawer -->
     <string name="my_places">My Places</string>
+    <string name="all_places">All Places</string>
     <string name="my_profile">My Profile</string>
     <string name="near_me">Near me</string>
+    <string name="weather">Weather</string>
     <string name="lantern">Lantern</string>
     <string name="exit">Exit</string>
 
@@ -57,6 +64,8 @@
     <string name="btnSave">Save</string>
     <string name="myProfileTitle">My Profile</string>
     <string name="txtNewPassword">New Password</string>
+    <string name="newUserProfile">User updated successfully</string>
+    <string name="errorNewUser">Error updating user</string>
 
     <!--My Places-->
     <string name="btnAddNewPlace">Place</string>
@@ -69,6 +78,8 @@
     <string name="btnAddImage">Add Image</string>
     <string name="btnSavePlace">Save</string>
     <string name="deletePlace">Place Removed</string>
+    <string name="updatePlace">Place updated successfully</string>
+    <string name="errorUpdatePlace">Error updating place</string>
     <string name="recuperarPlace">Undo</string>
     <string name="confirmDelete">Confirm</string>
     <string name="cancelDelete">Cancel</string>
@@ -88,6 +99,9 @@
     <string name="shareQr">Share via QR?</string>
     <string name="scanQR">Scanning QR…</string>
     <string name="importPlace">Import</string>
+    <string name="placeExsistente">This place already exists</string>
+    <string name="placeSignUp">Successful registered place</string>
+    <string name="placeNoSignUp">Error registered place</string>
 
     <string name="importData">Import data</string>
     <string name="exportData">Export data</string>
@@ -97,11 +111,19 @@
     <string name="messExport">Do you want to export all?</string>
     <string name="messImport">Do you want to import all?</string>
 
+    <string name="noFlashLight">This device has no flash</string>
+    <string name="noPermisos">You must accept the permissions</string>
+    <string name="connect">Connect</string>
+    <string name="connectGPS">A connection to GPS is required</string>
+    <string name="connectNet">A connection to Network is required</string>
+
 
     <string name="InternetON">Internet connection exists</string>
     <string name="InternetNeed">Internet connection needed</string>
     <string name="Connect">Connect</string>
     <string name="invalidEmail">Invalid Email</string>
-
+    <string name="errorUpload">Error uploading image</string>
+    <string name="register">Registering user...</string>
+    <string name="weather_dialog">Loading weather...</string>
 
 </resources>

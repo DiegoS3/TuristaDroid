@@ -2,41 +2,37 @@ package android.com.diego.turistadroid.signup
 
 import android.app.Activity
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.ControllerBbdd
-import android.com.diego.turistadroid.bbdd.ControllerUser
-import android.com.diego.turistadroid.bbdd.Place
-import android.com.diego.turistadroid.bbdd.User
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserDTO
+import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserMapper
+import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.HttpClient
+import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.ImgurREST
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
+import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BlendMode
-import android.graphics.BlendModeColorFilter
-import android.graphics.PorterDuff
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ProgressBar
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toBitmap
-import io.realm.RealmList
-import io.realm.exceptions.RealmPrimaryKeyConstraintException
 import kotlinx.android.synthetic.main.activity_sign_up.*
-import kotlinx.android.synthetic.main.layout_input_instagram.*
 import kotlinx.android.synthetic.main.layout_input_instagram.view.*
-import kotlinx.android.synthetic.main.layout_input_twitter.*
 import kotlinx.android.synthetic.main.layout_input_twitter.view.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import org.json.JSONObject
+import java.io.IOException
+import java.util.*
 
 class SignUp : AppCompatActivity() {
 
@@ -47,14 +43,12 @@ class SignUp : AppCompatActivity() {
     private var usuario = ""
     private var email = ""
     private var password = ""
-    private var ima : Bitmap? = null
+    private var ima: Bitmap? = null
     private var instagram = ""
     private var twitter = ""
-
-    companion object{
-        var valido = false
-    }
-
+    private lateinit var clientImgur: OkHttpClient
+    private lateinit var bbddRest: BBDDRest
+    private lateinit var loadingView: AlertDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,28 +57,46 @@ class SignUp : AppCompatActivity() {
         init()
     }
 
-    private fun init(){
+    private fun init() {
+
         abrirOpciones()
         Utilities.validarPassword(txtPass, progressBar, password_strength, this)
         Utilities.validarEmail(txtEmail, this)
         initSaveDatos()
         redes()
         checkUsuario()
+        initClients()
+        initDialog()
+    }
+
+    private fun initDialog(){
+
+        val builder = AlertDialog.Builder(this)
+        builder.setCancelable(false)
+        builder.setView(R.layout.loading_dialog)
+        loadingView = builder.create()
+    }
+
+    //clientes para las conexiones con las API de las que consumimos datos
+    private fun initClients() {
+
+        clientImgur = HttpClient.getClient()!!
+        bbddRest = BBDDApi.service
 
     }
 
-    private fun setInsta(insta: String){
+    private fun setInsta(insta: String) {
         this.instagram = insta
-        Log.i("insta2:",instagram)
+        Log.i("insta2:", instagram)
     }
 
-    private fun setTwitter(twit: String){
+    private fun setTwitter(twit: String) {
         this.twitter = twit
-        Log.i("twitter2:",twitter)
+        Log.i("twitter2:", twitter)
     }
 
     //Insertar id usuario en las redes sociales
-    private fun redes(){
+    private fun redes() {
         imaInstagramSignUp.setOnClickListener {
             val mDialogView = LayoutInflater.from(this).inflate(R.layout.layout_input_instagram, null)
             val mBuilder = AlertDialog.Builder(this)
@@ -94,7 +106,7 @@ class SignUp : AppCompatActivity() {
             mDialogView.btnOkInsta.setOnClickListener {
                 instagram = mDialogView.txtUserNameInstagram.text.toString()
                 setInsta(instagram)
-                Log.i("insta:",instagram)
+                Log.i("insta:", instagram)
                 mBuilder.dismiss()
 
             }
@@ -109,62 +121,209 @@ class SignUp : AppCompatActivity() {
             mDialogView.btnOkTwitter.setOnClickListener {
                 twitter = mDialogView.txtUserNameTwitter.text.toString()
                 setTwitter(twitter)
-                Log.i("twitter:",twitter)
+                Log.i("twitter:", twitter)
                 mBuilder.dismiss()
 
             }
-            Log.i("twitter2:",twitter)
+            Log.i("twitter2:", twitter)
         }
     }
 
-    //Comprobar suario
-    private fun checkUsuario(){
-        btnRegister.setOnClickListener {
-            Log.i("valor de vacios",comprobarVacios().toString())
-            if(comprobarVacios()){
-                try {
+    /**
+     * Comprobamos que el email no exista en la bbddd
+     * tras haber hecho la comprobación de que el userName
+     * sea unico
+     */
+    private fun uniqueEmail(){
+        val email = txtEmail.text.toString()
+        val call = bbddRest.selectUserByEmail(email)
 
-                    if(ControllerUser.uniqueUser(txtNameUser.text.toString())){
-                        txtNameUser.error = getString(R.string.errorNameUser)
-                    }else{
-                        registrarUsuario()
+        call.enqueue((object : retrofit2.Callback<List<UserDTO>> {
+            override fun onResponse(call: retrofit2.Call<List<UserDTO>>, response: retrofit2.Response<List<UserDTO>>) {
+                // Si la respuesta es correcta
+                if (response.isSuccessful) {
+
+                    //Si el body no esta vacio ese email ya esta registrado
+                    if(response.body()!!.isNotEmpty()){
+                        txtEmail.error = getString(R.string.errorEmail)
+                    }else{ //en caso contrario no existe y permitimos el registro en la bbdd
+                        uploadImgToImgurAPI()
                     }
 
-                }catch (ex: RealmPrimaryKeyConstraintException){
-                    txtEmail.error = getString(R.string.errorEmail)
+                } else {
+
+                    Toast.makeText(applicationContext, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
+                        .show()
                 }
-            }else{
+            }
+            //Si error
+            override fun onFailure(call: retrofit2.Call<List<UserDTO>>, t: Throwable) {
+                Toast.makeText(applicationContext, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }))
+    }
+
+    /**
+     * Comprobamos que el userName que introduce
+     * el usuario no exista en nuestra bbdd
+     */
+    private fun uniqueUser(nameUser: String) {
+
+        val call = bbddRest.selectUserByUserName(nameUser)
+
+        call.enqueue((object : retrofit2.Callback<List<UserDTO>> {
+            override fun onResponse(call: retrofit2.Call<List<UserDTO>>, response: retrofit2.Response<List<UserDTO>>) {
+                // Si la respuesta es correcta
+                if (response.isSuccessful) {
+
+                    //Si el cuerpo no esta vacio el usuario existe mostramos error
+                    if(response.body()!!.isNotEmpty()){
+                        txtNameUser.error = getString(R.string.errorNameUser)
+                    }else{
+                        uniqueEmail() //Si no es que no existe procedemos a comprobar el email
+                    }
+
+                } else {
+
+                    Toast.makeText(applicationContext, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
+                        .show()
+                }
+            }
+            //Si error
+            override fun onFailure(call: retrofit2.Call<List<UserDTO>>, t: Throwable) {
+                Toast.makeText(applicationContext, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }))
+    }
+
+    //Comprobar suario
+    private fun checkUsuario() {
+        btnRegister.setOnClickListener {
+
+            if (comprobarVacios()) {
+                uniqueUser(txtNameUser.text.toString())
+            } else {
                 Toast.makeText(applicationContext, getString(R.string.action_emptyfield), Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    //Registrar usuario
-    private fun registrarUsuario() {
+    /**
+     * Subimos la imagen que ha elegido el usuario a la
+     * Api de IMGUR y creamos el usuario que posteriormente
+     * registramos en la bbdd de nuestra API
+     */
+    private fun uploadImgToImgurAPI() {
+        loadingView.show()
         val passCifrada = Utilities.hashString(txtPass.text.toString())
-        val imaString = Utilities.bitmapToBase64(imaUser.drawable.toBitmap())
-        val listaPlaces = RealmList<Place>()
+        val imaString = Utilities.bitmapToBase64(imaUser.drawable.toBitmap())!!
 
+        val mediaType: MediaType = "text/plain".toMediaTypeOrNull()!!
+        val body: RequestBody = MultipartBody.Builder().setType(MultipartBody.FORM)
+            .addFormDataPart("image", imaString)
+            .build()
+        val request = ImgurREST.postImage(body, "base64")
+        Log.i("answer", request.toString() + " " + request.body.toString())
+        clientImgur.newCall(request).enqueue(object : Callback {
 
-        val user = imaString?.let { User(txtEmail.text.toString(), txtName.text.toString(),
-            txtNameUser.text.toString(), passCifrada, it, listaPlaces, twitter, instagram ) }
-        user?.let { ControllerUser.insertUser(it) }
-        Toast.makeText(applicationContext, "Usuario Registrado", Toast.LENGTH_SHORT).show()
-        val intent = Intent (this, LogInActivity::class.java)
+            override fun onFailure(call: Call, e: IOException) {
+                Toast.makeText(applicationContext, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
+                    .show()
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+
+                if (response.isSuccessful) {
+
+                    val data = JSONObject(response.body!!.string())
+                    val item = data.getJSONObject("data")
+                    val user = UserApi(
+                        UUID.randomUUID().toString(),
+                        txtName.text.toString(),
+                        txtNameUser.text.toString(),
+                        txtEmail.text.toString(),
+                        passCifrada,
+                        instagram,
+                        twitter,
+                        item.getString("link")
+                    )
+                    insertUserApi(user)
+
+                } else {
+                    Toast.makeText(applicationContext, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
+    }
+
+    /**
+     * Inicia la actividad del LOGIN
+     */
+    private fun initLogin() {
+        loadingView.dismiss()
+        val intent = Intent(this, LogInActivity::class.java)
         startActivity(intent)
     }
 
+    /**
+     * Registramos el usuario mediante retrofit en la
+     * bbdd de nuestra API
+     */
+    private fun insertUserApi(userApi: UserApi) {
+        val dto = UserMapper.toDTO(userApi)
+        val call = bbddRest.insertUser(dto)
+
+        call.enqueue((object : retrofit2.Callback<UserDTO> {
+            override fun onResponse(call: retrofit2.Call<UserDTO>, response: retrofit2.Response<UserDTO>) {
+                // Si la respuesta es correcta
+                if (response.isSuccessful) {
+                    Toast.makeText(
+                        applicationContext,
+                        getString(R.string.userSignUp),
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                    Thread.sleep(500)
+
+                    initLogin()
+
+                } else {
+                    Toast.makeText(
+                        applicationContext,
+                        getString(R.string.userNoSignUp),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            //Si error
+            override fun onFailure(call: retrofit2.Call<UserDTO>, t: Throwable) {
+                Toast.makeText(
+                    applicationContext,
+                    getString(R.string.userNoSignUp),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }))
+
+    }
+
     //Comprobar campos vaios
-    private fun comprobarVacios(): Boolean{
-        return Utilities.validarEmail(txtEmail, this) and txtName.text.isNotEmpty() and txtPass.text.isNotEmpty() and txtNameUser.text.isNotEmpty()
+    private fun comprobarVacios(): Boolean {
+        return Utilities.validarEmail(
+            txtEmail,
+            this
+        ) and txtName.text.isNotEmpty() and txtPass.text.isNotEmpty() and txtNameUser.text.isNotEmpty()
     }
 
     //Dialog para camara o galeria
     private fun abrirOpciones() {
-        imaUser.setOnClickListener(){
+        imaUser.setOnClickListener {
             val mDialogView = LayoutInflater.from(this).inflate(R.layout.layout_seleccion_camara, null)
             val mBuilder = AlertDialog.Builder(this)
-                    .setView(mDialogView).create()
+                .setView(mDialogView).create()
             mBuilder.show()
 
             //Listener para abrir la camara
@@ -182,19 +341,20 @@ class SignUp : AppCompatActivity() {
     }
 
     //muestro la camara
-    private fun abrirCamara(){
-            if (checkSelfPermission(android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED ||
-                checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
-                val permisosCamara =
-                    arrayOf(android.Manifest.permission.CAMERA, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                requestPermissions(permisosCamara, CAMARA)
-            }else{
-                mostrarCamara()
-            }
+    private fun abrirCamara() {
+        if (checkSelfPermission(android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED ||
+            checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED
+        ) {
+            val permisosCamara =
+                arrayOf(android.Manifest.permission.CAMERA, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            requestPermissions(permisosCamara, CAMARA)
+        } else {
+            mostrarCamara()
+        }
     }
 
     //abre la camara y hace la foto
-    private fun mostrarCamara(){
+    private fun mostrarCamara() {
         val value = ContentValues()
         value.put(MediaStore.Images.Media.TITLE, "Nueva Imagen")
         foto = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, value)
@@ -204,16 +364,16 @@ class SignUp : AppCompatActivity() {
     }
 
     //pido los permisos para abrir la galeria
-    private fun abrirGaleria(){
-            val permiso = arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE)
-            requestPermissions(permiso, GALERIA)
+    private fun abrirGaleria() {
+        val permiso = arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+        requestPermissions(permiso, GALERIA)
     }
 
 
     //obtengo el resultado de pedir los permisos
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when(requestCode){
+        when (requestCode) {
             GALERIA -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
                     mostrarGaleria()
@@ -237,7 +397,7 @@ class SignUp : AppCompatActivity() {
     //si el usuario selecciona una imagen, la pongo en el imagenView
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == Activity.RESULT_OK && requestCode==GALERIA) {
+        if (resultCode == Activity.RESULT_OK && requestCode == GALERIA) {
             imaUser.setImageURI(data?.data)
             Utilities.redondearFoto(imaUser)
         }
@@ -248,26 +408,14 @@ class SignUp : AppCompatActivity() {
     }
 
     //muetsro la galeria
-    private fun mostrarGaleria(){
+    private fun mostrarGaleria() {
         val intent = Intent(Intent.ACTION_PICK)
         intent.type = "image/*"
         startActivityForResult(intent, GALERIA)
     }
 
-
-
-    override fun onStop() {
-        super.onStop()
-        ControllerBbdd.close()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        ControllerBbdd.close()
-    }
-
     //Guardamos datos
-    private fun initSaveDatos(){
+    private fun initSaveDatos() {
         nombre = txtName.text.toString()
         usuario = txtNameUser.text.toString()
         email = txtEmail.text.toString()
@@ -296,7 +444,7 @@ class SignUp : AppCompatActivity() {
         super.onRestoreInstanceState(savedInstanceState)
         // Recuperamos del Bundle
         savedInstanceState.run {
-            email= getString("EMAIL").toString()
+            email = getString("EMAIL").toString()
             nombre = getString("NOMBRE").toString()
             usuario = getString("USUARIO").toString()
             ima = Utilities.base64ToBitmap(getString("IMAGEN").toString())

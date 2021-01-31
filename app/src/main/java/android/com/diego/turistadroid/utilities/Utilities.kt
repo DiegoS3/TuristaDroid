@@ -19,18 +19,26 @@ import android.text.TextUtils
 import android.text.TextWatcher
 import android.util.Base64
 import android.util.Log
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.ProgressBar
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.RoundedBitmapDrawable
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.MultiFormatWriter
 import com.google.zxing.WriterException
+import kotlinx.android.synthetic.main.activity_sign_up.*
 import java.io.ByteArrayOutputStream
+import java.lang.Exception
 import java.security.MessageDigest
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
+import android.graphics.BitmapFactory
+
+import android.graphics.Bitmap
+import java.io.IOException
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
 
 
 object Utilities {
@@ -260,4 +268,77 @@ object Utilities {
             false
         }
     }
+
+    fun isOnline(context: Context): Boolean {
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val capabilities =
+            connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        if (capabilities != null) {
+            when {
+                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
+                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_CELLULAR")
+                    return true
+                }
+                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
+                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_WIFI")
+                    return true
+                }
+                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> {
+                    Log.i("Internet", "NetworkCapabilities.TRANSPORT_ETHERNET")
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    fun getSysDate() : LocalDateTime {
+        return LocalDateTime.now()
+    }
+
+    fun stringToDate(string: String) : LocalDateTime?{
+
+        var dateTime : LocalDateTime? = null
+        try {
+            dateTime = LocalDateTime.parse(string, Constants.FORMATTER)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return dateTime
+    }
+
+     fun dateToString(dateTime: LocalDateTime) : String?{
+        var date : String? = ""
+        try {
+            date = Constants.FORMATTER.format(dateTime)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return date
+    }
+
+    fun difMinutes(date1 : LocalDateTime, date2 : LocalDateTime) : Long{
+
+        return date2.until(date1, ChronoUnit.MINUTES)
+
+    }
+
+    fun Context.toast(message: Int) =
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+
+    fun getBitmapFromURL(src: String?): Bitmap? {
+        return try {
+            val url = URL(src)
+            val connection: HttpURLConnection = url.openConnection() as HttpURLConnection
+            connection.doInput = true
+            connection.connect()
+            val input: InputStream = connection.inputStream
+            BitmapFactory.decodeStream(input)
+        } catch (e: IOException) {
+            // Log exception
+            null
+        }
+    }
+
 }

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:app="http://schemas.android.com/apk/res-auto"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/fragment_AllPlaces"
+                android:background="@color/colorBackground">
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/placeSwipe_AllPlaces"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:layout_editor_absoluteY="-84dp"
+            tools:layout_editor_absoluteX="0dp">
+
+        <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/placeScroll_AllPlaces"
+                style="@android:style/Widget.DeviceDefault.Light.ScrollView">
+
+
+            <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/placeRecycler_AllPlaces"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    tools:layout_editor_absoluteX="222dp"
+                    tools:layout_editor_absoluteY="169dp"
+                    tools:listitem="@layout/item_list_places"
+            >
+            </androidx.recyclerview.widget.RecyclerView>
+
+        </ScrollView>
+
+        <ProgressBar
+                android:id="@+id/pgbPlaces_AllPlaces"
+                style="?android:attr/progressBarStyle"
+                android:layout_width="117dp"
+                android:layout_height="78dp"
+                tools:layout_editor_absoluteX="147dp"
+                tools:layout_editor_absoluteY="250dp"/>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnSortPlaces_AllPlaces"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="16dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:backgroundTint="@color/colorLightGradient"
+            app:srcCompat="@drawable/ic_short_btn"/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnSortNamePlaceAllPlaces"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:layout_marginBottom="5dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:backgroundTint="@color/colorFloatingButton"
+            app:srcCompat="@drawable/ic_short_name_asc_btn"
+            android:layout_above="@+id/btnSortDatePlaceAllPlaces"
+            android:visibility="invisible"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="16dp"/>
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnSortMarkPlaceAllPlaces"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:layout_marginBottom="5dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:backgroundTint="@color/colorFloatingButton"
+            app:srcCompat="@drawable/ic_short_mark_asc_btn"
+            android:layout_above="@+id/btnSortNamePlaceAllPlaces"
+            android:visibility="invisible"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="16dp"/>
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnSortDatePlaceAllPlaces"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:layout_marginBottom="1dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:backgroundTint="@color/colorFloatingButton"
+            app:srcCompat="@drawable/ic_short_date_asc_btn"
+            android:layout_above="@+id/btnSortPlaces_AllPlaces"
+            android:visibility="invisible"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="16dp"/>
+
+
+</RelativeLayout>
