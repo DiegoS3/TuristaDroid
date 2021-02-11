@@ -2,7 +2,6 @@ package android.com.diego.turistadroid.login
 
 import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.realm.entities.User
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.Sessions
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.SessionsDTO
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.SessionsMapper
@@ -10,16 +9,21 @@ import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserDTO
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
+import android.com.diego.turistadroid.bbdd.realm.entities.User
 import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.signup.SignUp
 import android.com.diego.turistadroid.utilities.UtilSessions
 import android.com.diego.turistadroid.utilities.Utilities
 import android.content.Intent
+import android.graphics.Typeface
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.common.SignInButton
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_log_in.*
 import retrofit2.Call
@@ -27,12 +31,14 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.util.*
 
+
 class LogInActivity : AppCompatActivity() {
 
     //mis variables
     private var userSave = ""
     private var pwdSave = ""
     private lateinit var bbddRest: BBDDRest
+    private val RC_SIGN_IN = 1
 
     companion object {
         var user = User() //usuario que compartiremos con activities y fragments
@@ -45,13 +51,34 @@ class LogInActivity : AppCompatActivity() {
         this.supportActionBar?.hide()
         setContentView(R.layout.activity_log_in)
         init()
+
+
     }
 
     private fun init(){
         bbddRest = BBDDApi.service
         clickBtn()
         clickRegister()
+        changeTextBtnGoogle()
     }
+
+
+    private fun changeTextBtnGoogle(){
+        val googleButton = findViewById<View>(R.id.google_button) as SignInButton
+        for (i in 0 until googleButton.childCount) {
+            val v = googleButton.getChildAt(i)
+            if (v is TextView) {
+                v.textSize = 18f
+                v.setTypeface(null, Typeface.NORMAL)
+                v.text = getString(R.string.login_google)
+                v.setTextColor(R.color.colorBackground)
+                v.isSingleLine = true
+                v.setPadding(150, 20, 50, 20)
+                return
+            }
+        }
+    }
+
 
     /**
      * Comprueba que los datos del usuario existen en la tabla
@@ -72,18 +99,18 @@ class LogInActivity : AppCompatActivity() {
                 // Si la respuesta es correcta
                 if (response.isSuccessful) {
                     //Si el body no esta vacio ese email ya esta registrado
-                    if(response.body()!!.isNotEmpty()){
+                    if (response.body()!!.isNotEmpty()) {
                         val user = UserMapper.fromDTO(response.body()!![0])
 
-                        if (user.pwd == pwd){
+                        if (user.pwd == pwd) {
                             val id = user.id
                             (application as MyApplication).USUARIO_API = user
                             insertarSession(id)
-                        }else{
+                        } else {
                             txtPwd_Login.error = getString(R.string.errorLoginPWD)
                         }
 
-                    }else{ //en caso contrario no existe
+                    } else { //en caso contrario no existe
                         txtUser_Login.error = getString(R.string.errorLoginEmail) //en caso contraio seteamos el error
                     }
                 } else {
@@ -92,6 +119,7 @@ class LogInActivity : AppCompatActivity() {
                         .show()
                 }
             }
+
             //Si error
             override fun onFailure(call: Call<List<UserDTO>>, t: Throwable) {
                 Toast.makeText(applicationContext, getString(R.string.errorService), Toast.LENGTH_SHORT)
@@ -168,13 +196,14 @@ class LogInActivity : AppCompatActivity() {
         call.enqueue(object : Callback<SessionsDTO> {
             override fun onResponse(call: Call<SessionsDTO>, response: Response<SessionsDTO>) {
 
-                if (response.isSuccessful){
+                if (response.isSuccessful) {
                     UtilSessions.crearSesionLocal(session, currentDate, applicationContext)
                     initNavigation()
-                }else{
+                } else {
                     Log.i("sesion", "Error al crear la sesion en el login")
                 }
             }
+
             override fun onFailure(call: Call<SessionsDTO>, t: Throwable) {
                 Toast.makeText(applicationContext, getString(R.string.errorService), Toast.LENGTH_SHORT)
                     .show()

@@ -125,5 +125,7 @@
     <string name="errorUpload">Error uploading image</string>
     <string name="register">Registering user...</string>
     <string name="weather_dialog">Loading weather...</string>
+    <string name="login_google">Log in with Google</string>
+
 
 </resources>

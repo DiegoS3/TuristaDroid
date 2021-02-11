@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "665619984277",
+    "project_id": "turistadroid",
+    "storage_bucket": "turistadroid.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:665619984277:android:2764b512f583213ea0d09c",
+        "android_client_info": {
+          "package_name": "android.com.diego.turistadroid"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "665619984277-6bve47vfi0cibk3ltodnei6vqsh0nnh8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "android.com.diego.turistadroid",
+            "certificate_hash": "657b1bfda21442d9bf510478bd3b5433aa319fc3"
+          }
+        },
+        {
+          "client_id": "665619984277-tl8bei9qedrp0mqbpga4psenfo64gd8k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "android.com.diego.turistadroid",
+            "certificate_hash": "0215d7d146f2439916013d719a2207e24fa4fb2e"
+          }
+        },
+        {
+          "client_id": "665619984277-7arg0hr88fpgg76uh3qop1rcjgu4bt1j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCE1wbNkKQxSjVEw10hqgn1oX4ouwLKr1E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "665619984277-7arg0hr88fpgg76uh3qop1rcjgu4bt1j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -91,17 +91,22 @@
                 android:layout_marginTop="20dp" app:layout_constraintTop_toBottomOf="@+id/txtPwd_Login"
                 android:fontFamily="@font/roboto_bold"/>
 
-            <com.google.android.gms.common.SignInButton
-                    android:id="@+id/sign_in_button"
-                    android:layout_marginTop="9dp"
-                    android:layout_width="135dp"
-                    android:layout_height="46dp"/>
 
             <com.google.android.gms.common.SignInButton
-                    android:id="@+id/sign_in_button2"
-                    android:layout_marginTop="9dp"
-                    android:layout_width="135dp"
-                    android:layout_height="46dp" />
+                    android:id="@+id/google_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="53dp"
+                    android:text="Text"
+                    android:layout_margin="10dp"
+                    android:textSize="18sp" />
+
+            <com.twitter.sdk.android.core.identity.TwitterLoginButton
+                    android:id="@+id/login_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="46dp"
+            android:backgroundTint="@color/twitterBlue"/>
+
+
 
 
 
