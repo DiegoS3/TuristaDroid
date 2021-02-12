@@ -2,20 +2,15 @@ package android.com.diego.turistadroid.navigation_drawer.ui.myprofile
 
 import android.Manifest.permission.CAMERA
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-import android.com.diego.turistadroid.MyApplication
+import android.R.attr.bitmap
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserDTO
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserMapper
-import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.HttpClient
-import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.ImgurREST
-import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
-import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
+import android.com.diego.turistadroid.bbdd.firebase.UserFB
 import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.utilities.Fotos
 import android.com.diego.turistadroid.utilities.Utilities
+import android.com.diego.turistadroid.utilities.Utilities.getImageUri
 import android.com.diego.turistadroid.utilities.Utilities.toast
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -34,31 +29,34 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.net.toFile
+import androidx.core.util.ObjectsCompat.equals
+import androidx.core.view.drawToBitmap
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.BitmapImageViewTarget
-import com.squareup.picasso.Picasso
+import com.bumptech.glide.request.target.SimpleTarget
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.auth.ktx.userProfileChangeRequest
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.ktx.storage
 import kotlinx.android.synthetic.main.activity_sign_up.*
 import kotlinx.android.synthetic.main.fragment_gallery.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
-import okhttp3.MediaType
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
-import okhttp3.OkHttpClient
-import okhttp3.RequestBody
-import org.json.JSONObject
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.io.IOException
+import java.net.URI
+import java.util.Objects.equals
 
 
 class MyProfileFragment(
-    private val userApi: UserApi
-) : Fragment() {
+    private val userFB: UserFB
+): Fragment() {
 
     // Variables para la camara
     private val GALERIA = 1
@@ -80,10 +78,15 @@ class MyProfileFragment(
     private lateinit var imaInstagram: ImageView
     private lateinit var imaTwitter: ImageView
 
-    private lateinit var clientImgur: OkHttpClient
-    private lateinit var bbddRest: BBDDRest
+    //Vars Firebase
+    private lateinit var Auth: FirebaseAuth
+    private lateinit var FireStore: FirebaseFirestore
 
-
+    private lateinit var storage: FirebaseStorage
+    private lateinit var storage_ref: StorageReference
+    private var urlImage = ""
+    private lateinit var user: FirebaseUser
+    private var fotoCombiada = false
 
 
     override fun onCreateView(
@@ -96,10 +99,10 @@ class MyProfileFragment(
         //val textView: TextView = root.findViewById(R.string.myProfileTitle)
 
         imaProfile = root.findViewById(R.id.imaProfile)
-        txtNameProfile= root.findViewById(R.id.txtUserName)
+        txtNameProfile = root.findViewById(R.id.txtUserName)
         txtNameUserProfile = root.findViewById(R.id.txtNameUserProfile)
         txtEmailProfile = root.findViewById(R.id.txtEmailProfile)
-        txtPassProfile= root.findViewById(R.id.txtPassProfile)
+        txtPassProfile = root.findViewById(R.id.txtPassProfile)
 
         imaInstagram = root.findViewById(R.id.imaInstagram)
         imaTwitter = root.findViewById(R.id.imaTwitter)
@@ -109,23 +112,28 @@ class MyProfileFragment(
         return root
     }
 
-    private fun init(){
-
-        initClients()
+    private fun init() {
+        initFirebase()
+        getCurrentUser()
         asignarDatosUsuario()
         abrirRedes()
 
     }
 
-    //clientes para las conexiones con las API de las que consumimos datos
-    private fun initClients() {
-
-        clientImgur = HttpClient.getClient()!!
-        bbddRest = BBDDApi.service
+    private fun getCurrentUser() {
+        user = Auth.currentUser!!
     }
 
+    private fun initFirebase() {
+        storage = Firebase.storage("gs://turistadroid.appspot.com/")
+        storage_ref = storage.reference
+        FireStore = FirebaseFirestore.getInstance()
+        Auth = Firebase.auth
+    }
+
+
     //Abrir redes sociales al hacer click en su boton correspondiente
-    private fun abrirRedes(){
+    private fun abrirRedes() {
         imaInstagram.setOnClickListener {
             onClickInstagram()
         }
@@ -135,35 +143,35 @@ class MyProfileFragment(
     }
 
     //Abrimos instagram del perfil del usuario
-    private fun onClickInstagram(){
-        val str = "https://www.instagram.com/" + this.userApi.insta
-        val uri = Uri.parse(str)
-        val intent = Intent(Intent.ACTION_VIEW,uri)
-        startActivity(intent)
+    private fun onClickInstagram() {
+        //val str = "https://www.instagram.com/" + this.user.insta
+        //val uri = Uri.parse(str)
+        //val intent = Intent(Intent.ACTION_VIEW, uri)
+        //startActivity(intent)
     }
 
     //Abrimos twitter del perfil del usuario
-    private fun onClickTwitter(){
-        val str = "https://www.twitter.com/" + this.userApi.twitter
-        val uri = Uri.parse(str)
-        val intent = Intent(Intent.ACTION_VIEW,uri)
-        startActivity(intent)
+    private fun onClickTwitter() {
+        //val str = "https://www.twitter.com/" + this.userApi.twitter
+        //val uri = Uri.parse(str)
+        //val intent = Intent(Intent.ACTION_VIEW, uri)
+        //startActivity(intent)
     }
 
     //Asignamos a los componentes de la interfaz los datos del usuario logeado
-    private fun asignarDatosUsuario(){
+    private fun asignarDatosUsuario() {
         Glide.with(this)
-            .load(this.userApi.foto)
+            .load(user.photoUrl)
             .circleCrop()
             .into(imaProfile)
-        txtNameProfile.text = this.userApi.name
-        txtNameUserProfile.text = this.userApi.userName
-        txtEmailProfile.setText(this.userApi.email)
+        txtNameProfile.text = this.user.displayName
+        //txtNameUserProfile.text = this.user.
+        txtEmailProfile.setText(user.email)
     }
 
     //Opciones para insertar foto (camara o galeria)
     private fun abrirOpciones() {
-        imaProfile.setOnClickListener(){
+        imaProfile.setOnClickListener() {
             val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_seleccion_camara, null)
             val mBuilder = AlertDialog.Builder(context!!)
                 .setView(mDialogView).create()
@@ -244,8 +252,11 @@ class MyProfileFragment(
                         (this.FOTO.height * prop).toInt(),
                         false
                     )
+                    fotoCombiada = true
                     imaProfile.setImageBitmap(this.FOTO)
-                    Utilities.redondearFoto(imaProfile)//Redondea la foto
+                    Utilities.redondearFoto(imaProfile)
+
+
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
@@ -260,6 +271,7 @@ class MyProfileFragment(
                     val source: ImageDecoder.Source = ImageDecoder.createSource(context?.contentResolver!!, IMAGEN_URI)
                     this.FOTO = ImageDecoder.decodeBitmap(source)
                 }
+                fotoCombiada = true
 
                 //omprimir imagen
                 Fotos.comprimirImagen(IMAGEN_URI.toFile(), this.FOTO, this.IMAGEN_COMPRES)
@@ -268,6 +280,7 @@ class MyProfileFragment(
                 // Mostramos
                 imaProfile.setImageBitmap(this.FOTO)
                 Utilities.redondearFoto(imaProfile)
+
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -275,14 +288,16 @@ class MyProfileFragment(
     }
 
     //muestro la camara
-    private fun abrirCamara() = if (ActivityCompat.checkSelfPermission(context!!, CAMERA) == PackageManager.PERMISSION_DENIED ||
-        ActivityCompat.checkSelfPermission(context!!, WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
-        val permisosCamara =
-            arrayOf(CAMERA, WRITE_EXTERNAL_STORAGE)
-        requestPermissions(permisosCamara, CAMARA)
-    }else{
-        tomarFotoCamara()
-    }
+    private fun abrirCamara() =
+        if (ActivityCompat.checkSelfPermission(context!!, CAMERA) == PackageManager.PERMISSION_DENIED ||
+            ActivityCompat.checkSelfPermission(context!!, WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED
+        ) {
+            val permisosCamara =
+                arrayOf(CAMERA, WRITE_EXTERNAL_STORAGE)
+            requestPermissions(permisosCamara, CAMARA)
+        } else {
+            tomarFotoCamara()
+        }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -292,60 +307,45 @@ class MyProfileFragment(
         checkUsuario()
     }
 
-    /**
-     * Subimos la imagen que ha elegido el usuario a la
-     * Api de IMGUR y creamos el usuario que posteriormente
-     * registramos en la bbdd de nuestra API
-     */
-    private fun uploadImgToImgurAPI(imaString : String) {
 
-        val mediaType: MediaType = "text/plain".toMediaTypeOrNull()!!
-        val body: RequestBody = MultipartBody.Builder().setType(MultipartBody.FORM)
-            .addFormDataPart("image", imaString)
-            .build()
-        val request = ImgurREST.postImage(body, "base64")
-        clientImgur.newCall(request).enqueue(object : okhttp3.Callback {
-
-            override fun onFailure(call: okhttp3.Call, e: IOException) {
-                Toast.makeText(context!!, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
-                    .show()
-            }
-            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
-
-                if (response.isSuccessful) {
-
-                    val data = JSONObject(response.body!!.string())
-                    val item = data.getJSONObject("data")
-                    Log.i("imgur", item.getString("link"))
-                    actualizarUsuario(item.getString("link"))
-
-                } else {
-                    Toast.makeText(context!!, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
-                }
-            }
-        })
-    }
-
-    private fun actualizarUsuario(foto : String?){
+    private fun actualizarUsuario() {
         val email = txtEmailProfile.text.toString()
         val name = txtNameProfile.text.toString()
         val nameUser = txtNameUserProfile.text.toString()
         val pass = Utilities.hashString(txtPassProfile.text.toString())
 
-        Log.i("imgur", "$foto estoy en actualizar")
-
         val newUser = if (passChanged()) {
-            UserApi(this.userApi.id, name, nameUser, email, pass, this.userApi.insta, this.userApi.twitter, foto)
-        }else{
-            UserApi(this.userApi.id, name, nameUser, email, this.userApi.pwd, this.userApi.insta, this.userApi.twitter, foto)
+            UserFB(user.uid, name, nameUser, email, pass, this.userFB.insta, this.userFB.twitter, user.photoUrl.toString())
+        } else {
+            UserFB(
+                user.uid,
+                name,
+                nameUser,
+                email,
+                this.userFB.pwd,
+                this.userFB.insta,
+                this.userFB.twitter,
+                user.photoUrl.toString()
+            )
         }
-        val newUserDTO = UserMapper.toDTO(newUser)
-        actualizarUsuarioRemoto(newUserDTO)
-        (activity?.application as MyApplication).USUARIO_API = newUser
-        asignarDatosUsuario(newUser)
+        actualizarBD(newUser)
+
     }
 
-    private fun asignarDatosUsuario(newUserApi: UserApi){
+    private fun actualizarBD(newUserFB: UserFB) {
+        FireStore.collection("users")
+            .document(userFB.id!!)
+            .set(newUserFB)
+            .addOnCompleteListener{ task->
+                if (task.isSuccessful){
+                    context!!.toast(R.string.newUserProfile)
+                }else{
+                    context!!.toast(R.string.errorService)
+                }
+            }
+    }
+
+    private fun asignarDatosUsuario(newUserApi: UserApi) {
 
         Thread {
             try {
@@ -367,171 +367,67 @@ class MyProfileFragment(
 
     }
 
-    //Actualizamos el usuario con los datos nuevos en la BD
-    private fun listenerChangedPhoto(){
-
-        val imaStr = if (this::FOTO.isInitialized){
-            Utilities.bitmapToBase64(this.FOTO)!!
-        }else{
-            this.userApi.foto
-        }
-        if (!imaStr.equals(this.userApi.foto)){
-            uploadImgToImgurAPI(imaStr!!)
-        }else{
-            actualizarUsuario(this.userApi.foto)
-        }
-    }
-
-    private fun actualizarUsuarioRemoto(newUserApi: UserDTO){
-
-        val call = bbddRest.updateUser(this.userApi.id!!, newUserApi)
-
-        call.enqueue(object : Callback<UserDTO>{
-            override fun onResponse(call: Call<UserDTO>, response: Response<UserDTO>) {
-                if (response.isSuccessful){
-                    context!!.toast(R.string.newUserProfile)
-                }else{
-                    context!!.toast(R.string.errorNewUser)
-                }
-            }
-            override fun onFailure(call: Call<UserDTO>, t: Throwable) {
-                context!!.toast(R.string.errorService)
-            }
-        })
-    }
-
-    //Modificamos los datos del navigation drawer
-    private fun asignarDatosNavigation1(newUserApi: UserApi){
-        NavigationDrawer.txtNombreNav.text = newUserApi.name
-        Log.i("navi","cambiado nombre" )
-        NavigationDrawer.txtCorreoNav.text = newUserApi.email
-        Log.i("navi","cambiado email" )
-        Glide.with(context!!)
-            .load(newUserApi.foto)
-            .circleCrop()
-            .into(NavigationDrawer.imaUser_nav)
-        Log.i("navi","cambiada foto" )
-    }
 
     //Devuelve true si la pass ha sido modificada
-    private fun passChanged(): Boolean{
+    private fun passChanged(): Boolean {
         var cambiada = false
 
-        if (txtPassProfile.text.isNotEmpty()){
+        if (txtPassProfile.text.isNotEmpty()) {
             cambiada = true
         }
         return cambiada
     }
 
-    /**
-     * Comprobamos que el email no exista en la bbddd
-     * tras haber hecho la comprobación de que el userName
-     * sea unico
-     */
-    private fun uniqueEmail(email : String){
-        val call = bbddRest.selectUserByEmail(email)
-
-        call.enqueue((object : Callback<List<UserDTO>> {
-            override fun onResponse(call: Call<List<UserDTO>>, response: Response<List<UserDTO>>) {
-                // Si la respuesta es correcta
-                if (response.isSuccessful) {
-
-                    //Si el body no esta vacio ese email ya esta registrado
-                    if(response.body()!!.isNotEmpty()){
-                        txtEmail.error = getString(R.string.errorEmail)
-                    }else{ //en caso contrario no existe y permitimos el registro en la bbdd
-                        listenerChangedPhoto()
-                    }
-                } else {
-                    Toast.makeText(context!!, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
-                        .show()
-                }
-            }
-            //Si error
-            override fun onFailure(call: Call<List<UserDTO>>, t: Throwable) {
-                Toast.makeText(context!!, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
-                    .show()
-            }
-        }))
-    }
 
     /**
      * Comprobamos que el userName que introduce
      * el usuario no exista en nuestra bbdd
      */
-    private fun uniqueUser(nameUser: String, email : String) {
+    private fun uniqueUser(nameUser: String, email: String) {
+        FireStore.collection("users")
+            .whereEqualTo("userName", txtNameUser.text.toString())
+            .get()
+            .addOnSuccessListener {
+                Log.i("fire", it.documents.size.toString())
+                if (it.documents.size == 0) {
 
-        val call = bbddRest.selectUserByUserName(nameUser)
-
-        call.enqueue((object : Callback<List<UserDTO>> {
-            override fun onResponse(call: Call<List<UserDTO>>, response: Response<List<UserDTO>>) {
-                // Si la respuesta es correcta
-                if (response.isSuccessful) {
-                    //Si el cuerpo no esta vacio el usuario existe mostramos error
-                    if(response.body()!!.isNotEmpty()){
-                        txtNameUser.error = getString(R.string.errorNameUser)
-                    }else{
-                        if (email != userApi.email){ //Si quiere cambiar su email actual
-                            uniqueEmail(email) //Si no es que no existe procedemos a comprobar el email
-                        }else{
-                            listenerChangedPhoto()
-                        }
-                    }
                 } else {
-                    Toast.makeText(context!!, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
-                        .show()
+                    context!!.toast(R.string.errorNameUser)
                 }
             }
-            //Si error
-            override fun onFailure(call: Call<List<UserDTO>>, t: Throwable) {
-                Toast.makeText(context!!, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
-                    .show()
+            .addOnFailureListener {
+                context!!.toast(R.string.errorService)
             }
-        }))
+
     }
 
     //Comprobamos que no haya campos vacios y el usuario sea unico
-    private fun checkUsuario(){
+    private fun checkUsuario() {
         btnSave.setOnClickListener {
-            Log.i("valor de vacios",comprobarVacios().toString())
-            if(comprobarVacios()){
-                when {
-                    txtNameUserProfile.text.toString() != userApi.userName -> {
-                        uniqueUser(txtNameUserProfile.text.toString(), txtEmailProfile.text.toString())
-                    }
-                    txtEmailProfile.text.toString() != userApi.email -> {
-                        uniqueEmail(txtEmailProfile.text.toString())
-                    }
-                    else -> {
-                        listenerChangedPhoto()
-                    }
+            if (txtNameProfile.text.isNotEmpty()) {
+                if (fotoCombiada || txtNameProfile.text != user.displayName ){
+                    actualizarUserDatos()
                 }
-            }else{
+                else{
+                    actualizarUsuario()
+                }
+
+            } else {
                 Toast.makeText(context, getString(R.string.action_emptyfield), Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    //devuelve true si el campo del email ha sido modificado
-    private fun checkEmailChange(): Boolean{
-        var v = false
-        if(this.userApi.email != txtEmailProfile.text.toString()){
-            v = true
+    private fun actualizarUserDatos() {
+        val profileUpdates = userProfileChangeRequest {
+            displayName = txtNameProfile.text.toString()
+            photoUri = Uri.parse(urlImage)
         }
-        return v
+        user.updateProfile(profileUpdates).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                actualizarUsuario()
+            }
+        }
     }
 
-    private fun comprobarVacios(): Boolean{
-        var valido = false
-        if  (checkEmailChange()){
-            if (Utilities.validarEmail(txtEmailProfile, context!!) and txtNameProfile.text.isNotEmpty() and txtNameUserProfile.text.isNotEmpty()){
-                valido = true
-            }
-        }else{
-            if (txtNameProfile.text.isNotEmpty() and txtNameUserProfile.text.isNotEmpty()){
-                valido = true
-            }
-        }
-        return valido
-    }
 }

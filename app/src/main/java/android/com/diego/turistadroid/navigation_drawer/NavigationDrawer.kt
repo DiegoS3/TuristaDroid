@@ -48,6 +48,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
@@ -126,10 +127,27 @@ class NavigationDrawer : AppCompatActivity(){
             .into(BitmapImageViewTarget(imaUser_nav))
     }
 
+    private fun actualizarDatosView(){
+        FireStore.collection("users")
+            .whereEqualTo("id", userFB.uid)
+            .addSnapshotListener { snapshots, e ->
+                if (e != null) {
+                    return@addSnapshotListener
+                }
+                for (dc in snapshots!!.documentChanges) {
+                    when (dc.type) {
+                        DocumentChange.Type.MODIFIED ->
+                            asignarDatosUsuario()
+                    }
+                }
+            }
+    }
+
     private fun init(navigationView: NavigationView){
         bbddRest = BBDDApi.service
         initFirebase()
         getUser()
+        actualizarDatosView()
         asignarDatosUsuario()
         navigationListener(navigationView)
         initPermisos()
@@ -358,11 +376,11 @@ class NavigationDrawer : AppCompatActivity(){
 
     //Abir Mu pergil
     private fun abrirMyProfile(){
-        /*val newFragment = MyProfileFragment(userApi)
+        val newFragment = MyProfileFragment(user)
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
-        transaction.commit()*/
+        transaction.commit()
     }
 
     //Abrir cerca de mi

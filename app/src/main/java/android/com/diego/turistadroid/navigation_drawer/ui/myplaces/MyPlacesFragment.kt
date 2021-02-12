@@ -80,8 +80,8 @@ class MyPlacesFragment : Fragment() {
 
         root = inflater.inflate(R.layout.fragment_myplaces, container, false)
         myContext = context!!
-        userApi = (activity?.application as MyApplication).USUARIO_API
-        idUser = userApi.id!!
+        //userApi = (activity?.application as MyApplication).USUARIO_API
+        //idUser = userApi.id!!
         return root
     }
 
@@ -93,14 +93,14 @@ class MyPlacesFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        getDatosFromBD()
+        //getDatosFromBD()
     }
 
     private fun initUI() {
         bbddRest = BBDDApi.service
         initFloatingButtons()
         iniciarSwipeRecarga()
-        getDatosFromBD()
+        //getDatosFromBD()
         iniciarSwipeHorizontal()
         // Mostramos las vistas de listas y adaptador asociado
         placeRecycler_MyPlaces.layoutManager = LinearLayoutManager(context)
