@@ -6,6 +6,7 @@ import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
+import android.com.diego.turistadroid.bbdd.firebase.UserFB
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.ui.allplaces.AllPlaces
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
@@ -15,6 +16,7 @@ import android.com.diego.turistadroid.navigation_drawer.ui.weather.WeatherFragme
 import android.com.diego.turistadroid.utilities.UtilImpExp
 import android.com.diego.turistadroid.utilities.UtilSessions
 import android.com.diego.turistadroid.utilities.Utilities
+import android.com.diego.turistadroid.utilities.Utilities.toast
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -43,7 +45,16 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.BitmapImageViewTarget
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.ktx.storage
 import kotlinx.android.synthetic.main.activity_navigation_drawer.*
+import kotlinx.android.synthetic.main.activity_sign_up.*
 
 class NavigationDrawer : AppCompatActivity(){
 
@@ -53,11 +64,20 @@ class NavigationDrawer : AppCompatActivity(){
     private lateinit var toolbar: Toolbar
     private lateinit var bbddRest: BBDDRest
 
+    //Vars Firebase
+    private lateinit var Auth: FirebaseAuth
+    private lateinit var FireStore: FirebaseFirestore
+
+    private lateinit var storage: FirebaseStorage
+    private lateinit var storage_ref: StorageReference
+
     companion object{
         lateinit var imaUser_nav : ImageView
         lateinit var txtNombreNav : TextView
         lateinit var txtCorreoNav : TextView
-        lateinit var userApi: UserApi
+        lateinit var user: UserFB
+        lateinit var userFB: FirebaseUser
+
         lateinit var contextNav: Context
 
     }
@@ -97,18 +117,18 @@ class NavigationDrawer : AppCompatActivity(){
     }
 
     fun asignarDatosUsuario(){
-        txtNombreNav.text = userApi.name
-        Log.i("contenido email: ", userApi.email.toString())
-        txtCorreoNav.text = userApi.email
+        txtNombreNav.text = userFB.displayName
+        txtCorreoNav.text = userFB.email
         Glide.with(this)
             .asBitmap()
-            .load(userApi.foto)
+            .load(userFB.photoUrl)
             .circleCrop()
             .into(BitmapImageViewTarget(imaUser_nav))
     }
 
     private fun init(navigationView: NavigationView){
         bbddRest = BBDDApi.service
+        initFirebase()
         getUser()
         asignarDatosUsuario()
         navigationListener(navigationView)
@@ -116,13 +136,32 @@ class NavigationDrawer : AppCompatActivity(){
         comprobarConexion()
     }
 
+    private fun initFirebase() {
+        storage = Firebase.storage("gs://turistadroid.appspot.com/")
+        storage_ref = storage.reference
+        FireStore = FirebaseFirestore.getInstance()
+        Auth = Firebase.auth
+    }
 
     /**
      * Obtenemos el usuario que tenemos en la sesión
      * almacenada en local
      */
     private fun getUser(){
-        userApi = (application as MyApplication).USUARIO_API
+        userFB = Auth.currentUser!!
+        getUserCloud(userFB)
+    }
+
+    private fun getUserCloud(userFB: FirebaseUser) {
+        FireStore.collection("users")
+            .whereEqualTo("id", userFB.uid)
+            .get()
+            .addOnCompleteListener{ task ->
+                if (task.isSuccessful)
+                    for (document in task.result.documents)
+                        Log.i("getUserCloud", document.data?.get(0).toString())
+                        //user = document.data
+            }
     }
 
     /**
@@ -267,7 +306,7 @@ class NavigationDrawer : AppCompatActivity(){
                     true
                 }
                 R.id.nav_export -> {//exportar
-                    UtilImpExp.export(this, userApi)
+                    //UtilImpExp.export(this, userFB)
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
                         drawer_layout.closeDrawer(GravityCompat.START)
                     }
@@ -319,20 +358,20 @@ class NavigationDrawer : AppCompatActivity(){
 
     //Abir Mu pergil
     private fun abrirMyProfile(){
-        val newFragment = MyProfileFragment(userApi)
+        /*val newFragment = MyProfileFragment(userApi)
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
-        transaction.commit()
+        transaction.commit()*/
     }
 
     //Abrir cerca de mi
     private fun abrirNearMe(){
-        val newFragment = NearMeFragment(userApi)
+        /*val newFragment = NearMeFragment(userApi)
         val transaction = supportFragmentManager.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
-        transaction.commit()
+        transaction.commit()*/
     }
 
     //Salir al login

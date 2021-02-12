@@ -14,6 +14,7 @@ import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.signup.SignUp
 import android.com.diego.turistadroid.utilities.UtilSessions
 import android.com.diego.turistadroid.utilities.Utilities
+import android.com.diego.turistadroid.utilities.Utilities.toast
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
@@ -25,6 +26,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.common.SignInButton
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.ktx.storage
 import kotlinx.android.synthetic.main.activity_log_in.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -39,6 +47,10 @@ class LogInActivity : AppCompatActivity() {
     private var pwdSave = ""
     private lateinit var bbddRest: BBDDRest
     private val RC_SIGN_IN = 1
+
+    //Vars Firebase
+    private lateinit var Auth: FirebaseAuth
+    private lateinit var FireStore: FirebaseFirestore
 
     companion object {
         var user = User() //usuario que compartiremos con activities y fragments
@@ -57,11 +69,16 @@ class LogInActivity : AppCompatActivity() {
 
     private fun init(){
         bbddRest = BBDDApi.service
+        initFirebase()
         clickBtn()
         clickRegister()
         changeTextBtnGoogle()
     }
 
+    private fun initFirebase() {
+        FireStore = FirebaseFirestore.getInstance()
+        Auth = Firebase.auth
+    }
 
     private fun changeTextBtnGoogle(){
         val googleButton = findViewById<View>(R.id.google_button) as SignInButton
@@ -92,40 +109,21 @@ class LogInActivity : AppCompatActivity() {
      */
     private fun comprobarLogin(email: String, pwd: String){
 
-        val call = bbddRest.selectUserByEmail(email)
-
-        call.enqueue((object : Callback<List<UserDTO>> {
-            override fun onResponse(call: Call<List<UserDTO>>, response: Response<List<UserDTO>>) {
-                // Si la respuesta es correcta
-                if (response.isSuccessful) {
-                    //Si el body no esta vacio ese email ya esta registrado
-                    if (response.body()!!.isNotEmpty()) {
-                        val user = UserMapper.fromDTO(response.body()!![0])
-
-                        if (user.pwd == pwd) {
-                            val id = user.id
-                            (application as MyApplication).USUARIO_API = user
-                            insertarSession(id)
-                        } else {
-                            txtPwd_Login.error = getString(R.string.errorLoginPWD)
-                        }
-
-                    } else { //en caso contrario no existe
-                        txtUser_Login.error = getString(R.string.errorLoginEmail) //en caso contraio seteamos el error
-                    }
-                } else {
-
-                    Toast.makeText(applicationContext, getString(R.string.errorLogin), Toast.LENGTH_SHORT)
-                        .show()
+        Auth.signInWithEmailAndPassword(email, pwd)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.i("login", task.exception.toString())
+                    initNavigation()
+                }
+                else{
+                    if (task.exception is FirebaseAuthUserCollisionException)
+                        txtUser_Login.error = getString(R.string.errorLoginEmail)
+                    else if (task.exception is FirebaseAuthInvalidCredentialsException)
+                        txtPwd_Login.error = getString(R.string.errorLoginPWD)
+                    else
+                        applicationContext.toast(R.string.errorService)
                 }
             }
-
-            //Si error
-            override fun onFailure(call: Call<List<UserDTO>>, t: Throwable) {
-                Toast.makeText(applicationContext, getString(R.string.errorService), Toast.LENGTH_SHORT)
-                    .show()
-            }
-        }))
     }
 
     /**

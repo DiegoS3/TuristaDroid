@@ -27,6 +27,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toBitmap
 import com.bumptech.glide.Glide
+import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
@@ -47,6 +49,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import org.json.JSONObject
 import java.io.IOException
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class SignUp : AppCompatActivity() {
 
@@ -70,6 +73,7 @@ class SignUp : AppCompatActivity() {
     private lateinit var storage: FirebaseStorage
     private lateinit var storage_ref: StorageReference
     private var urlImage = ""
+    private lateinit var user : FirebaseUser
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,7 +83,6 @@ class SignUp : AppCompatActivity() {
     }
 
     private fun init() {
-
         abrirOpciones()
         Utilities.validarPassword(txtPass, progressBar, password_strength, this)
         Utilities.validarEmail(txtEmail, this)
@@ -103,7 +106,6 @@ class SignUp : AppCompatActivity() {
         FireStore = FirebaseFirestore.getInstance()
         Auth = Firebase.auth
     }
-
 
     private fun setInsta(insta: String) {
         this.instagram = insta
@@ -149,7 +151,6 @@ class SignUp : AppCompatActivity() {
         }
     }
 
-
     /**
      * Comprobamos que el userName que introduce
      * el usuario no exista en nuestra bbdd
@@ -189,8 +190,8 @@ class SignUp : AppCompatActivity() {
         Auth.createUserWithEmailAndPassword(txtEmail.text.toString(), passCifrada)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    val user = Auth.currentUser
-                    crearUserDatos(user)
+                    user = Auth.currentUser!!
+                    uploadFotoStorage()
                 } else {
 
                     if (task.exception is FirebaseAuthUserCollisionException)
@@ -201,19 +202,17 @@ class SignUp : AppCompatActivity() {
             }
     }
 
-    private fun crearUserDatos(user: FirebaseUser?) {
+    private fun crearUserDatos() {
         val profileUpdates = userProfileChangeRequest {
             displayName = txtName.text.toString()
-            uploadFotoStorage(foto!!)
             photoUri = Uri.parse(urlImage)
         }
-        user!!.updateProfile(profileUpdates).addOnCompleteListener { task ->
+        user.updateProfile(profileUpdates).addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                insertUserFireBase(user)
+                insertUserFireBase()
             }
         }
     }
-
 
     /**
      * Inicia la actividad del LOGIN
@@ -229,11 +228,10 @@ class SignUp : AppCompatActivity() {
      * Registramos el usuario mediante Firebase en el
      * Cloud FireStore
      */
-    private fun insertUserFireBase(user: FirebaseUser?) {
-
+    private fun insertUserFireBase() {
         val passCifrada = Utilities.hashString(txtPass.text.toString())
         val userFB = UserFB(
-            user!!.uid,
+            user.uid,
             user.displayName,
             txtNameUser.text.toString(),
             user.email,
@@ -253,10 +251,7 @@ class SignUp : AppCompatActivity() {
             .addOnFailureListener {
                 applicationContext.toast(R.string.userNoSignUp)
             }
-
-
     }
-
 
     //Comprobar campos vaios
     private fun comprobarVacios(): Boolean {
@@ -346,26 +341,17 @@ class SignUp : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK && requestCode == GALERIA) {
-            //imaUser.setImageURI(data?.data)
-            //Utilities.redondearFoto(imaUser)
             foto = data?.data
             Glide.with(this)
                 .load(foto!!)
                 .circleCrop()
                 .into(imaUser)
-
-            //uploadFotoStorage(data?.data!!)
-
         }
         if (resultCode == Activity.RESULT_OK && requestCode == CAMARA) {
-            //imaUser.setImageURI(foto)
-            //Utilities.redondearFoto(imaUser)
             Glide.with(this)
                 .load(foto!!)
                 .circleCrop()
                 .into(imaUser)
-            //uploadFotoStorage(foto!!)
-
         }
     }
 
@@ -373,9 +359,9 @@ class SignUp : AppCompatActivity() {
      * Subimos la imagen que ha elegido el usuario al
      * Storage de Firebase
      */
-    private fun uploadFotoStorage(foto: Uri) {
-        val foto_ref = storage_ref.child("/avatares/${foto.lastPathSegment}")
-        val uploadTask = foto_ref.putFile(foto)
+    private fun uploadFotoStorage() {
+        val foto_ref = storage_ref.child("/avatares/${foto!!.lastPathSegment}")
+        val uploadTask = foto_ref.putFile(foto!!)
         uploadTask.continueWithTask { task ->
             if (!task.isSuccessful) {
                 task.exception?.let {
@@ -385,8 +371,12 @@ class SignUp : AppCompatActivity() {
             foto_ref.downloadUrl
         }.addOnCompleteListener { task ->
             if (task.isSuccessful) {
-                urlImage = task.result.toString()
-                Log.i("task", task.result.toString())
+                if (task.isComplete){
+                    urlImage = task.result.toString()
+                    crearUserDatos()
+                    Log.i("task", task.result.toString())
+                }
+
             }
         }
     }
