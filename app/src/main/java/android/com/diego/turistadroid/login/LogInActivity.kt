@@ -228,6 +228,7 @@ class LogInActivity : AppCompatActivity() {
 
         val intent = Intent(this, SignUp::class.java)
         startActivity(intent)
+        finish()
     }
 
     /**
@@ -237,6 +238,7 @@ class LogInActivity : AppCompatActivity() {
 
         val intent = Intent(this, NavigationDrawer::class.java)
         startActivity(intent)
+        finish()
 
     }
 

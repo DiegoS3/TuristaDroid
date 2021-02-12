@@ -3,6 +3,7 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'realm-android'
+apply plugin: 'com.google.gms.google-services'
 
 
 android {
@@ -125,5 +126,13 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth-ktx'
     implementation 'com.firebaseui:firebase-ui-auth:6.4.0'
     implementation 'com.google.firebase:firebase-core:18.0.2'
+    // Messaging
+    implementation 'com.google.firebase:firebase-messaging-ktx'
+    // Firestore
+    implementation 'com.google.firebase:firebase-firestore:22.0.2'
+    // Storage
+    implementation 'com.google.firebase:firebase-storage-ktx'
+    implementation 'com.google.firebase:firebase-analytics-ktx'
+
+
 }
-apply plugin: 'com.google.gms.google-services'

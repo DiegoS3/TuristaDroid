@@ -9,6 +9,7 @@
     <string name="txtPass">Password</string>
     <string name="btnRegister">Sign Up</string>
     <string name="errorEmail">This email already exists</string>
+    <string name="errorEmailFormat">The email address is badly formatted</string>
     <string name="errorNameUser">This user name already exists</string>
     <string name="inputSocialMedia">Enter your username</string>
     <string name="btnOk" tools:ignore="ExtraTranslation">Save</string>

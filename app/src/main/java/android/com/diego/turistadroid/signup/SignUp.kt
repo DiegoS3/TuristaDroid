@@ -9,8 +9,10 @@ import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.HttpClient
 import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.ImgurREST
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
+import android.com.diego.turistadroid.bbdd.firebase.UserFB
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.utilities.Utilities
+import android.com.diego.turistadroid.utilities.Utilities.toast
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -24,6 +26,18 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toBitmap
+import com.bumptech.glide.Glide
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.auth.ktx.userProfileChangeRequest
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.ktx.storage
 import kotlinx.android.synthetic.main.activity_sign_up.*
 import kotlinx.android.synthetic.main.layout_input_instagram.view.*
 import kotlinx.android.synthetic.main.layout_input_twitter.view.*
@@ -46,9 +60,16 @@ class SignUp : AppCompatActivity() {
     private var ima: Bitmap? = null
     private var instagram = ""
     private var twitter = ""
-    private lateinit var clientImgur: OkHttpClient
-    private lateinit var bbddRest: BBDDRest
+
     private lateinit var loadingView: AlertDialog
+
+    //Vars Firebase
+    private lateinit var Auth: FirebaseAuth
+    private lateinit var FireStore: FirebaseFirestore
+
+    private lateinit var storage: FirebaseStorage
+    private lateinit var storage_ref: StorageReference
+    private var urlImage = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,27 +84,26 @@ class SignUp : AppCompatActivity() {
         Utilities.validarPassword(txtPass, progressBar, password_strength, this)
         Utilities.validarEmail(txtEmail, this)
         initSaveDatos()
+        initDialog()
         redes()
         checkUsuario()
-        initClients()
-        initDialog()
+        initFirebase()
     }
 
-    private fun initDialog(){
-
+    private fun initDialog() {
         val builder = AlertDialog.Builder(this)
         builder.setCancelable(false)
         builder.setView(R.layout.loading_dialog)
         loadingView = builder.create()
     }
 
-    //clientes para las conexiones con las API de las que consumimos datos
-    private fun initClients() {
-
-        clientImgur = HttpClient.getClient()!!
-        bbddRest = BBDDApi.service
-
+    private fun initFirebase() {
+        storage = Firebase.storage("gs://turistadroid.appspot.com/")
+        storage_ref = storage.reference
+        FireStore = FirebaseFirestore.getInstance()
+        Auth = Firebase.auth
     }
+
 
     private fun setInsta(insta: String) {
         this.instagram = insta
@@ -129,73 +149,27 @@ class SignUp : AppCompatActivity() {
         }
     }
 
-    /**
-     * Comprobamos que el email no exista en la bbddd
-     * tras haber hecho la comprobación de que el userName
-     * sea unico
-     */
-    private fun uniqueEmail(){
-        val email = txtEmail.text.toString()
-        val call = bbddRest.selectUserByEmail(email)
-
-        call.enqueue((object : retrofit2.Callback<List<UserDTO>> {
-            override fun onResponse(call: retrofit2.Call<List<UserDTO>>, response: retrofit2.Response<List<UserDTO>>) {
-                // Si la respuesta es correcta
-                if (response.isSuccessful) {
-
-                    //Si el body no esta vacio ese email ya esta registrado
-                    if(response.body()!!.isNotEmpty()){
-                        txtEmail.error = getString(R.string.errorEmail)
-                    }else{ //en caso contrario no existe y permitimos el registro en la bbdd
-                        uploadImgToImgurAPI()
-                    }
-
-                } else {
-
-                    Toast.makeText(applicationContext, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
-                        .show()
-                }
-            }
-            //Si error
-            override fun onFailure(call: retrofit2.Call<List<UserDTO>>, t: Throwable) {
-                Toast.makeText(applicationContext, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
-                    .show()
-            }
-        }))
-    }
 
     /**
      * Comprobamos que el userName que introduce
      * el usuario no exista en nuestra bbdd
      */
-    private fun uniqueUser(nameUser: String) {
-
-        val call = bbddRest.selectUserByUserName(nameUser)
-
-        call.enqueue((object : retrofit2.Callback<List<UserDTO>> {
-            override fun onResponse(call: retrofit2.Call<List<UserDTO>>, response: retrofit2.Response<List<UserDTO>>) {
-                // Si la respuesta es correcta
-                if (response.isSuccessful) {
-
-                    //Si el cuerpo no esta vacio el usuario existe mostramos error
-                    if(response.body()!!.isNotEmpty()){
-                        txtNameUser.error = getString(R.string.errorNameUser)
-                    }else{
-                        uniqueEmail() //Si no es que no existe procedemos a comprobar el email
-                    }
-
+    private fun uniqueUser() {
+        FireStore.collection("users")
+            .whereEqualTo("userName", txtNameUser.text.toString())
+            .get()
+            .addOnSuccessListener {
+                Log.i("fire", it.documents.size.toString())
+                if (it.documents.size == 0) {
+                    loadingView.show()
+                    crearUser()
                 } else {
-
-                    Toast.makeText(applicationContext, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
-                        .show()
+                    applicationContext.toast(R.string.errorNameUser)
                 }
             }
-            //Si error
-            override fun onFailure(call: retrofit2.Call<List<UserDTO>>, t: Throwable) {
-                Toast.makeText(applicationContext, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
-                    .show()
+            .addOnFailureListener {
+                applicationContext.toast(R.string.errorService)
             }
-        }))
     }
 
     //Comprobar suario
@@ -203,60 +177,43 @@ class SignUp : AppCompatActivity() {
         btnRegister.setOnClickListener {
 
             if (comprobarVacios()) {
-                uniqueUser(txtNameUser.text.toString())
+                uniqueUser()
             } else {
                 Toast.makeText(applicationContext, getString(R.string.action_emptyfield), Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    /**
-     * Subimos la imagen que ha elegido el usuario a la
-     * Api de IMGUR y creamos el usuario que posteriormente
-     * registramos en la bbdd de nuestra API
-     */
-    private fun uploadImgToImgurAPI() {
-        loadingView.show()
+    private fun crearUser() {
         val passCifrada = Utilities.hashString(txtPass.text.toString())
-        val imaString = Utilities.bitmapToBase64(imaUser.drawable.toBitmap())!!
-
-        val mediaType: MediaType = "text/plain".toMediaTypeOrNull()!!
-        val body: RequestBody = MultipartBody.Builder().setType(MultipartBody.FORM)
-            .addFormDataPart("image", imaString)
-            .build()
-        val request = ImgurREST.postImage(body, "base64")
-        Log.i("answer", request.toString() + " " + request.body.toString())
-        clientImgur.newCall(request).enqueue(object : Callback {
-
-            override fun onFailure(call: Call, e: IOException) {
-                Toast.makeText(applicationContext, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
-                    .show()
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-
-                if (response.isSuccessful) {
-
-                    val data = JSONObject(response.body!!.string())
-                    val item = data.getJSONObject("data")
-                    val user = UserApi(
-                        UUID.randomUUID().toString(),
-                        txtName.text.toString(),
-                        txtNameUser.text.toString(),
-                        txtEmail.text.toString(),
-                        passCifrada,
-                        instagram,
-                        twitter,
-                        item.getString("link")
-                    )
-                    insertUserApi(user)
-
+        Auth.createUserWithEmailAndPassword(txtEmail.text.toString(), passCifrada)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    val user = Auth.currentUser
+                    crearUserDatos(user)
                 } else {
-                    Toast.makeText(applicationContext, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
+
+                    if (task.exception is FirebaseAuthUserCollisionException)
+                        applicationContext.toast(R.string.errorEmail)
+                    else if (task.exception is FirebaseAuthInvalidCredentialsException)
+                        applicationContext.toast(R.string.errorEmailFormat)
                 }
             }
-        })
     }
+
+    private fun crearUserDatos(user: FirebaseUser?) {
+        val profileUpdates = userProfileChangeRequest {
+            displayName = txtName.text.toString()
+            uploadFotoStorage(foto!!)
+            photoUri = Uri.parse(urlImage)
+        }
+        user!!.updateProfile(profileUpdates).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                insertUserFireBase(user)
+            }
+        }
+    }
+
 
     /**
      * Inicia la actividad del LOGIN
@@ -265,50 +222,41 @@ class SignUp : AppCompatActivity() {
         loadingView.dismiss()
         val intent = Intent(this, LogInActivity::class.java)
         startActivity(intent)
+        finish()
     }
 
     /**
-     * Registramos el usuario mediante retrofit en la
-     * bbdd de nuestra API
+     * Registramos el usuario mediante Firebase en el
+     * Cloud FireStore
      */
-    private fun insertUserApi(userApi: UserApi) {
-        val dto = UserMapper.toDTO(userApi)
-        val call = bbddRest.insertUser(dto)
+    private fun insertUserFireBase(user: FirebaseUser?) {
 
-        call.enqueue((object : retrofit2.Callback<UserDTO> {
-            override fun onResponse(call: retrofit2.Call<UserDTO>, response: retrofit2.Response<UserDTO>) {
-                // Si la respuesta es correcta
-                if (response.isSuccessful) {
-                    Toast.makeText(
-                        applicationContext,
-                        getString(R.string.userSignUp),
-                        Toast.LENGTH_SHORT
-                    ).show()
-
-                    Thread.sleep(500)
-
-                    initLogin()
-
-                } else {
-                    Toast.makeText(
-                        applicationContext,
-                        getString(R.string.userNoSignUp),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+        val passCifrada = Utilities.hashString(txtPass.text.toString())
+        val userFB = UserFB(
+            user!!.uid,
+            user.displayName,
+            txtNameUser.text.toString(),
+            user.email,
+            passCifrada,
+            instagram,
+            twitter,
+            user.photoUrl.toString()
+        )
+        Log.i("fire", "antes de collection")
+        FireStore.collection("users")
+            .document(user.uid)
+            .set(userFB)
+            .addOnSuccessListener {
+                applicationContext.toast(R.string.userSignUp)
+                initLogin()
+            }
+            .addOnFailureListener {
+                applicationContext.toast(R.string.userNoSignUp)
             }
 
-            //Si error
-            override fun onFailure(call: retrofit2.Call<UserDTO>, t: Throwable) {
-                Toast.makeText(
-                    applicationContext,
-                    getString(R.string.userNoSignUp),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }))
 
     }
+
 
     //Comprobar campos vaios
     private fun comprobarVacios(): Boolean {
@@ -398,14 +346,51 @@ class SignUp : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK && requestCode == GALERIA) {
-            imaUser.setImageURI(data?.data)
-            Utilities.redondearFoto(imaUser)
+            //imaUser.setImageURI(data?.data)
+            //Utilities.redondearFoto(imaUser)
+            foto = data?.data
+            Glide.with(this)
+                .load(foto!!)
+                .circleCrop()
+                .into(imaUser)
+
+            //uploadFotoStorage(data?.data!!)
+
         }
         if (resultCode == Activity.RESULT_OK && requestCode == CAMARA) {
-            imaUser.setImageURI(foto)
-            Utilities.redondearFoto(imaUser)
+            //imaUser.setImageURI(foto)
+            //Utilities.redondearFoto(imaUser)
+            Glide.with(this)
+                .load(foto!!)
+                .circleCrop()
+                .into(imaUser)
+            //uploadFotoStorage(foto!!)
+
         }
     }
+
+    /**
+     * Subimos la imagen que ha elegido el usuario al
+     * Storage de Firebase
+     */
+    private fun uploadFotoStorage(foto: Uri) {
+        val foto_ref = storage_ref.child("/avatares/${foto.lastPathSegment}")
+        val uploadTask = foto_ref.putFile(foto)
+        uploadTask.continueWithTask { task ->
+            if (!task.isSuccessful) {
+                task.exception?.let {
+                    throw it
+                }
+            }
+            foto_ref.downloadUrl
+        }.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                urlImage = task.result.toString()
+                Log.i("task", task.result.toString())
+            }
+        }
+    }
+
 
     //muetsro la galeria
     private fun mostrarGaleria() {
