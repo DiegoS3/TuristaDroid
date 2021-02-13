@@ -2,14 +2,7 @@ package android.com.diego.turistadroid.signup
 
 import android.app.Activity
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserDTO
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserMapper
-import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.HttpClient
-import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.ImgurREST
-import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
-import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
-import android.com.diego.turistadroid.bbdd.firebase.UserFB
+import android.com.diego.turistadroid.bbdd.firebase.entities.UserFB
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.utilities.Utilities
 import android.com.diego.turistadroid.utilities.Utilities.toast
@@ -27,8 +20,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toBitmap
 import com.bumptech.glide.Glide
-import com.google.android.gms.tasks.Task
-import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
@@ -44,12 +35,6 @@ import kotlinx.android.synthetic.main.activity_sign_up.*
 import kotlinx.android.synthetic.main.layout_input_instagram.view.*
 import kotlinx.android.synthetic.main.layout_input_twitter.view.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
-import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import org.json.JSONObject
-import java.io.IOException
-import java.util.*
-import java.util.concurrent.TimeUnit
 
 class SignUp : AppCompatActivity() {
 

@@ -1,4 +1,4 @@
-package android.com.diego.turistadroid.bbdd.firebase
+package android.com.diego.turistadroid.bbdd.firebase.entities
 
 class UserFB(
     val id : String?,

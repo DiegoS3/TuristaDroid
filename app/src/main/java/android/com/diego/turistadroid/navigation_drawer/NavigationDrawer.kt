@@ -3,25 +3,23 @@ package android.com.diego.turistadroid.navigation_drawer
 import android.Manifest
 import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
-import android.com.diego.turistadroid.bbdd.firebase.UserFB
+import android.com.diego.turistadroid.bbdd.firebase.entities.UserFB
+import android.com.diego.turistadroid.bbdd.firebase.mappers.Mappers
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.ui.allplaces.AllPlaces
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.myprofile.MyProfileFragment
-import android.com.diego.turistadroid.navigation_drawer.ui.nearme.NearMeFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.weather.WeatherFragment
-import android.com.diego.turistadroid.utilities.UtilImpExp
 import android.com.diego.turistadroid.utilities.UtilSessions
 import android.com.diego.turistadroid.utilities.Utilities
-import android.com.diego.turistadroid.utilities.Utilities.toast
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraManager
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
@@ -117,16 +115,34 @@ class NavigationDrawer : AppCompatActivity(){
         init(navView)
     }
 
-    fun asignarDatosUsuario(){
-        txtNombreNav.text = userFB.displayName
-        txtCorreoNav.text = userFB.email
+    private fun init(navigationView: NavigationView){
+        bbddRest = BBDDApi.service
+        initFirebase()
+        getUser()
+        actualizarDatosView()
+        asignarDatosUsuario(userFB.displayName.toString(), userFB.email.toString(), userFB.photoUrl.toString())
+        navigationListener(navigationView)
+        initPermisos()
+        comprobarConexion()
+    }
+
+    /**
+     * Mostramos los datos del usuario en el navigation
+     */
+    private fun asignarDatosUsuario(name: String, email: String, photo: String){
+        txtNombreNav.text = name
+        txtCorreoNav.text = email
         Glide.with(this)
             .asBitmap()
-            .load(userFB.photoUrl)
+            .load(photo)
             .circleCrop()
             .into(BitmapImageViewTarget(imaUser_nav))
     }
 
+    /**
+     * Comprobamos si el documento del usuario actual ha cambiado
+     * y si es así, actualizamos sus datos en el navigation
+     */
     private fun actualizarDatosView(){
         FireStore.collection("users")
             .whereEqualTo("id", userFB.uid)
@@ -136,24 +152,19 @@ class NavigationDrawer : AppCompatActivity(){
                 }
                 for (dc in snapshots!!.documentChanges) {
                     when (dc.type) {
-                        DocumentChange.Type.MODIFIED ->
-                            asignarDatosUsuario()
+                        DocumentChange.Type.MODIFIED ->{
+                            getUserCloud(userFB, true)
+                            Log.i("actualizar", "dentro")
+
+                        }
                     }
                 }
             }
     }
 
-    private fun init(navigationView: NavigationView){
-        bbddRest = BBDDApi.service
-        initFirebase()
-        getUser()
-        actualizarDatosView()
-        asignarDatosUsuario()
-        navigationListener(navigationView)
-        initPermisos()
-        comprobarConexion()
-    }
-
+    /**
+     * Inicializamos los servicios de Firebase
+     */
     private fun initFirebase() {
         storage = Firebase.storage("gs://turistadroid.appspot.com/")
         storage_ref = storage.reference
@@ -162,23 +173,30 @@ class NavigationDrawer : AppCompatActivity(){
     }
 
     /**
-     * Obtenemos el usuario que tenemos en la sesión
-     * almacenada en local
+     * Obtenemos el usuario logueado con Auth de Firebase
      */
     private fun getUser(){
         userFB = Auth.currentUser!!
-        getUserCloud(userFB)
+        getUserCloud(userFB, false)
     }
 
-    private fun getUserCloud(userFB: FirebaseUser) {
+    /**
+     * Obtenemos el usuario de Cloud Firestore y se convierte de DTO a UserFB
+     *
+     * @param userFB: FirebaseUser
+     */
+    private fun getUserCloud(userFB: FirebaseUser, changed: Boolean) {
         FireStore.collection("users")
             .whereEqualTo("id", userFB.uid)
             .get()
             .addOnCompleteListener{ task ->
-                if (task.isSuccessful)
-                    for (document in task.result.documents)
-                        Log.i("getUserCloud", document.data?.get(0).toString())
-                        //user = document.data
+                if (task.isSuccessful){
+                    user = Mappers.dtoToUser(task.result.documents[0].data!!)
+                    if (changed){
+                        asignarDatosUsuario(user.name.toString(), user.email.toString(), user.foto.toString())
+                    }
+                }
+
             }
     }
 
@@ -239,8 +257,9 @@ class NavigationDrawer : AppCompatActivity(){
     }
 
 
-
-
+    /**
+     * Metodo para comprobar los permisos de la linterna.
+     */
     private fun linterna(){
         val permission = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {

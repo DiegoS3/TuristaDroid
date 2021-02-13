@@ -2,14 +2,12 @@ package android.com.diego.turistadroid.navigation_drawer.ui.myprofile
 
 import android.Manifest.permission.CAMERA
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-import android.R.attr.bitmap
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
-import android.com.diego.turistadroid.bbdd.firebase.UserFB
+import android.com.diego.turistadroid.bbdd.firebase.entities.UserFB
 import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.utilities.Fotos
 import android.com.diego.turistadroid.utilities.Utilities
-import android.com.diego.turistadroid.utilities.Utilities.getImageUri
 import android.com.diego.turistadroid.utilities.Utilities.toast
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -31,12 +29,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.net.toFile
-import androidx.core.util.ObjectsCompat.equals
-import androidx.core.view.drawToBitmap
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.BitmapImageViewTarget
-import com.bumptech.glide.request.target.SimpleTarget
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
@@ -50,8 +45,6 @@ import kotlinx.android.synthetic.main.activity_sign_up.*
 import kotlinx.android.synthetic.main.fragment_gallery.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
 import java.io.IOException
-import java.net.URI
-import java.util.Objects.equals
 
 
 class MyProfileFragment(
@@ -67,7 +60,6 @@ class MyProfileFragment(
     private val IMAGEN_PROPORCION = 600
     private lateinit var FOTO: Bitmap
     private var IMAGEN_COMPRES = 80
-    private lateinit var url: String
 
     private lateinit var imaProfile: ImageView
     private lateinit var txtNameProfile: TextView
@@ -144,29 +136,29 @@ class MyProfileFragment(
 
     //Abrimos instagram del perfil del usuario
     private fun onClickInstagram() {
-        //val str = "https://www.instagram.com/" + this.user.insta
-        //val uri = Uri.parse(str)
-        //val intent = Intent(Intent.ACTION_VIEW, uri)
-        //startActivity(intent)
+        val str = "https://www.instagram.com/" + this.userFB.insta
+        val uri = Uri.parse(str)
+        val intent = Intent(Intent.ACTION_VIEW, uri)
+        startActivity(intent)
     }
 
     //Abrimos twitter del perfil del usuario
     private fun onClickTwitter() {
-        //val str = "https://www.twitter.com/" + this.userApi.twitter
-        //val uri = Uri.parse(str)
-        //val intent = Intent(Intent.ACTION_VIEW, uri)
-        //startActivity(intent)
+        val str = "https://www.twitter.com/" + this.userFB.twitter
+        val uri = Uri.parse(str)
+        val intent = Intent(Intent.ACTION_VIEW, uri)
+        startActivity(intent)
     }
 
     //Asignamos a los componentes de la interfaz los datos del usuario logeado
     private fun asignarDatosUsuario() {
         Glide.with(this)
-            .load(user.photoUrl)
+            .load(userFB.foto)
             .circleCrop()
             .into(imaProfile)
-        txtNameProfile.text = this.user.displayName
-        //txtNameUserProfile.text = this.user.
-        txtEmailProfile.setText(user.email)
+        txtNameProfile.text = userFB.name
+        txtNameUserProfile.text = userFB.userName
+        txtEmailProfile.setText(userFB.email)
     }
 
     //Opciones para insertar foto (camara o galeria)
