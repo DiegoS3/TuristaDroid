@@ -10,7 +10,10 @@ import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
+import android.com.diego.turistadroid.bbdd.firebase.entities.ImageFB
+import android.com.diego.turistadroid.bbdd.firebase.entities.PlaceFB
 import android.com.diego.turistadroid.bbdd.firebase.entities.UserFB
+import android.com.diego.turistadroid.bbdd.firebase.mappers.Mappers
 import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewActualPlaceFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewPlaceFragment
@@ -35,6 +38,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.DocumentChange
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
@@ -48,16 +53,17 @@ import kotlinx.android.synthetic.main.layout_confirm_delete_item.view.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.*
 
 
 class MyPlacesFragment : Fragment() {
 
     // Mis variables
-    private var places = mutableListOf<Places>() // Lista
-    private lateinit var place: Places
+    private var places = mutableListOf<PlaceFB>() // Lista
+    private lateinit var place: PlaceFB
     private var clicked = false
     private var clickedSort = false
-    private lateinit var placeQr: Places
+    private lateinit var placeQr: PlaceFB
     private lateinit var root: View
     private lateinit var userFB: FirebaseUser
 
@@ -71,13 +77,10 @@ class MyPlacesFragment : Fragment() {
     private var ascMark = true
 
     //Vars Firebase
-    private lateinit var Auth: FirebaseAuth
     private lateinit var FireStore: FirebaseFirestore
-
     private lateinit var storage: FirebaseStorage
     private lateinit var storage_ref: StorageReference
 
-    private lateinit var bbddRest: BBDDRest
 
     companion object{
 
@@ -109,15 +112,14 @@ class MyPlacesFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        //getDatosFromBD()
+        cargarLugares()
     }
 
     private fun initUI() {
-        bbddRest = BBDDApi.service
         initFirebase()
         initFloatingButtons()
         iniciarSwipeRecarga()
-        //getDatosFromBD()
+        cargarLugares()
         iniciarSwipeHorizontal()
         // Mostramos las vistas de listas y adaptador asociado
         placeRecycler_MyPlaces.layoutManager = LinearLayoutManager(context)
@@ -128,7 +130,6 @@ class MyPlacesFragment : Fragment() {
         storage = Firebase.storage("gs://turistadroid.appspot.com/")
         storage_ref = storage.reference
         FireStore = FirebaseFirestore.getInstance()
-        Auth = Firebase.auth
     }
 
     /**
@@ -139,7 +140,7 @@ class MyPlacesFragment : Fragment() {
         placeSwipe_MyPlaces.setProgressBackgroundColorSchemeResource(R.color.colorDialog)
         placeSwipe_MyPlaces.setOnRefreshListener {
             //cargarDatos()
-            getDatosFromBD()
+            //getDatosFromBD()
         }
     }
 
@@ -208,75 +209,34 @@ class MyPlacesFragment : Fragment() {
     }
 
 
-    private fun seleccionarImagenesPlace(idPlace: String){
-
-        val call = bbddRest.selectImageByIdLugar(idPlace)
-
-        call.enqueue(object : Callback<List<ImagesDTO>>{
-            override fun onResponse(call: Call<List<ImagesDTO>>, response: Response<List<ImagesDTO>>) {
-                if (response.isSuccessful) {
-
-                    val listaImagenesDTO = response.body()!!
-                    val listaImagenes = ImagesMapper.fromDTO(listaImagenesDTO)
-
-                    for (imagen in listaImagenes){
-                        deleteImgPlace(imagen.id!!)
-                    }
-
-                } else {
-                    Log.i("imagen", "error al seleccionar")
-                }
-            }
-            override fun onFailure(call: Call<List<ImagesDTO>>, t: Throwable) {
-                Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
-
     //Eliminamos la imagen del lugar
     private fun deleteImgPlace(id : String) {
-
-        val call = bbddRest.deleteImagesLugar(id)
-
-        call.enqueue(object : Callback<ImagesDTO>{
-            override fun onResponse(call: Call<ImagesDTO>, response: Response<ImagesDTO>) {
-                if (response.isSuccessful) {
-                    Log.i("imagen", "imagenes eliminadas")
-                } else {
-                    Log.i("imagen", "error al eliminar")
-                }
-            }
-            override fun onFailure(call: Call<ImagesDTO>, t: Throwable) {
-                Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
-            }
-        })
+        val foto_ref = storage_ref.child("/imagenes/${id}")
+        foto_ref.listAll().addOnCompleteListener { task ->
+            if (task.isSuccessful){
+                for (img in task.result.items)
+                    img.delete()
+                Log.i("deleteimage", "ok")
+            }else
+                Log.i("deleteimage", "no ok")
+        }
     }
 
     //Eliminamos el lugar
-    private fun deletePlaceBD(place: Places) {
-
-        val call = bbddRest.deletePlace(place.id!!)
-
-        call.enqueue(object : Callback<PlacesDTO>{
-            override fun onResponse(call: Call<PlacesDTO>, response: Response<PlacesDTO>) {
-                if (response.isSuccessful) {
-                    Log.i("lugar", "lugar eliminado")
-                } else {
-                    Log.i("lugar", "error al eliminar")
-                }
-            }
-            override fun onFailure(call: Call<PlacesDTO>, t: Throwable) {
-                Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
-            }
-        })
-
-        seleccionarImagenesPlace(place.id)
+    private fun deletePlaceBD(place: PlaceFB) {
+        FireStore.collection("places")
+            .document(place.id!!)
+            .delete()
+            .addOnCompleteListener { task ->
+            if (task.isSuccessful)
+                deleteImgPlace(place.id)
+        }
     }
 
     //Borramos elemento del adaptador
     private fun borrarElemento(pos: Int) {
         //Acciones
-        val deletedModel: Places = places[pos]
+        val deletedModel: PlaceFB = places[pos]
         adapter.deleteItem(pos)
         adapter.notifyDataSetChanged()
         //Lo borramos
@@ -284,26 +244,26 @@ class MyPlacesFragment : Fragment() {
     }
 
     //Actualizamos el adaptor
-    fun actualizarPlaceAdapter(place: Places, pos: Int) {
+    fun actualizarPlaceAdapter(place: PlaceFB, pos: Int) {
         adapter.updateItem(place, pos)
         adapter.notifyDataSetChanged()
     }
 
     //Insertamos lugar nuevo en el adaptador
-    fun insertarPlaceAdapter(place: Places){
+    fun insertarPlaceAdapter(place: PlaceFB){
         adapter.addItem(place)
         adapter.notifyDataSetChanged()
     }
 
     //inciamos fragment details en modo edicion
     private fun editarElemento(pos: Int){
-        initDetailsPlaceFragment(true, places[pos], pos, false)
+        //initDetailsPlaceFragment(true, places[pos], pos, false)
     }
 
     //Dialog para que confirme el si quiere eliminar el lugar
     private fun abrirOpciones(pos: Int) {
         //cargarDatos()
-        getDatosFromBD()
+        cargarLugares()
         val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_confirm_delete_item, null)
         val mBuilder = AlertDialog.Builder(context!!)
             .setView(mDialogView).create()
@@ -577,8 +537,8 @@ class MyPlacesFragment : Fragment() {
                 Toast.makeText(context, getString(R.string.btnCancel), Toast.LENGTH_LONG).show()
             } else {
                 try {
-                    placeQr = Gson().fromJson(result.contents, Places::class.java)
-                    initDetailsPlaceFragment(false, placeQr, null, true)
+                    placeQr = Gson().fromJson(result.contents, PlaceFB::class.java)
+                    //initDetailsPlaceFragment(false, placeQr, null, true)
                 } catch (ex: Exception) {
                     Toast.makeText(context, getString(R.string.errorEmail), Toast.LENGTH_LONG).show()
                 }
@@ -595,13 +555,13 @@ class MyPlacesFragment : Fragment() {
             ascName = if (ascName){
                 btnSortNamePlace.setImageResource(R.drawable.ic_short_name_desc_btn)
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_name_asc_btn)
-                this.places.sortWith { lugar1: Places, lugar2: Places ->
+                this.places.sortWith { lugar1: PlaceFB, lugar2: PlaceFB ->
                     lugar1.name!!.toLowerCase().compareTo(lugar2.name!!.toLowerCase()) }
                 false
             }else{
                 btnSortNamePlace.setImageResource(R.drawable.ic_short_name_asc_btn)
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_name_desc_btn)
-                this.places.sortWith { lugar1: Places, lugar2: Places ->
+                this.places.sortWith { lugar1: PlaceFB, lugar2: PlaceFB ->
                     lugar2.name!!.toLowerCase().compareTo(lugar1.name!!.toLowerCase()) }
                 true
             }
@@ -612,7 +572,7 @@ class MyPlacesFragment : Fragment() {
             ascDate = if (ascDate){
                 btnSortDatePlace.setImageResource(R.drawable.ic_short_date_desc_btn)
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_date_asc_btn)
-                this.places.sortWith { lugar1: Places, lugar2: Places ->
+                this.places.sortWith { lugar1: PlaceFB, lugar2: PlaceFB ->
                     val fecha1 = Utilities.stringToDate(lugar1.fecha!!)
                     val fecha2 = Utilities.stringToDate(lugar2.fecha!!)
                     fecha1!!.compareTo(fecha2!!) }
@@ -620,7 +580,7 @@ class MyPlacesFragment : Fragment() {
             }else{
                 btnSortDatePlace.setImageResource(R.drawable.ic_short_date_asc_btn)
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_date_desc_btn)
-                this.places.sortWith { lugar1: Places, lugar2: Places ->
+                this.places.sortWith { lugar1: PlaceFB, lugar2: PlaceFB ->
                     val fecha1 = Utilities.stringToDate(lugar1.fecha!!)
                     val fecha2 = Utilities.stringToDate(lugar2.fecha!!)
                     fecha2!!.compareTo(fecha1!!) }
@@ -633,25 +593,83 @@ class MyPlacesFragment : Fragment() {
             ascMark = if (ascMark) {
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_mark_asc_btn)
                 btnSortMarkPlace.setImageResource(R.drawable.ic_short_mark_desc_btn)
-                this.places.sortWith { lugar1: Places, lugar2: Places ->
-                    lugar2.votos!!.size.compareTo(lugar1.votos!!.size) }
+                this.places.sortWith { lugar1: PlaceFB, lugar2: PlaceFB ->
+                    lugar2.votos!!.toInt().compareTo(lugar1.votos!!.toInt()) }
                 false
             }else{
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_mark_asc_btn)
                 btnSortMarkPlace.setImageResource(R.drawable.ic_short_mark_desc_btn)
-                this.places.sortWith { lugar1: Places, lugar2: Places ->
-                    lugar1.votos!!.size.compareTo(lugar2.votos!!.size) }
+                this.places.sortWith { lugar1: PlaceFB, lugar2: PlaceFB ->
+                    lugar1.votos!!.toInt().compareTo(lugar2.votos!!.toInt()) }
                 true
             }
             adapter.notifyDataSetChanged()
         }
+
+
     }
 
     private fun getDatosFromBD() {
-        placeSwipe_MyPlaces.isRefreshing = true
+        //placeSwipe_MyPlaces.isRefreshing = true
         // Seleccionamos los lugares
+        FireStore.collection("places").whereEqualTo("idUser",userFB.uid)
+            .addSnapshotListener { value, e ->
+                if (e != null) {
+                    Toast.makeText(context,
+                        "Error al acceder al servicio: " + e.localizedMessage,
+                        Toast.LENGTH_LONG)
+                        .show()
+                    return@addSnapshotListener
+                }
+                // LUGARES.clear()
+                //placeSwipe_MyPlaces.isRefreshing  = false
+                for (doc in value!!.documentChanges) {
+                    when (doc.type) {
+                        DocumentChange.Type.ADDED -> {
+                            Log.i("", "ADDED  ${doc.document.data}")
+                            insertarDocumento(doc.document.data)
+                        }
+                        DocumentChange.Type.MODIFIED -> {
+                            Log.i("TAG", "MODIFIED: ${doc.document.data}")
+                            //modificarDocumento(doc.document.data)
+                        }
+                        DocumentChange.Type.REMOVED -> {
+                            Log.i("TAG", "REMOVED: ${doc.document.data}")
+                            eliminarDocumento(doc.document.data)
+                        }
+                    }
+                }
+            }
+    }
+
+    private fun v(ds: DocumentSnapshot){
+        ds.toObject(PlaceFB::class.java)
+    }
+
+    /**
+     * Inserta el dato en una lista
+     * @param doc MutableMap<String, Any>
+     */
+    private fun insertarDocumento(doc: MutableMap<String, Any>) {
+        val place = Mappers.dtoToPlace(doc)
+        val existe = places.any { lugar -> lugar.id == place.id }
+        if (!existe)
+            insertarPlaceAdapter(place)
+    }
+
+    /**
+     * Elimina el dato en una lista
+     * @param doc MutableMap<String, Any>
+     */
+    private fun eliminarDocumento(doc: MutableMap<String, Any>) {
+        val place = Mappers.dtoToPlace(doc)
+        if (places.indexOf(place)>=0){
+            borrarElemento(places.indexOf(place))
+        }
 
     }
+
+
 
 
     /**
@@ -659,13 +677,14 @@ class MyPlacesFragment : Fragment() {
      */
     private fun cargarLugares() {
         adapter = MyPlacesViewModel(places) {
-            eventoClicFila(it)
+            //eventoClicFila(it)
         }
         placeRecycler_MyPlaces.adapter = adapter
         // Avismos que ha cambiado
         adapter.notifyDataSetChanged()
         placeRecycler_MyPlaces.setHasFixedSize(true)
         placeSwipe_MyPlaces.isRefreshing = false
+        getDatosFromBD()
     }
 
     /**

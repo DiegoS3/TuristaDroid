@@ -338,7 +338,7 @@ class MyPlaceDetailFragment(
                         )
                     }
                     actualizarLugar(place) //Actaulizamos
-                    this.fragmentAnterior?.actualizarPlaceAdapter(place, this.indexPlace!!)//Actualizamos el adaptador
+                    //this.fragmentAnterior?.actualizarPlaceAdapter(place, this.indexPlace!!)//Actualizamos el adaptador
                     if (bases64.size > 0){
                         recorrerListBase64()
                     }
@@ -488,7 +488,7 @@ class MyPlaceDetailFragment(
                     Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
                 }
             })
-            this.fragmentAnterior?.insertarPlaceAdapter(place)//Actualizamos adapter
+            //this.fragmentAnterior?.insertarPlaceAdapter(place)//Actualizamos adapter
             initMyPlacesFragment()
         }
     }

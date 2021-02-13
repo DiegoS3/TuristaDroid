@@ -1,5 +1,6 @@
 package android.com.diego.turistadroid.bbdd.firebase.mappers
 
+import android.com.diego.turistadroid.bbdd.firebase.entities.PlaceFB
 import android.com.diego.turistadroid.bbdd.firebase.entities.UserFB
 
 object Mappers {
@@ -20,5 +21,16 @@ object Mappers {
         insta = doc["insta"].toString(),
         twitter = doc["twitter"].toString(),
         foto = doc["foto"].toString()
+    )
+
+    fun dtoToPlace(doc: Map<String, Any>) = PlaceFB(
+        id = doc["id"].toString(),
+        idUser = doc["idUser"].toString(),
+        name = doc["name"].toString(),
+        fecha = doc["fecha"].toString(),
+        latitude = doc["latitude"].toString(),
+        longitude = doc["longitude"].toString(),
+        votos = doc["votos"].toString(),
+        city = doc["city"].toString()
     )
 }

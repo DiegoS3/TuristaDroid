@@ -10,6 +10,7 @@ import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
+import android.com.diego.turistadroid.bbdd.firebase.entities.PlaceFB
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlaceDetailFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesViewModel
 import android.com.diego.turistadroid.utilities.Utilities
@@ -35,7 +36,7 @@ import retrofit2.Response
 class AllPlaces : Fragment() {
 
     // Mis variables
-    private var places = mutableListOf<Places>() // Lista
+    private var places = mutableListOf<PlaceFB>() // Lista
     private var clickedSort = false
     private lateinit var root: View
     private lateinit var userApi: UserApi
@@ -252,7 +253,7 @@ class AllPlaces : Fragment() {
 
     //Metodo que ordena sitios y modifica iconos de los FABS
     private fun orderSites() {
-
+/*
         btnSortNamePlaceAllPlaces.setOnClickListener { // Order by NAME
             ascName = if (ascName){
                 btnSortNamePlaceAllPlaces.setImageResource(R.drawable.ic_short_name_desc_btn)
@@ -307,31 +308,14 @@ class AllPlaces : Fragment() {
             }
             adapter.notifyDataSetChanged()
         }
+
+ */
     }
 
     private fun getDatosFromBD() {
         placeSwipe_AllPlaces.isRefreshing = true
         // Seleccionamos los lugares
-        val call = bbddRest.selectAllPlaces()
 
-        call.enqueue(object : Callback<List<PlacesDTO>>{
-            override fun onResponse(call: Call<List<PlacesDTO>>, response: Response<List<PlacesDTO>>) {
-
-                if (response.isSuccessful){
-                    val listaLugaresDTO = response.body()!! as MutableList<PlacesDTO>
-                    places = PlacesMapper.fromDTO(listaLugaresDTO) as MutableList<Places>
-                    cargarLugares()
-
-                }else{
-                    Toast.makeText(context, getString(R.string.errorLogin), Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onFailure(call: Call<List<PlacesDTO>>, t: Throwable) {
-                Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
-            }
-
-        })
     }
 
     /**
@@ -339,7 +323,7 @@ class AllPlaces : Fragment() {
      */
     private fun cargarLugares() {
         adapter = MyPlacesViewModel(places) {
-            eventoClicFila(it)
+            //eventoClicFila(it)
         }
         placeRecycler_AllPlaces.adapter = adapter
         // Avismos que ha cambiado

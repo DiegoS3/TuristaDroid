@@ -252,7 +252,7 @@ class NewActualPlaceFragment(
      */
     private fun uploadFotoStorage(image: Uri) {
         val idImage = UUID.randomUUID()
-        val foto_ref = storage_ref.child("/imagenes/${idImage}")
+        val foto_ref = storage_ref.child("/imagenes/${idLugar}/${idImage}")
         val uploadTask = foto_ref.putFile(image)
         uploadTask.continueWithTask { task ->
             if (!task.isSuccessful) {
