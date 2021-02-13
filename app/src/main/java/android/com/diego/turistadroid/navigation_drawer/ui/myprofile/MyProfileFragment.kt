@@ -47,6 +47,7 @@ import kotlinx.android.synthetic.main.activity_sign_up.*
 import kotlinx.android.synthetic.main.fragment_gallery.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
 import java.io.IOException
+import java.util.*
 
 
 class MyProfileFragment(
@@ -81,6 +82,8 @@ class MyProfileFragment(
     private var urlImage = ""
     private lateinit var user: FirebaseUser
     private var fotoCombiada = false
+    private lateinit var photo : Uri
+
 
 
     override fun onCreateView(
@@ -251,6 +254,7 @@ class MyProfileFragment(
                         false
                     )
                     fotoCombiada = true
+                    photo = data.data!!
                     imaProfile.setImageBitmap(this.FOTO)
                     Utilities.redondearFoto(imaProfile)
 
@@ -276,6 +280,7 @@ class MyProfileFragment(
                 IMAGEN_URI = Fotos.añadirFotoGaleria(IMAGEN_URI, IMAGEN_NOMBRE, context!!)!!
 
                 // Mostramos
+                photo = IMAGEN_URI
                 imaProfile.setImageBitmap(this.FOTO)
                 Utilities.redondearFoto(imaProfile)
 
@@ -409,8 +414,10 @@ class MyProfileFragment(
             txtEmailProfile.text.toString() != user.email
         ) {
             actualizarEmail(true)
+            uploadFotoStorage()
         } else if (fotoCombiada || txtNameProfile.text != user.displayName) {
             actualizarUserDatos()
+            uploadFotoStorage()
         } else if (txtEmailProfile.text.toString() != user.email) {
             actualizarEmail(false)
         } else {
@@ -429,6 +436,32 @@ class MyProfileFragment(
             }
         }
     }
+
+    /**
+     * Subimos la imagen que ha elegido el usuario al
+     * Storage de Firebase
+     */
+    private fun uploadFotoStorage() {
+        val foto_ref = storage_ref.child("/avatares/${UUID.randomUUID()}")
+        val uploadTask = foto_ref.putFile(photo)
+        uploadTask.continueWithTask { task ->
+            if (!task.isSuccessful) {
+                task.exception?.let {
+                    throw it
+                }
+            }
+            foto_ref.downloadUrl
+        }.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                if (task.isComplete){
+                    urlImage = task.result.toString()
+                    Log.i("task", task.result.toString())
+                }
+
+            }
+        }
+    }
+
 
     private fun actualizarEmail(otherDataChange: Boolean) {
         user.updateEmail(txtEmailProfile.text.toString()).addOnCompleteListener { task ->

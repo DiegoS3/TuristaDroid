@@ -10,6 +10,7 @@ import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
+import android.com.diego.turistadroid.bbdd.firebase.entities.UserFB
 import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewActualPlaceFragment
 import android.com.diego.turistadroid.navigation_drawer.ui.newplace.NewPlaceFragment
@@ -31,6 +32,14 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.ktx.storage
 import com.google.gson.Gson
 import com.google.zxing.integration.android.IntentIntegrator
 import com.journeyapps.barcodescanner.CaptureActivity
@@ -50,7 +59,7 @@ class MyPlacesFragment : Fragment() {
     private var clickedSort = false
     private lateinit var placeQr: Places
     private lateinit var root: View
-    private lateinit var userApi: UserApi
+    private lateinit var userFB: FirebaseUser
 
     // Interfaz gráfica
     private lateinit var adapter: MyPlacesViewModel //Adaptador de Recycler
@@ -60,6 +69,13 @@ class MyPlacesFragment : Fragment() {
     private var ascName = true
     private var ascDate = true
     private var ascMark = true
+
+    //Vars Firebase
+    private lateinit var Auth: FirebaseAuth
+    private lateinit var FireStore: FirebaseFirestore
+
+    private lateinit var storage: FirebaseStorage
+    private lateinit var storage_ref: StorageReference
 
     private lateinit var bbddRest: BBDDRest
 
@@ -80,8 +96,8 @@ class MyPlacesFragment : Fragment() {
 
         root = inflater.inflate(R.layout.fragment_myplaces, container, false)
         myContext = context!!
-        //userApi = (activity?.application as MyApplication).USUARIO_API
-        //idUser = userApi.id!!
+        userFB = (activity?.application as MyApplication).USUARIO_FIRE
+        idUser = userFB.uid
         return root
     }
 
@@ -98,6 +114,7 @@ class MyPlacesFragment : Fragment() {
 
     private fun initUI() {
         bbddRest = BBDDApi.service
+        initFirebase()
         initFloatingButtons()
         iniciarSwipeRecarga()
         //getDatosFromBD()
@@ -105,6 +122,13 @@ class MyPlacesFragment : Fragment() {
         // Mostramos las vistas de listas y adaptador asociado
         placeRecycler_MyPlaces.layoutManager = LinearLayoutManager(context)
         orderSites()
+    }
+
+    private fun initFirebase() {
+        storage = Firebase.storage("gs://turistadroid.appspot.com/")
+        storage_ref = storage.reference
+        FireStore = FirebaseFirestore.getInstance()
+        Auth = Firebase.auth
     }
 
     /**
@@ -385,8 +409,7 @@ class MyPlacesFragment : Fragment() {
 
     //Iniciamos fragment Nuevo Lugar
     private fun initNewPlaceFragment() {
-
-        val newFragment: Fragment = NewPlaceFragment(userApi)
+        val newFragment: Fragment = NewPlaceFragment(userFB)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
@@ -395,8 +418,7 @@ class MyPlacesFragment : Fragment() {
 
     //Iniciamos fragment Nuevo Lugar Actual
     private fun initNewActualPlaceFragment() {
-
-        val newFragment: Fragment = NewActualPlaceFragment(userApi)
+        val newFragment: Fragment = NewActualPlaceFragment(userFB)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
@@ -413,12 +435,14 @@ class MyPlacesFragment : Fragment() {
      *
      */
     private fun initDetailsPlaceFragment(editable: Boolean, place: Places, pos: Int?, import: Boolean) {
-
+    /*
         val newFragment: Fragment = MyPlaceDetailFragment(editable, place, pos, this, import, userApi)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
         transaction.commit()
+
+     */
     }
 
     //Modificar visibilidad FABS ADD
@@ -626,26 +650,7 @@ class MyPlacesFragment : Fragment() {
     private fun getDatosFromBD() {
         placeSwipe_MyPlaces.isRefreshing = true
         // Seleccionamos los lugares
-        val call = bbddRest.selectPlaceByIdUser(userApi.id!!)
 
-        call.enqueue(object : Callback<List<PlacesDTO>>{
-            override fun onResponse(call: Call<List<PlacesDTO>>, response: Response<List<PlacesDTO>>) {
-
-                if (response.isSuccessful){
-                    val listaLugaresDTO = response.body()!! as MutableList<PlacesDTO>
-                    places = PlacesMapper.fromDTO(listaLugaresDTO) as MutableList<Places>
-                    cargarLugares()
-
-                }else{
-                    Toast.makeText(context, getString(R.string.errorLogin), Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun onFailure(call: Call<List<PlacesDTO>>, t: Throwable) {
-                Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
-            }
-
-        })
     }
 
 

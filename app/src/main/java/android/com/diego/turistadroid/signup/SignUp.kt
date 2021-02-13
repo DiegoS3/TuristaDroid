@@ -35,6 +35,7 @@ import kotlinx.android.synthetic.main.activity_sign_up.*
 import kotlinx.android.synthetic.main.layout_input_instagram.view.*
 import kotlinx.android.synthetic.main.layout_input_twitter.view.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
+import java.util.*
 
 class SignUp : AppCompatActivity() {
 
@@ -345,7 +346,7 @@ class SignUp : AppCompatActivity() {
      * Storage de Firebase
      */
     private fun uploadFotoStorage() {
-        val foto_ref = storage_ref.child("/avatares/${foto!!.lastPathSegment}")
+        val foto_ref = storage_ref.child("/avatares/${UUID.randomUUID()}")
         val uploadTask = foto_ref.putFile(foto!!)
         uploadTask.continueWithTask { task ->
             if (!task.isSuccessful) {

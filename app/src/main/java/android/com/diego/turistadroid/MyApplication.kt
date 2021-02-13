@@ -3,7 +3,9 @@ package android.com.diego.turistadroid
 import android.Manifest
 import android.app.Application
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
+import android.com.diego.turistadroid.bbdd.firebase.entities.UserFB
 import android.util.Log
+import com.google.firebase.auth.FirebaseUser
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
@@ -22,6 +24,7 @@ class MyApplication : Application(){
         private set
 
     lateinit var USUARIO_API: UserApi
+    lateinit var USUARIO_FIRE: FirebaseUser
 
     override fun onCreate() {
         super.onCreate()

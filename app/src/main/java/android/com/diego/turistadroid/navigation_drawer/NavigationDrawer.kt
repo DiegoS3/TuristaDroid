@@ -184,8 +184,6 @@ class NavigationDrawer : AppCompatActivity(){
      */
     private fun getUser(){
         userFB = Auth.currentUser!!
-
-
         getUserCloud(userFB, false)
     }
 
@@ -202,6 +200,7 @@ class NavigationDrawer : AppCompatActivity(){
             .addOnCompleteListener{ task ->
                 if (task.isSuccessful){
                     user = Mappers.dtoToUser(task.result.documents[0].data!!)
+
                     if (changed){
                         asignarDatosUsuario(user.name.toString(), user.email.toString(), user.foto.toString())
                     }

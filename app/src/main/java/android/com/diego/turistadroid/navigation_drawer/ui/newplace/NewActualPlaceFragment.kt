@@ -18,6 +18,8 @@ import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.HttpClient
 import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.ImgurREST
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
+import android.com.diego.turistadroid.bbdd.firebase.entities.ImageFB
+import android.com.diego.turistadroid.bbdd.firebase.entities.PlaceFB
 import android.com.diego.turistadroid.factorias.FactoriaSliderView
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlacesFragment
@@ -46,6 +48,14 @@ import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import com.google.android.gms.location.*
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.ktx.storage
 import io.realm.RealmList
 import kotlinx.android.synthetic.main.fragment_new_actual_place.*
 import kotlinx.android.synthetic.main.layout_seleccion_camara.view.*
@@ -63,7 +73,7 @@ import java.util.*
 
 
 class NewActualPlaceFragment(
-    private var userApi: UserApi
+    private var userFB: FirebaseUser
 ) : Fragment() {
 
     private lateinit var tarea: CityAsyncTask
@@ -75,10 +85,16 @@ class NewActualPlaceFragment(
     private val CAMARA = 2
     private var foto: Uri? = null
 
-    private lateinit var bbddRest: BBDDRest
-    private lateinit var clientImgur: OkHttpClient
     private lateinit var idLugar : String
-    private var bases64 = mutableListOf<String>() //Lista donde se almacenan las nuevas imagenes
+
+    //Vars Firebase
+    private lateinit var Auth: FirebaseAuth
+    private lateinit var FireStore: FirebaseFirestore
+
+    private lateinit var storage: FirebaseStorage
+    private lateinit var storage_ref: StorageReference
+
+    private var uris = mutableListOf<Uri>() //Lista donde se almacenan las nuevas imagenes
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -103,16 +119,18 @@ class NewActualPlaceFragment(
     }
 
     private fun init(){
-        initClients()
+        initFirebase()
         getCurrentLocation()
         abrirOpciones()
     }
 
-    //clientes para las conexiones con las API de las que consumimos datos
-    private fun initClients() {
-        clientImgur = HttpClient.getClient()!!
-        bbddRest = BBDDApi.service
+    private fun initFirebase() {
+        storage = Firebase.storage("gs://turistadroid.appspot.com/")
+        storage_ref = storage.reference
+        FireStore = FirebaseFirestore.getInstance()
+        Auth = Firebase.auth
     }
+
 
     //Dialos para la camara o galeria
     private fun abrirOpciones() {
@@ -194,11 +212,9 @@ class NewActualPlaceFragment(
                     val namePlace = txtNamePlace_NewActualPlace.text.toString()
                     val city = txtUbication.text.toString()
                     idLugar = UUID.randomUUID().toString()
-                    val listaVotos = arrayListOf<String>()
-                    val place = Places(idLugar, userApi.id, namePlace, currentDate, latitude.toString(), longitude.toString(), listaVotos, city)
+                    val place = PlaceFB(idLugar, userFB.uid, namePlace, currentDate, latitude.toString(), longitude.toString(), "0", city)
                     insertNewPlace(place)
-                    //insertPlaceVotes(idLugar)
-                    if (bases64.size > 0){
+                    if (uris.size > 0){
                         recorrerListBase64()
                     }
                     Utilities.vibratePhone(context)
@@ -211,101 +227,50 @@ class NewActualPlaceFragment(
     }
 
     //Insertamos un nuevo lugar en la BD de la API
-    private fun insertNewPlace(place: Places) {
-        val dto = PlacesMapper.toDTO(place)
-        val call = bbddRest.insertPlace(dto)
-
-        call.enqueue(object : Callback<PlacesDTO>{
-            override fun onResponse(call: Call<PlacesDTO>, response: Response<PlacesDTO>) {
-                if (response.isSuccessful){
-                    context!!.toast(R.string.placeSignUp)
-                }else{
-                    context!!.toast(R.string.errorUpdatePlace)
-                }
-            }
-            override fun onFailure(call: Call<PlacesDTO>, t: Throwable) {
-                context!!.toast(R.string.errorService)
-            }
-        })
+    private fun insertNewPlace(place: PlaceFB) {
+        FireStore.collection("places")
+            .document(place.id!!)
+            .set(place)
     }
 
     //Metodo que recorrer la lista de bases64
     private fun recorrerListBase64(){
-        for (i in bases64){
-            uploadImgToImgurAPI(i)
+        for (i in uris){
+            uploadFotoStorage(i)
         }
     }
 
-    /**
-     * Subimos la imagen que ha elegido el usuario a la
-     * Api de IMGUR y creamos el usuario que posteriormente
-     * registramos en la bbdd de nuestra API
-     */
-    private fun uploadImgToImgurAPI(imaString : String) {
-        //loadingView.show()
-
-        val mediaType: MediaType = "text/plain".toMediaTypeOrNull()!!
-        val body: RequestBody = MultipartBody.Builder().setType(MultipartBody.FORM)
-            .addFormDataPart("image", imaString)
-            .build()
-        val request = ImgurREST.postImage(body, "base64")
-        Log.i("answer", request.toString() + " " + request.body.toString())
-        clientImgur.newCall(request).enqueue(object : okhttp3.Callback {
-
-            override fun onFailure(call: okhttp3.Call, e: IOException) {
-                Toast.makeText(context, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
-                    .show()
-            }
-
-            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
-
-                if (response.isSuccessful) {
-
-                    val data = JSONObject(response.body!!.string())
-                    val item = data.getJSONObject("data")
-                    val image = Images(
-                        UUID.randomUUID().toString(),
-                        idLugar,
-                        item.getString("link")
-                    )
-                    insertImageApi(image)
-
-                } else {
-                    Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
-                }
-            }
-        })
+    private fun insertCollectionImages(image: ImageFB) {
+        FireStore.collection("places")
+            .document(idLugar)
+            .collection("images").document(image.id!!)
+            .set(image)
     }
 
     /**
-     * Registramos el usuario mediante retrofit en la
-     * bbdd de nuestra API
+     * Subimos las imagenes que ha elegido el usuario para este lugar
      */
-    private fun insertImageApi(image: Images) {
-        val dto = ImagesMapper.toDTO(image)
-        val call = bbddRest.insertImage(dto)
-
-        call.enqueue((object : Callback<ImagesDTO> {
-            override fun onResponse(call: Call<ImagesDTO>, response: Response<ImagesDTO>) {
-                // Si la respuesta es correcta
-                if (response.isSuccessful) {
-
-                    Log.i("image", "imagen subida")
-
-                } else {
-                    Log.i("image", "error subir imagen")
+    private fun uploadFotoStorage(image: Uri) {
+        val idImage = UUID.randomUUID()
+        val foto_ref = storage_ref.child("/imagenes/${idImage}")
+        val uploadTask = foto_ref.putFile(image)
+        uploadTask.continueWithTask { task ->
+            if (!task.isSuccessful) {
+                task.exception?.let {
+                    throw it
                 }
             }
+            foto_ref.downloadUrl
+        }.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                if (task.isComplete){
+                    val image = ImageFB(idImage.toString(),task.result.toString())
+                    insertCollectionImages(image)
+                    Log.i("task", task.result.toString())
+                }
 
-            //Si error
-            override fun onFailure(call: Call<ImagesDTO>, t: Throwable) {
-                Toast.makeText(
-                    context,
-                    getString(R.string.userNoSignUp),
-                    Toast.LENGTH_SHORT
-                ).show()
             }
-        }))
+        }
     }
 
     //si el usuario selecciona una imagen, la almacenamos en la lista
@@ -317,9 +282,7 @@ class NewActualPlaceFragment(
                 val sliderItem = SliderImageItem()
                 sliderItem.image = bitmap
                 FactoriaSliderView.adapterSlider!!.addItem(sliderItem)
-                val base64 = Utilities.bitmapToBase64(bitmap)!!
-                bases64.add(base64)
-
+                uris.add(data?.data!!)
 
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -331,9 +294,7 @@ class NewActualPlaceFragment(
             val sliderItem = SliderImageItem()
             sliderItem.image = bitmap
             FactoriaSliderView.adapterSlider!!.addItem(sliderItem)
-
-            val base64 = Utilities.bitmapToBase64(bitmap)!!
-            bases64.add(base64)
+            uris.add(foto!!)
         }
     }
 

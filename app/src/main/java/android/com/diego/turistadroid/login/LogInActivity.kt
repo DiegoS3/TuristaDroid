@@ -1,5 +1,6 @@
 package android.com.diego.turistadroid.login
 
+import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
@@ -42,10 +43,9 @@ class LogInActivity : AppCompatActivity() {
     private var pwdSave = ""
     private lateinit var bbddRest: BBDDRest
     private val RC_SIGN_IN = 1
+    private lateinit var user : FirebaseUser
 
     private lateinit var googleSignInClient: GoogleSignInClient
-    private lateinit var firebaseAuth : FirebaseAuth
-    private lateinit var mAuthListener: AuthStateListener
 
     //Vars Firebase
     private lateinit var Auth: FirebaseAuth
@@ -269,7 +269,7 @@ class LogInActivity : AppCompatActivity() {
      * Metodo que contiene el intent que permite ir a la actividad NavigataionDrawer
      */
     private fun initNavigation() {
-
+        (application as MyApplication).USUARIO_FIRE = user
         val intent = Intent(this, NavigationDrawer::class.java)
         startActivity(intent)
         finish()
@@ -283,7 +283,7 @@ class LogInActivity : AppCompatActivity() {
                 if (task.isSuccessful) {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d("", "signInWithCredential:success")
-                    val user = Auth.currentUser
+                    user = Auth.currentUser!!
                     insertarUser(user!!)
                     initNavigation()
                 } else {
