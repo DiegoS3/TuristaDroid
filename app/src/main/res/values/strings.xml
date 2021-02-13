@@ -128,5 +128,8 @@
     <string name="weather_dialog">Loading weather...</string>
     <string name="login_google">Log in with Google</string>
 
+    <string name="twitter_consumer_key" translatable="false">E95xRqiyeqqOXUOacUHFAwwiL</string>
+    <string name="twitter_consumer_secret" translatable="false">uv44UhEmFgciIo9ebpUcyk88tmZOBgXxdGgxUw9LsscJV8g5eY</string>
+
 
 </resources>

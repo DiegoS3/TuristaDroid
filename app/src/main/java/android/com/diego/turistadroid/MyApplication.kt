@@ -9,6 +9,10 @@ import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import com.twitter.sdk.android.core.DefaultLogger
+import com.twitter.sdk.android.core.Twitter
+import com.twitter.sdk.android.core.TwitterAuthConfig
+import com.twitter.sdk.android.core.TwitterConfig
 
 
 class MyApplication : Application(){
@@ -18,6 +22,11 @@ class MyApplication : Application(){
         private set
 
     lateinit var USUARIO_API: UserApi
+
+    override fun onCreate() {
+        super.onCreate()
+        initTwitterAuth()
+    }
 
 
     /**
@@ -62,5 +71,14 @@ class MyApplication : Application(){
             .onSameThread()
             .check()
         Log.i("Config", "Fin Permisos")
+    }
+
+     private fun initTwitterAuth() {
+        val config = TwitterConfig.Builder(this)
+            .logger(DefaultLogger(Log.DEBUG))
+            .twitterAuthConfig(TwitterAuthConfig(getString(R.string.twitter_consumer_key), getString(R.string.twitter_consumer_secret)))
+            .debug(true)
+            .build()
+        Twitter.initialize(config)
     }
 }

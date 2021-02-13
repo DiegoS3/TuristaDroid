@@ -1,18 +1,12 @@
 package android.com.diego.turistadroid.login
 
-import android.com.diego.turistadroid.MyApplication
 import android.com.diego.turistadroid.R
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.Sessions
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.SessionsDTO
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.sessions.SessionsMapper
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserDTO
-import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
+import android.com.diego.turistadroid.bbdd.firebase.entities.UserFB
 import android.com.diego.turistadroid.bbdd.realm.entities.User
 import android.com.diego.turistadroid.navigation_drawer.NavigationDrawer
 import android.com.diego.turistadroid.signup.SignUp
-import android.com.diego.turistadroid.utilities.UtilSessions
 import android.com.diego.turistadroid.utilities.Utilities
 import android.com.diego.turistadroid.utilities.Utilities.toast
 import android.content.Intent
@@ -22,21 +16,22 @@ import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.SignInButton
+import com.google.android.gms.common.api.ApiException
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
-import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.*
+import com.google.firebase.auth.FirebaseAuth.AuthStateListener
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.ktx.storage
+import com.twitter.sdk.android.core.*
+import com.twitter.sdk.android.core.identity.TwitterAuthClient
+import com.twitter.sdk.android.core.services.AccountService
 import kotlinx.android.synthetic.main.activity_log_in.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.util.*
 
 
@@ -47,6 +42,10 @@ class LogInActivity : AppCompatActivity() {
     private var pwdSave = ""
     private lateinit var bbddRest: BBDDRest
     private val RC_SIGN_IN = 1
+
+    private lateinit var googleSignInClient: GoogleSignInClient
+    private lateinit var firebaseAuth : FirebaseAuth
+    private lateinit var mAuthListener: AuthStateListener
 
     //Vars Firebase
     private lateinit var Auth: FirebaseAuth
@@ -63,16 +62,29 @@ class LogInActivity : AppCompatActivity() {
         this.supportActionBar?.hide()
         setContentView(R.layout.activity_log_in)
         init()
-
-
     }
 
     private fun init(){
         bbddRest = BBDDApi.service
         initFirebase()
+        initGoogleAuth()
         clickBtn()
         clickRegister()
         changeTextBtnGoogle()
+    }
+
+
+    private fun signInGoogle() {
+        val signInIntent = googleSignInClient.signInIntent
+        startActivityForResult(signInIntent, RC_SIGN_IN)
+    }
+
+    private fun initGoogleAuth() {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+        googleSignInClient = GoogleSignIn.getClient(this, gso)
     }
 
     private fun initFirebase() {
@@ -151,7 +163,58 @@ class LogInActivity : AppCompatActivity() {
                 comprobarLogin(email, pwd)
             }
         }
+
+        google_button.setOnClickListener {
+            signInGoogle()
+        }
+
+        twitter_button.callback = object : Callback<TwitterSession>() {
+            override fun success(result: Result<TwitterSession>?) {
+
+                val session = TwitterCore.getInstance().sessionManager.activeSession
+                val authClient = TwitterAuthClient()
+                authClient.requestEmail(session, object: Callback<String>(){
+                    override fun success(result: Result<String>?) {
+                        //Log.i("emailTwitter", result!!.data[0].toString())
+                    }
+
+                    override fun failure(exception: TwitterException?) {
+                    }
+
+                })
+                handleTwitterLogin(session)
+
+            }
+
+            override fun failure(exception: TwitterException?) {
+
+            }
+
+        }
+
     }
+
+    private fun handleTwitterLogin(session: TwitterSession) {
+        val credential = TwitterAuthProvider.getCredential(
+            session.authToken.token,
+            session.authToken.secret
+        )
+
+        Auth.signInWithCredential(credential).addOnCompleteListener(this) { task ->
+            if (task.isSuccessful) {
+                // Sign in success, update UI with the signed-in user's information
+                Log.d("", "signInWithCredential:success")
+                val user = Auth.currentUser
+                insertarUser(user!!)
+                initNavigation()
+            } else {
+                // If sign in fails, display a message to the user.
+                applicationContext.toast(R.string.errorService)
+            }
+        }
+
+    }
+
 
     /**
      * Metodo que comprueba si el usuario tiene activa la conexion a internet
@@ -181,33 +244,6 @@ class LogInActivity : AppCompatActivity() {
         return red
     }
 
-    /**
-     * Metodo que inserta al usuario en la tabla de sesiones
-     */
-    private fun insertarSession(idUser: String?) {
-        val currentDate = Utilities.dateToString(Utilities.getSysDate())!!
-        val idSession = UUID.randomUUID().toString()
-        val session = Sessions(idSession, idUser, currentDate)
-        val sessionDTO = SessionsMapper.toDTO(session)
-        val call = bbddRest.insertSession(sessionDTO)
-
-        call.enqueue(object : Callback<SessionsDTO> {
-            override fun onResponse(call: Call<SessionsDTO>, response: Response<SessionsDTO>) {
-
-                if (response.isSuccessful) {
-                    UtilSessions.crearSesionLocal(session, currentDate, applicationContext)
-                    initNavigation()
-                } else {
-                    Log.i("sesion", "Error al crear la sesion en el login")
-                }
-            }
-
-            override fun onFailure(call: Call<SessionsDTO>, t: Throwable) {
-                Toast.makeText(applicationContext, getString(R.string.errorService), Toast.LENGTH_SHORT)
-                    .show()
-            }
-        })
-    }
 
     /**
      * Metodo que al hacer click en el text view Register
@@ -238,6 +274,66 @@ class LogInActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
 
+    }
+
+    private fun firebaseAuthWithGoogle(idToken: String) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        Auth.signInWithCredential(credential)
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    // Sign in success, update UI with the signed-in user's information
+                    Log.d("", "signInWithCredential:success")
+                    val user = Auth.currentUser
+                    insertarUser(user!!)
+                    initNavigation()
+                } else {
+                    // If sign in fails, display a message to the user.
+                    applicationContext.toast(R.string.errorService)
+                }
+            }
+    }
+
+    private fun insertarUser(user: FirebaseUser) {
+        val userFB = UserFB(
+            user.uid,
+            user.displayName,
+            user.displayName,
+            user.email,
+            "",
+            "",
+            "",
+            user.photoUrl.toString()
+        )
+        FireStore.collection("users")
+            .document(user.uid)
+            .set(userFB)
+            .addOnSuccessListener {
+                Log.i("insertarUserGoogle", "ok")
+            }
+            .addOnFailureListener {
+                applicationContext.toast(R.string.errorService)
+            }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        twitter_button.onActivityResult(requestCode, resultCode, data)
+
+        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        if (requestCode == RC_SIGN_IN) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+            try {
+                // Google Sign In was successful, authenticate with Firebase
+                val account = task.getResult(ApiException::class.java)!!
+                Log.i("gs", "firebaseAuthWithGoogle:" + account.id)
+                firebaseAuthWithGoogle(account.idToken!!)
+            } catch (e: ApiException) {
+                // Google Sign In failed, update UI appropriately
+                Log.i("gs", "Google sign in failed", e)
+                // ...
+            }
+        }
     }
 
     // Para salvar el estado por ejemplo es usando un Bundle en el ciclo de vida

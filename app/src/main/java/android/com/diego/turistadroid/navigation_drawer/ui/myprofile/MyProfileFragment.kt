@@ -33,6 +33,8 @@ import androidx.fragment.app.Fragment
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.BitmapImageViewTarget
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.ktx.userProfileChangeRequest
@@ -49,7 +51,7 @@ import java.io.IOException
 
 class MyProfileFragment(
     private val userFB: UserFB
-): Fragment() {
+) : Fragment() {
 
     // Variables para la camara
     private val GALERIA = 1
@@ -152,13 +154,17 @@ class MyProfileFragment(
 
     //Asignamos a los componentes de la interfaz los datos del usuario logeado
     private fun asignarDatosUsuario() {
+        if (userFB.email == "null") {
+            txtEmailProfile.setText("")
+        } else {
+            txtEmailProfile.setText(userFB.email)
+        }
         Glide.with(this)
             .load(userFB.foto)
             .circleCrop()
             .into(imaProfile)
         txtNameProfile.text = userFB.name
         txtNameUserProfile.text = userFB.userName
-        txtEmailProfile.setText(userFB.email)
     }
 
     //Opciones para insertar foto (camara o galeria)
@@ -295,7 +301,7 @@ class MyProfileFragment(
         super.onViewCreated(view, savedInstanceState)
         abrirOpciones()
         Utilities.validarPassword(txtPassProfile, progressBar_MyProfile, password_strength_MyProfile, context!!)
-        Utilities.validarEmail(txtEmailProfile, context!!)
+        //tilities.validarEmail(txtEmailProfile, context!!)
         checkUsuario()
     }
 
@@ -307,7 +313,16 @@ class MyProfileFragment(
         val pass = Utilities.hashString(txtPassProfile.text.toString())
 
         val newUser = if (passChanged()) {
-            UserFB(user.uid, name, nameUser, email, pass, this.userFB.insta, this.userFB.twitter, user.photoUrl.toString())
+            UserFB(
+                user.uid,
+                name,
+                nameUser,
+                email,
+                pass,
+                this.userFB.insta,
+                this.userFB.twitter,
+                user.photoUrl.toString()
+            )
         } else {
             UserFB(
                 user.uid,
@@ -328,37 +343,14 @@ class MyProfileFragment(
         FireStore.collection("users")
             .document(userFB.id!!)
             .set(newUserFB)
-            .addOnCompleteListener{ task->
-                if (task.isSuccessful){
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
                     context!!.toast(R.string.newUserProfile)
-                }else{
+                } else {
                     context!!.toast(R.string.errorService)
                 }
             }
     }
-
-    private fun asignarDatosUsuario(newUserApi: UserApi) {
-
-        Thread {
-            try {
-                Thread.sleep(100)
-
-            } catch (e: InterruptedException) {
-            }
-            activity!!.runOnUiThread {
-                NavigationDrawer.txtNombreNav.text = newUserApi.name
-                NavigationDrawer.txtCorreoNav.text = newUserApi.email
-                Glide.with(context!!)
-                    .asBitmap()
-                    .load(newUserApi.foto)
-                    .circleCrop()
-                    .into(BitmapImageViewTarget(NavigationDrawer.imaUser_nav))
-            }
-        }.start()
-
-
-    }
-
 
     //Devuelve true si la pass ha sido modificada
     private fun passChanged(): Boolean {
@@ -375,14 +367,14 @@ class MyProfileFragment(
      * Comprobamos que el userName que introduce
      * el usuario no exista en nuestra bbdd
      */
-    private fun uniqueUser(nameUser: String, email: String) {
+    private fun uniqueUser() {
         FireStore.collection("users")
-            .whereEqualTo("userName", txtNameUser.text.toString())
+            .whereEqualTo("userName", txtNameUserProfile.text.toString())
             .get()
             .addOnSuccessListener {
                 Log.i("fire", it.documents.size.toString())
                 if (it.documents.size == 0) {
-
+                    comprobarModificaciones()
                 } else {
                     context!!.toast(R.string.errorNameUser)
                 }
@@ -390,23 +382,39 @@ class MyProfileFragment(
             .addOnFailureListener {
                 context!!.toast(R.string.errorService)
             }
+    }
 
+    private fun comprobarVacios(): Boolean {
+
+        return txtNameProfile.text.isNotEmpty() and txtNameUserProfile.text.isNotEmpty() and txtEmailProfile.text.isNotEmpty()
     }
 
     //Comprobamos que no haya campos vacios y el usuario sea unico
     private fun checkUsuario() {
         btnSave.setOnClickListener {
-            if (txtNameProfile.text.isNotEmpty()) {
-                if (fotoCombiada || txtNameProfile.text != user.displayName ){
-                    actualizarUserDatos()
+            if (comprobarVacios()) {
+                if (txtNameUserProfile.text.toString() != userFB.userName) {
+                    uniqueUser()
+                } else {
+                    comprobarModificaciones()
                 }
-                else{
-                    actualizarUsuario()
-                }
-
             } else {
                 Toast.makeText(context, getString(R.string.action_emptyfield), Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun comprobarModificaciones() {
+        if ((fotoCombiada || txtNameProfile.text != user.displayName) &&
+            txtEmailProfile.text.toString() != user.email
+        ) {
+            actualizarEmail(true)
+        } else if (fotoCombiada || txtNameProfile.text != user.displayName) {
+            actualizarUserDatos()
+        } else if (txtEmailProfile.text.toString() != user.email) {
+            actualizarEmail(false)
+        } else {
+            actualizarUsuario()
         }
     }
 
@@ -421,5 +429,25 @@ class MyProfileFragment(
             }
         }
     }
+
+    private fun actualizarEmail(otherDataChange: Boolean) {
+        user.updateEmail(txtEmailProfile.text.toString()).addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                if (otherDataChange) {
+                    actualizarUserDatos()
+                } else {
+                    actualizarUsuario()
+                }
+
+
+            } else {
+                if (task.exception is FirebaseAuthUserCollisionException)
+                    context!!.toast(R.string.errorEmail)
+                else if (task.exception is FirebaseAuthInvalidCredentialsException)
+                    context!!.toast(R.string.errorEmailFormat)
+            }
+        }
+    }
+
 
 }

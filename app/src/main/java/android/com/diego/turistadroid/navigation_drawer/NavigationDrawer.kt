@@ -19,7 +19,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraManager
-import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
@@ -41,8 +40,11 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.BitmapImageViewTarget
+import com.google.android.gms.tasks.OnFailureListener
+import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
@@ -54,6 +56,7 @@ import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.ktx.storage
 import kotlinx.android.synthetic.main.activity_navigation_drawer.*
 import kotlinx.android.synthetic.main.activity_sign_up.*
+
 
 class NavigationDrawer : AppCompatActivity(){
 
@@ -129,9 +132,13 @@ class NavigationDrawer : AppCompatActivity(){
     /**
      * Mostramos los datos del usuario en el navigation
      */
-    private fun asignarDatosUsuario(name: String, email: String, photo: String){
+    private fun asignarDatosUsuario(name: String, email: String?, photo: String){
+        if (email == "null"){
+            txtCorreoNav.text = ""
+        }else{
+            txtCorreoNav.text = email
+        }
         txtNombreNav.text = name
-        txtCorreoNav.text = email
         Glide.with(this)
             .asBitmap()
             .load(photo)
@@ -152,7 +159,7 @@ class NavigationDrawer : AppCompatActivity(){
                 }
                 for (dc in snapshots!!.documentChanges) {
                     when (dc.type) {
-                        DocumentChange.Type.MODIFIED ->{
+                        DocumentChange.Type.MODIFIED -> {
                             getUserCloud(userFB, true)
                             Log.i("actualizar", "dentro")
 
@@ -177,8 +184,11 @@ class NavigationDrawer : AppCompatActivity(){
      */
     private fun getUser(){
         userFB = Auth.currentUser!!
+
+
         getUserCloud(userFB, false)
     }
+
 
     /**
      * Obtenemos el usuario de Cloud Firestore y se convierte de DTO a UserFB
@@ -349,7 +359,7 @@ class NavigationDrawer : AppCompatActivity(){
                     }
                     true
                 }
-                R.id.nav_import ->{//importar
+                R.id.nav_import -> {//importar
                     //UtilImpExp.import(this)
                     if (drawer_layout.isDrawerOpen(GravityCompat.START)) {
                         drawer_layout.closeDrawer(GravityCompat.START)
@@ -413,9 +423,10 @@ class NavigationDrawer : AppCompatActivity(){
 
     //Salir al login
     private fun ejecutarExit(){
-        comprobarSesion()
-        val intent = Intent (this, LogInActivity::class.java)
+        Auth.signOut()
+        val intent = Intent(this, LogInActivity::class.java)
         startActivity(intent)
+        finish()
     }
 
     private fun setupPermissions(){
