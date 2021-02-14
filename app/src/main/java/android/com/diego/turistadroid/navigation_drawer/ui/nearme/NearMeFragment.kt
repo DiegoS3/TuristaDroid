@@ -9,6 +9,7 @@ import android.com.diego.turistadroid.bbdd.apibbdd.entities.places.PlacesMapper
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.users.UserApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
+import android.com.diego.turistadroid.bbdd.firebase.entities.PlaceFB
 import android.com.diego.turistadroid.navigation_drawer.ui.myplaces.MyPlaceDetailFragment
 import android.com.diego.turistadroid.utilities.Utilities.toast
 import android.graphics.*
@@ -30,6 +31,7 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.android.synthetic.main.fragment_near_me.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -38,7 +40,7 @@ import java.util.*
 
 
 class NearMeFragment(
-    private val userApi: UserApi
+    private val userFB: FirebaseUser
 ) : Fragment(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener{
 
     private lateinit var mMap: GoogleMap
@@ -265,16 +267,16 @@ class NearMeFragment(
     //Al hacer click en el infoWindow abrimos el lugar para ver sus detalles
     private fun clickInfoWindow(){
         mMap.setOnInfoWindowClickListener {
-            val place =  it.tag as Places
+            val place =  it.tag as PlaceFB
             Toast.makeText(context,  "Marker: "+place.name , Toast.LENGTH_SHORT).show()
             abrirMyPlacesDetail(place)
         }
     }
 
     //Abrimos el fragment de lugar detalles sin modo edicion
-    private fun abrirMyPlacesDetail(lugar: Places){
+    private fun abrirMyPlacesDetail(lugar: PlaceFB){
         val editable = false
-        val newFragment: Fragment = MyPlaceDetailFragment(editable, lugar, null, null, false, userApi)
+        val newFragment: Fragment = MyPlaceDetailFragment(editable, lugar, null, null, false, userFB)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)

@@ -1,7 +1,7 @@
 package android.com.diego.turistadroid.bbdd.firebase.entities
 
 class PlaceFB(
-    val id : String?,
+    var id : String?,
     val idUser: String?,
     val name: String?,
     val fecha: String?,

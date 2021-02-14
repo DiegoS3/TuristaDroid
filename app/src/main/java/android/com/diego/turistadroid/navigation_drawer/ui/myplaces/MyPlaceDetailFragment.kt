@@ -17,6 +17,9 @@ import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.HttpClient
 import android.com.diego.turistadroid.bbdd.apibbdd.services.imgur.ImgurREST
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDRest
+import android.com.diego.turistadroid.bbdd.firebase.entities.ImageFB
+import android.com.diego.turistadroid.bbdd.firebase.entities.PlaceFB
+import android.com.diego.turistadroid.bbdd.firebase.entities.UserFB
 import android.com.diego.turistadroid.factorias.FactoriaSliderView
 import android.com.diego.turistadroid.login.LogInActivity
 import android.com.diego.turistadroid.splash.SplashScreenActivity
@@ -52,11 +55,18 @@ import androidx.core.app.ActivityCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
+import com.bumptech.glide.Glide
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.ktx.storage
 import com.google.gson.Gson
 import com.smarteist.autoimageslider.SliderView
 import io.realm.RealmList
@@ -82,32 +92,33 @@ import java.util.*
 class MyPlaceDetailFragment(
 
     private var editable: Boolean,
-    private var lugar: Places,
+    private var lugar: PlaceFB,
     private var indexPlace: Int? = null,
     private var fragmentAnterior: MyPlacesFragment? = null,
-    private var import : Boolean = false,
-    private var userApi: UserApi
+    private var import: Boolean = false,
+    private var userFB: FirebaseUser
 
 ) : Fragment(), OnMapReadyCallback {
 
     //Componentes Interfaz
-    private lateinit var btnSave : Button
-    private lateinit var btnImport : Button
-    private lateinit var floatBtnMore : FloatingActionButton
-    private lateinit var floatBtnShare : FloatingActionButton
-    private lateinit var floatBtnQr : FloatingActionButton
-    private lateinit var floatBtnTwitter : FloatingActionButton
-    private lateinit var floatBtnEmail : FloatingActionButton
-    private lateinit var floatBtnInsta : FloatingActionButton
-    private lateinit var sliderView : SliderView
+    private lateinit var btnSave: Button
+    private lateinit var btnImport: Button
+    private lateinit var floatBtnMore: FloatingActionButton
+    private lateinit var floatBtnShare: FloatingActionButton
+    private lateinit var floatBtnQr: FloatingActionButton
+    private lateinit var floatBtnTwitter: FloatingActionButton
+    private lateinit var floatBtnEmail: FloatingActionButton
+    private lateinit var floatBtnInsta: FloatingActionButton
+    private lateinit var sliderView: SliderView
 
     private var clicked = false //FLoating Button More clicked
     private var clickedShare = false //FLoating Button Share clicked
     private var moreOrShareClick = false
-    private lateinit var mMap : GoogleMap //Mapa Google Maps
-    private lateinit var location : LatLng //Localizacion
+    private lateinit var mMap: GoogleMap //Mapa Google Maps
+    private lateinit var location: LatLng //Localizacion
     private lateinit var tarea: CityAsyncTask
     private lateinit var btm: Bitmap
+    private var imageUrl: Uri? = null
 
     //Actualizar Lugar
     private var newNamePlace = ""
@@ -120,9 +131,12 @@ class MyPlaceDetailFragment(
     private val IMAGEN_EXTENSION = ".jpg"
     private val IMAGEN_DIRECTORY = "/TuristaDroid"
 
-    private lateinit var bbddRest: BBDDRest
-    private lateinit var clientImgur: OkHttpClient
-    private var bases64 = mutableListOf<String>() //Lista donde se almacenan las nuevas imagenes
+    //Vars Firebase
+    private lateinit var FireStore: FirebaseFirestore
+    private lateinit var storage: FirebaseStorage
+    private lateinit var storage_ref: StorageReference
+
+    private var uris = mutableListOf<Uri>() //Lista donde se almacenan las nuevas imagenes
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -141,8 +155,8 @@ class MyPlaceDetailFragment(
     }
 
     //Metodos del fragment
-    private fun init(){
-        initClients()
+    private fun init() {
+        initFirebase()
         initMapa()
         initMode()
         initChangeName()
@@ -154,18 +168,16 @@ class MyPlaceDetailFragment(
         abrirOpciones()
     }
 
-    //clientes para las conexiones con las API de las que consumimos datos
-    private fun initClients() {
-
-        clientImgur = HttpClient.getClient()!!
-        bbddRest = BBDDApi.service
-
+    private fun initFirebase() {
+        storage = Firebase.storage("gs://turistadroid.appspot.com/")
+        storage_ref = storage.reference
+        FireStore = FirebaseFirestore.getInstance()
     }
 
     /**
      * Mostramos los detalles del lugar en el layout
      */
-    private fun showDetailsPlace(){
+    private fun showDetailsPlace() {
         txtTitlePlace_DetailsPlace.text = this.lugar.name
         txtUbicationPlace_DetailsPlace.text = this.lugar.city
         seleccionarImagenesPlace()
@@ -174,38 +186,28 @@ class MyPlaceDetailFragment(
     /**
      * Cargamos las diferentes imagenes en el viewPager
      */
-    private fun seleccionarImagenesPlace(){
-
-        val call = bbddRest.selectImageByIdLugar(this.lugar.id!!)
-
-        call.enqueue(object : Callback<List<ImagesDTO>> {
-            override fun onResponse(call: Call<List<ImagesDTO>>, response: Response<List<ImagesDTO>>) {
-                if (response.isSuccessful) {
-
-                    val listaImagenesDTO = response.body()!!
-                    val listaImagenes = ImagesMapper.fromDTO(listaImagenesDTO)
-
-                    for (imagen in listaImagenes){
+    private fun seleccionarImagenesPlace() {
+        FireStore.collection("places")
+            .document(lugar.id!!)
+            .collection("images")
+            .get()
+            .addOnSuccessListener { document ->
+                if (!document.isEmpty){
+                    for (dato in document.documents){
+                        val imagen = dato.data?.get("url")
                         Thread.sleep(100)
                         val sliderItem = SliderImageItem()
-                        sliderItem.imageUrl = imagen.url!!
+                        sliderItem.imageUrl = imagen!!.toString()
                         FactoriaSliderView.adapterSlider!!.addItem(sliderItem)
                     }
-
-                } else {
-                    Log.i("imagen", "error al seleccionar")
                 }
             }
-            override fun onFailure(call: Call<List<ImagesDTO>>, t: Throwable) {
-                Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
-            }
-        })
     }
 
     /**
      * Detectamos los diferentes componentes del layaout
      */
-    private fun initUI(view: View){
+    private fun initUI(view: View) {
         sliderView = view.findViewById(R.id.imageSlider)
         btnSave = view.findViewById(R.id.btnSave_DetailsPlace)
         btnImport = view.findViewById(R.id.btnImport_DetailsPlace)
@@ -222,7 +224,7 @@ class MyPlaceDetailFragment(
      * Segun como hayamos entrado en el fragment los mostrara
      * con unos componentes u otros
      */
-    private fun initMode(){
+    private fun initMode() {
 
         when {
             editable -> { //Modo Editar Lugar
@@ -230,7 +232,7 @@ class MyPlaceDetailFragment(
                 btnSave.visibility = View.VISIBLE
                 floatBtnMore.isClickable = false
                 txtTitlePlace_DetailsPlace.isClickable = true
-                //viewPager2.isClickable = true
+                sliderView.isClickable = true
                 notClickable()
 
             }
@@ -239,7 +241,7 @@ class MyPlaceDetailFragment(
                 btnImport.visibility = View.VISIBLE
                 floatBtnMore.isClickable = true
                 txtTitlePlace_DetailsPlace.isClickable = false
-                //viewPager2.isClickable = false
+                sliderView.isClickable = false
                 floatBtnMore.visibility = View.VISIBLE
                 initFloatingButtons()
 
@@ -247,7 +249,7 @@ class MyPlaceDetailFragment(
             else -> { //Modo Visualizar Lugar
                 floatBtnMore.visibility = View.VISIBLE
                 floatBtnMore.isClickable = true
-                //viewPager2.isClickable = false
+                sliderView.isClickable = false
                 initFloatingButtons()
             }
         }
@@ -263,7 +265,7 @@ class MyPlaceDetailFragment(
     }
 
     //Inicia funcionalidad del boton mostrar mas botones y compartir en redes
-    private fun initFloatingButtons(){
+    private fun initFloatingButtons() {
         floatBtnMore.setOnClickListener {
             moreOrShareClick = true
             onMoreButtonClicked()
@@ -276,13 +278,13 @@ class MyPlaceDetailFragment(
     }
 
     //Para poder recuperar el nuevo nombre del lugar creado en el dialog
-    private fun setNewName(name: String){
+    private fun setNewName(name: String) {
         this.newNamePlace = name
         txtTitlePlace_DetailsPlace.text = name
     }
 
     //Creacion del dialog cambiar nombre al hacer clic en el TextView
-    private fun initChangeName(){
+    private fun initChangeName() {
         txtTitlePlace_DetailsPlace.setOnClickListener {
             val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_change_name_place, null)
             val mBuilder = AlertDialog.Builder(context!!)
@@ -303,21 +305,21 @@ class MyPlaceDetailFragment(
     }
 
     //metodo que actualiza un sitio al hacer click en el boton guardar
-    private fun updatePlace(){
+    private fun updatePlace() {
         btnSave.setOnClickListener {
-            if (txtTitlePlace_DetailsPlace.text.isNotEmpty()){//Comprobamos que tenga un nombre
+            if (txtTitlePlace_DetailsPlace.text.isNotEmpty()) {//Comprobamos que tenga un nombre
 
                 //Comprobamos que la ubicacion sea valida
-                if (txtUbicationPlace_DetailsPlace.equals(getString(R.string.notFoundUbication))){
+                if (txtUbicationPlace_DetailsPlace.equals(getString(R.string.notFoundUbication))) {
                     Toast.makeText(context, getString(R.string.ubicationError), Toast.LENGTH_SHORT).show()
-                }else {
+                } else {
 
                     val namePlace = txtTitlePlace_DetailsPlace.text.toString()
                     val city = txtUbicationPlace_DetailsPlace.text.toString()
-                    val place = if (this::location.isInitialized){
-                        Places( //Nuevo lugar en caso de nueva localizacion
+                    val place = if (this::location.isInitialized) {
+                        PlaceFB( //Nuevo lugar en caso de nueva localizacion
                             this.lugar.id,
-                            this.userApi.id,
+                            this.userFB.uid,
                             namePlace,
                             this.lugar.fecha,
                             location.latitude.toString(),
@@ -325,10 +327,10 @@ class MyPlaceDetailFragment(
                             this.lugar.votos,
                             city
                         )
-                    }else{
-                        Places(//Nuevo lugar en caso de no poner nueva localizacion
+                    } else {
+                        PlaceFB(//Nuevo lugar en caso de no poner nueva localizacion
                             this.lugar.id,
-                            this.userApi.id,
+                            this.userFB.uid,
                             namePlace,
                             this.lugar.fecha,
                             this.lugar.latitude,
@@ -337,15 +339,15 @@ class MyPlaceDetailFragment(
                             this.lugar.city
                         )
                     }
-                    actualizarLugar(place) //Actaulizamos
+                    actualizarLugar(place) //Actualizamos
                     //this.fragmentAnterior?.actualizarPlaceAdapter(place, this.indexPlace!!)//Actualizamos el adaptador
-                    if (bases64.size > 0){
+                    if (uris.size > 0) {
                         recorrerListBase64()
                     }
                     initMyPlacesFragment()//Volvemos al anterior fragment
                 }
 
-            }else{
+            } else {
                 //Campos vacios
                 Toast.makeText(context, getString(R.string.action_emptyfield), Toast.LENGTH_SHORT).show()
 
@@ -355,107 +357,57 @@ class MyPlaceDetailFragment(
 
 
     //Metodo que recorrer la lista de bases64
-    private fun recorrerListBase64(){
+    private fun recorrerListBase64() {
 
-        for (i in bases64){
-            uploadImgToImgurAPI(i)
+        for (i in uris) {
+            uploadFotoStorage(i)
         }
     }
 
     /**
-     * Subimos la imagen que ha elegido el usuario a la
-     * Api de IMGUR y creamos el usuario que posteriormente
-     * registramos en la bbdd de nuestra API
+     * Subimos las imagenes que ha elegido el usuario para este lugar
      */
-    private fun uploadImgToImgurAPI(imaString : String) {
-        //loadingView.show()
-
-        val mediaType: MediaType = "text/plain".toMediaTypeOrNull()!!
-        val body: RequestBody = MultipartBody.Builder().setType(MultipartBody.FORM)
-            .addFormDataPart("image", imaString)
-            .build()
-        val request = ImgurREST.postImage(body, "base64")
-        Log.i("answer", request.toString() + " " + request.body.toString())
-        clientImgur.newCall(request).enqueue(object : okhttp3.Callback {
-
-            override fun onFailure(call: okhttp3.Call, e: IOException) {
-                Toast.makeText(context, getString(R.string.errorUpload), Toast.LENGTH_SHORT)
-                    .show()
-            }
-
-            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
-
-                if (response.isSuccessful) {
-
-                    val data = JSONObject(response.body!!.string())
-                    val item = data.getJSONObject("data")
-                    val image = Images(
-                        UUID.randomUUID().toString(),
-                        lugar.id,
-                        item.getString("link")
-                    )
-                    insertImageApi(image)
-
-                } else {
-                    Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
+    private fun uploadFotoStorage(image: Uri) {
+        val idImage = UUID.randomUUID()
+        val foto_ref = storage_ref.child("/imagenes/${lugar.id}/${idImage}")
+        val uploadTask = foto_ref.putFile(image)
+        uploadTask.continueWithTask { task ->
+            if (!task.isSuccessful) {
+                task.exception?.let {
+                    throw it
                 }
             }
-        })
+            foto_ref.downloadUrl
+        }.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                if (task.isComplete){
+                    val image = ImageFB(idImage.toString(),task.result.toString())
+                    updateCollectionImages(image)
+                    Log.i("task", task.result.toString())
+                }
+
+            }
+        }
     }
 
-    /**
-     * Registramos el usuario mediante retrofit en la
-     * bbdd de nuestra API
-     */
-    private fun insertImageApi(image: Images) {
-        val dto = ImagesMapper.toDTO(image)
-        val call = bbddRest.insertImage(dto)
-
-        call.enqueue((object : Callback<ImagesDTO> {
-            override fun onResponse(call: Call<ImagesDTO>, response: Response<ImagesDTO>) {
-                // Si la respuesta es correcta
-                if (response.isSuccessful) {
-                    Log.i("image", "imagen subida")
-
-                } else {
-                    Log.i("image", "error subir imagen")
-                }
-            }
-
-            //Si error
-            override fun onFailure(call: Call<ImagesDTO>, t: Throwable) {
-                Toast.makeText(
-                    context,
-                    getString(R.string.userNoSignUp),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }))
+    private fun updateCollectionImages(image: ImageFB) {
+        FireStore.collection("places")
+            .document(lugar.id!!)
+            .collection("images").document(image.id!!)
+            .set(image)
     }
 
-    private fun actualizarLugar(place: Places){
-
-        val lugarDTO = PlacesMapper.toDTO(place)
-        val call = bbddRest.updatePlace(place.id!!, lugarDTO)
-
-        call.enqueue(object : Callback<PlacesDTO>{
-            override fun onResponse(call: Call<PlacesDTO>, response: Response<PlacesDTO>) {
-                if (response.isSuccessful){
-                    context!!.toast(R.string.updatePlace)
-                }else{
-                    context!!.toast(R.string.errorUpdatePlace)
-                }
-            }
-
-            override fun onFailure(call: Call<PlacesDTO>, t: Throwable) {
-                context!!.toast(R.string.errorService)
-            }
-        })
+    private fun actualizarLugar(place: PlaceFB) {
+        FireStore.collection("places")
+            .document(place.id!!)
+            .set(place)
+            .addOnSuccessListener { Log.d("TAG", "DocumentSnapshot successfully updated!") }
+            .addOnFailureListener { e -> Log.w("TAG", "Error updating document", e) }
 
     }
 
     //inciar fragment Mis Lugares
-    private fun initMyPlacesFragment(){
+    private fun initMyPlacesFragment() {
 
         val newFragment: Fragment = MyPlacesFragment()
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
@@ -465,61 +417,47 @@ class MyPlaceDetailFragment(
     }
 
     //Al hacer click en el boton importar insertamos un nuevo lugar en la BD
-    private fun onImportButton(){
+    private fun onImportButton() {
         btnImport.setOnClickListener {
             val currentDate = Utilities.dateToString(Utilities.getSysDate()) //Fecha actual
-            val place = Places(this.lugar.id, this.userApi.id, this.lugar.name, currentDate,
-                this.lugar.latitude, this.lugar.longitude, this.lugar.votos, this.lugar.city)
+            val place = PlaceFB(
+                this.lugar.id, this.userFB.uid, this.lugar.name, currentDate,
+                this.lugar.latitude, this.lugar.longitude, this.lugar.votos, this.lugar.city
+            )
 
-            val call = bbddRest.selectPlaceById(this.lugar.id!!)
-
-            call.enqueue(object : Callback<PlacesDTO>{
-                override fun onResponse(call: Call<PlacesDTO>, response: Response<PlacesDTO>) {
-
-                    if (response.isSuccessful){
-                        if (response.body() != null){
+            FireStore.collection("places")
+                .whereEqualTo("id",lugar.id)
+                .get().addOnSuccessListener { document ->
+                    if (document.isEmpty){
+                        insertarLugar(place)
+                    }else{
+                        if (document.documents[0].data!!.get("idUser").toString() == userFB.uid)
                             Toast.makeText(context, getString(R.string.placeExsistente), Toast.LENGTH_SHORT).show()
-                        }else{
+                        else{
                             insertarLugar(place)
                         }
                     }
                 }
-                override fun onFailure(call: Call<PlacesDTO>, t: Throwable) {
-                    Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
-                }
-            })
             //this.fragmentAnterior?.insertarPlaceAdapter(place)//Actualizamos adapter
             initMyPlacesFragment()
         }
     }
 
-    private fun insertarLugar(place: Places){
-        val placeDTO = PlacesMapper.toDTO(place)
-
-        val call = bbddRest.insertPlace(placeDTO)
-
-        call.enqueue(object : Callback<PlacesDTO>{
-            override fun onResponse(call: Call<PlacesDTO>, response: Response<PlacesDTO>) {
-               if (response.isSuccessful){
-                   Log.i("lugar", "insertado con exito")
-               }else{
-                   Log.i("lugar", "error al insertar")
-               }
-            }
-            override fun onFailure(call: Call<PlacesDTO>, t: Throwable) {
-                Toast.makeText(context, getString(R.string.errorService), Toast.LENGTH_SHORT).show()
-            }
-        })
+    private fun insertarLugar(place: PlaceFB) {
+        place.id = UUID.randomUUID().toString()
+        FireStore.collection("places")
+            .document(place.id!!)
+            .set(place)
     }
 
     //Metedos que se activan segun el FAB que hayamos pulsado
     private fun onMoreButtonClicked() {
-        if (moreOrShareClick){
+        if (moreOrShareClick) {
             setVisibility(clicked)
             setAnimation(clicked)
             setClickable(clicked)
             clicked = !clicked
-        }else{
+        } else {
             setVisibility(clickedShare)
             setAnimation(clickedShare)
             setClickable(clickedShare)
@@ -531,7 +469,7 @@ class MyPlaceDetailFragment(
     //Metodo que activa la funcion de clickable de un FAB
     private fun setClickable(clicked: Boolean) {
 
-        if (moreOrShareClick){//Pulsado boton Mostrar Mas
+        if (moreOrShareClick) {//Pulsado boton Mostrar Mas
             if (!clicked) {
                 floatBtnShare.isClickable = true
                 floatBtnQr.isClickable = true
@@ -539,7 +477,7 @@ class MyPlaceDetailFragment(
                 floatBtnShare.isClickable = false
                 floatBtnQr.isClickable = false
             }
-        }else{//Pulsado boton Compartir
+        } else {//Pulsado boton Compartir
             if (!clickedShare) {
                 floatBtnMore.isClickable = false
                 floatBtnTwitter.isClickable = true
@@ -555,7 +493,7 @@ class MyPlaceDetailFragment(
     }
 
     //metodo que desactiva la funcion de isClickable
-    private fun notClickable(){
+    private fun notClickable() {
         floatBtnShare.isClickable = false
         floatBtnQr.isClickable = false
         floatBtnTwitter.isClickable = false
@@ -577,7 +515,7 @@ class MyPlaceDetailFragment(
                 txtSharePlace_Details.visibility = View.INVISIBLE
                 txtQRPlace_Details.visibility = View.INVISIBLE
             }
-        }else{
+        } else {
             if (!clickedShare) {
                 floatBtnTwitter.visibility = View.VISIBLE
                 floatBtnInsta.visibility = View.VISIBLE
@@ -608,7 +546,7 @@ class MyPlaceDetailFragment(
         val fromBottomShare = AnimationUtils.loadAnimation(context, R.anim.from_bottom_anim)
         val toBottomShare = AnimationUtils.loadAnimation(context, R.anim.to_bottom_anim)
 
-        if (moreOrShareClick and !clickedShare){
+        if (moreOrShareClick and !clickedShare) {
             if (!clicked) {
                 floatBtnShare.startAnimation(fromBottom)
                 floatBtnQr.startAnimation(fromBottom)
@@ -623,7 +561,7 @@ class MyPlaceDetailFragment(
                 txtQRPlace_Details.startAnimation(toBottom)
                 floatBtnMore.startAnimation(rotateClose)
             }
-        }else{
+        } else {
             if (!clicked) {
                 floatBtnTwitter.startAnimation(fromBottomShare)
                 floatBtnInsta.startAnimation(fromBottomShare)
@@ -649,7 +587,7 @@ class MyPlaceDetailFragment(
      * @param location Localizacion en la que pincha/seEncuentra el usuario
      *
      */
-    private fun placeMarker(location: LatLng){
+    private fun placeMarker(location: LatLng) {
         val icon = BitmapDescriptorFactory.fromBitmap(
             BitmapFactory.decodeResource(
                 context?.resources,
@@ -662,22 +600,22 @@ class MyPlaceDetailFragment(
     }
 
     //Al hacer click en el boton del QR
-    private fun onClickQRBtn(){
+    private fun onClickQRBtn() {
         floatBtnQr.setOnClickListener {
             shareOnQR()
         }
     }
 
     //MEtodo que crea un QR
-    private fun shareOnQR(){
+    private fun shareOnQR() {
         val builder = AlertDialog.Builder(context!!)
         val inflater = requireActivity().layoutInflater
         val vista = inflater.inflate(R.layout.layout_share_qr_code, null)
-        val listaVotos = arrayListOf<String>()
-
         //Creamos un lugar sin los votos
-        val lugarSinVotos = Places(this.lugar.id, this.userApi.id, this.lugar.name, this.lugar.fecha,
-            this.lugar.latitude, this.lugar.longitude, listaVotos, this.lugar.city)
+        val lugarSinVotos = PlaceFB(
+            this.lugar.id, this.userFB.uid, this.lugar.name, this.lugar.fecha,
+            this.lugar.latitude, this.lugar.longitude, "0", this.lugar.city
+        )
 
         //Generamos el QR
         val code = generateQRCode(Gson().toJson(lugarSinVotos))
@@ -716,69 +654,88 @@ class MyPlaceDetailFragment(
     }
 
     //Compartir un lugar en redes sociales, mediante intent,  segun la que pulse
-    private fun sharePlaceOnSocialNetwork(){
+    private fun sharePlaceOnSocialNetwork() {
         //Twitter
         floatBtnTwitter.setOnClickListener {
-
-            val img = FactoriaSliderView.adapterSlider!!.getItem().image!!
-            val uri = Utilities.getImageUri(context!!, img)
+            getUriFromImage()
             val intent = Intent(Intent.ACTION_SEND)
             intent.type = "image/*"
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            intent.putExtra(Intent.EXTRA_STREAM, uri)
+            intent.putExtra(Intent.EXTRA_STREAM, imageUrl)
             intent.setPackage("com.twitter.android")
             try {
                 startActivity(intent)
-            }catch (e : ActivityNotFoundException){
+            } catch (e: ActivityNotFoundException) {
                 Toast.makeText(context, getString(R.string.fatalTwitter), Toast.LENGTH_SHORT).show()
             }
         }
 
         //Instagram
         floatBtnInsta.setOnClickListener {
-            val img = FactoriaSliderView.adapterSlider!!.getItem().image!!
-            val uri = Utilities.getImageUri(context!!, img)
+            getUriFromImage()
             val intent = Intent(Intent.ACTION_SEND)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            intent.putExtra(Intent.EXTRA_STREAM, uri)
+            intent.putExtra(Intent.EXTRA_STREAM, imageUrl)
             intent.setPackage("com.instagram.android")
             try {
                 startActivity(intent)
-            }catch (e : ActivityNotFoundException){
+            } catch (e: ActivityNotFoundException) {
                 Toast.makeText(context, getString(R.string.fatalTwitter), Toast.LENGTH_SHORT).show()
             }
         }
 
         //Email
         floatBtnEmail.setOnClickListener {
-            val img = FactoriaSliderView.adapterSlider!!.getItem().image!!
-            val uri = Utilities.getImageUri(context!!, img)
+            getUriFromImage()
             val intent = Intent(Intent.ACTION_SENDTO).apply {
-                data = Uri.parse("mailto:" + userApi.email)}
+                data = Uri.parse("mailto:" + userFB.email)
+            }
             intent.putExtra(Intent.EXTRA_SUBJECT, lugar.name)
-            intent.putExtra(Intent.EXTRA_STREAM, uri)
+            intent.putExtra(Intent.EXTRA_STREAM, imageUrl)
             startActivity(intent)
 
         }
     }
 
+    private fun getUriFromImage(){
+        val FireStore = FirebaseFirestore.getInstance()
+        FireStore.collection("places")
+            .document(lugar.id!!)
+            .collection("images")
+            .get()
+            .addOnSuccessListener { document ->
+                if (!document.isEmpty) {
+                    val image = document.documents[0].data?.get("url")
+                    setImageUrl(image)
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.i("cargarImage", e.localizedMessage!!)
+            }
+    }
+
+    private fun setImageUrl(image: Any?) {
+        this.imageUrl = Uri.parse(image.toString())
+    }
+
+
     //Centramos la camara
-    private fun moveCamera(){
+    private fun moveCamera() {
         val latitud = this.lugar.latitude!!.toDouble()
         val longitud = this.lugar.longitude!!.toDouble()
         val location = LatLng(latitud, longitud)
         if (editable) {
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15f))
-        }else{
+        } else {
             mMap.moveCamera(CameraUpdateFactory.newLatLng(location))
         }
         placeMarker(location)
     }
 
     /**
-    * Configuración  del modo de mapa segun la forma
+     * Configuración  del modo de mapa segun la forma
      * en la que entramos al fragment
-    */
+     */
     private fun configurarIUMapa(boolean: Boolean) {
         Log.i("Mapa", "Configurando IU Mapa")
         mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
@@ -788,16 +745,16 @@ class MyPlaceDetailFragment(
         uiSettings.isCompassEnabled = boolean
         uiSettings.isZoomControlsEnabled = boolean
         uiSettings.isMapToolbarEnabled = false
-        if (editable){
+        if (editable) {
             mMap.setMinZoomPreference(10.0f)
-        }else{
+        } else {
             mMap.setMinZoomPreference(15.0f)
         }
     }
 
     //Permitir crear puntos en caso de ser modo Editable
-    private fun initMapaSwitchEditable(){
-        if (editable){
+    private fun initMapaSwitchEditable() {
+        if (editable) {
             configurarIUMapa(true)
             mMap.setOnMapClickListener { latLng ->
 
@@ -806,7 +763,7 @@ class MyPlaceDetailFragment(
                 placeMarker(location)
                 cargarCiudad(latLng.latitude, latLng.longitude)
             }
-        }else{
+        } else {
             configurarIUMapa(false)
         }
     }
@@ -820,7 +777,7 @@ class MyPlaceDetailFragment(
 
     //Abrimos un dialog con las opciones para abrir camara o galeria
     private fun abrirOpciones() {
-        sliderView.setOnClickListener{
+        sliderView.setOnClickListener {
             val mDialogView = LayoutInflater.from(context!!).inflate(R.layout.layout_seleccion_camara, null)
             val mBuilder = AlertDialog.Builder(context!!)
                 .setView(mDialogView).create()
@@ -846,16 +803,20 @@ class MyPlaceDetailFragment(
             context!!,
             Manifest.permission.CAMERA
         ) == PackageManager.PERMISSION_DENIED ||
-        ActivityCompat.checkSelfPermission(context!!, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
+        ActivityCompat.checkSelfPermission(
+            context!!,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_DENIED
+    ) {
         val permisosCamara =
             arrayOf(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE)
         requestPermissions(permisosCamara, CAMARA)
-    }else{
+    } else {
         mostrarCamara()
     }
 
     //abre la camara y hace la foto
-    private fun mostrarCamara(){
+    private fun mostrarCamara() {
         val value = ContentValues()
         value.put(MediaStore.Images.Media.TITLE, "Nueva Imagen")
         foto = context?.contentResolver!!.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, value)
@@ -865,12 +826,13 @@ class MyPlaceDetailFragment(
     }
 
     //pido los permisos para abrir la galeria
-    private fun abrirGaleria(){
+    private fun abrirGaleria() {
         val permiso = arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
         requestPermissions(permiso, GALERIA)
     }
+
     //muetsro la galeria
-    private fun mostrarGaleria(){
+    private fun mostrarGaleria() {
         val intent = Intent(Intent.ACTION_PICK)
         intent.type = "image/*"
         startActivityForResult(intent, GALERIA)
@@ -879,15 +841,14 @@ class MyPlaceDetailFragment(
     //si el usuario selecciona una imagen, la almacenamos en la lista
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == Activity.RESULT_OK && requestCode==GALERIA) {
+        if (resultCode == Activity.RESULT_OK && requestCode == GALERIA) {
             try {
                 val bitmap = MediaStore.Images.Media.getBitmap(context?.contentResolver!!, data?.data)
                 val sliderItem = SliderImageItem()
                 sliderItem.image = bitmap
                 FactoriaSliderView.adapterSlider!!.addItem(sliderItem)
 
-                val base64 = Utilities.bitmapToBase64(bitmap)!!
-                bases64.add(base64)
+                uris.add(data?.data!!)
 
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -901,15 +862,14 @@ class MyPlaceDetailFragment(
             sliderItem.image = bitmap
             FactoriaSliderView.adapterSlider!!.addItem(sliderItem)
 
-            val base64 = Utilities.bitmapToBase64(bitmap)!!
-            bases64.add(base64)
+            uris.add(foto!!)
         }
     }
 
     //obtengo el resultado de pedir los permisos
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        when(requestCode){
+        when (requestCode) {
             GALERIA -> {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
                     mostrarGaleria()
@@ -922,7 +882,7 @@ class MyPlaceDetailFragment(
     }
 
     //Metodo en el que inicializamos la Tarea para detectar la ciudad
-    private fun cargarCiudad(latitude: Double, longiude: Double){
+    private fun cargarCiudad(latitude: Double, longiude: Double) {
 
         tarea = CityAsyncTask(latitude, longiude)
         tarea.execute()
@@ -940,7 +900,7 @@ class MyPlaceDetailFragment(
             val geocoder = Geocoder(context!!, Locale.getDefault())
             try {
                 //Contiene la direccion completa incluido pais, ciudad...
-                val addresses : List<Address> = geocoder.getFromLocation(latitud, longitud, 1)
+                val addresses: List<Address> = geocoder.getFromLocation(latitud, longitud, 1)
                 when {
                     (addresses[0].locality != null) and (addresses[0].countryName != null) -> {
                         txtUbicationPlace_DetailsPlace.text = addresses[0].locality + " - " + addresses[0].countryName
@@ -953,8 +913,9 @@ class MyPlaceDetailFragment(
                     }
                 }
                 result = addresses[0].toString()
-            }catch (e: IOException){}
-            catch (e: Exception) {}
+            } catch (e: IOException) {
+            } catch (e: Exception) {
+            }
 
             return result
         }

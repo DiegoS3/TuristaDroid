@@ -228,7 +228,7 @@ class MyPlacesFragment : Fragment() {
             .delete()
             .addOnCompleteListener { task ->
                 if (task.isSuccessful)
-                    deleteImgPlace(place.id)
+                    deleteImgPlace(place.id!!)
             }
     }
 
@@ -241,7 +241,7 @@ class MyPlacesFragment : Fragment() {
                 for (ima in task.documents) {
                     val image = Mappers.dtoToImage(ima.data!!)
                     FireStore.collection("places")
-                        .document(place.id)
+                        .document(place.id!!)
                         .collection("images")
                         .document(image.id!!).delete()
                 }
@@ -257,7 +257,7 @@ class MyPlacesFragment : Fragment() {
                 for (votos in task.documents) {
                     val voto = Mappers.dtoToVoto(votos.data!!)
                     FireStore.collection("places")
-                        .document(place.id)
+                        .document(place.id!!)
                         .collection("votos")
                         .document(voto.idUser!!).delete()
                 }
@@ -288,7 +288,7 @@ class MyPlacesFragment : Fragment() {
 
     //inciamos fragment details en modo edicion
     private fun editarElemento(pos: Int) {
-        //initDetailsPlaceFragment(true, places[pos], pos, false)
+        initDetailsPlaceFragment(true, places[pos], pos, false)
     }
 
     //Dialog para que confirme el si quiere eliminar el lugar
@@ -425,15 +425,12 @@ class MyPlacesFragment : Fragment() {
      * @param import modo importar
      *
      */
-    private fun initDetailsPlaceFragment(editable: Boolean, place: Places, pos: Int?, import: Boolean) {
-        /*
-            val newFragment: Fragment = MyPlaceDetailFragment(editable, place, pos, this, import, userApi)
+    private fun initDetailsPlaceFragment(editable: Boolean, place: PlaceFB, pos: Int?, import: Boolean) {
+            val newFragment: Fragment = MyPlaceDetailFragment(editable, place, pos, this, import, userFB)
             val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
             transaction.replace(R.id.nav_host_fragment, newFragment)
             transaction.addToBackStack(null)
             transaction.commit()
-
-         */
     }
 
     //Modificar visibilidad FABS ADD
@@ -569,7 +566,7 @@ class MyPlacesFragment : Fragment() {
             } else {
                 try {
                     placeQr = Gson().fromJson(result.contents, PlaceFB::class.java)
-                    //initDetailsPlaceFragment(false, placeQr, null, true)
+                    initDetailsPlaceFragment(false, placeQr, null, true)
                 } catch (ex: Exception) {
                     Toast.makeText(context, getString(R.string.errorEmail), Toast.LENGTH_LONG).show()
                 }
@@ -735,7 +732,7 @@ class MyPlacesFragment : Fragment() {
      * @param place Places
      */
     private fun eventoClicFila(place: PlaceFB) {
-        //initDetailsPlaceFragment(false, place, null, false)
+        initDetailsPlaceFragment(false, place, null, false)
     }
 
 }

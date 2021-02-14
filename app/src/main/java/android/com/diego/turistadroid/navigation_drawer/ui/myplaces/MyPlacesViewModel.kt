@@ -66,26 +66,10 @@ class MyPlacesViewModel(
                         .fitCenter()
                         .into(holder.imgItemPlace)
                 }
-
             }
             .addOnFailureListener { e ->
                 Log.i("cargarImage", e.localizedMessage!!)
             }
-        /*
-    .addOnCompleteListener { task ->
-        if (task.isSuccessful) {
-            if(task.result.documents.size>0){
-                val image = task.result.documents[0].data?.get("url")
-                Glide.with(context)
-                    .load(image)
-                    .fitCenter()
-                    .into(holder.imgItemPlace)
-            }
-
-        }
-    }
-
-         */
     }
 
     /**

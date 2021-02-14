@@ -147,15 +147,12 @@ class AllPlaces : Fragment() {
      * @param import modo importar
      *
      */
-    private fun initDetailsPlaceFragment(editable: Boolean, place: Places, pos: Int?, import: Boolean) {
-        /*
+    private fun initDetailsPlaceFragment(editable: Boolean, place: PlaceFB, pos: Int?, import: Boolean) {
         val newFragment: Fragment = MyPlaceDetailFragment(editable, place, pos, null, import, userFB)
         val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
         transaction.replace(R.id.nav_host_fragment, newFragment)
         transaction.addToBackStack(null)
         transaction.commit()
-
-         */
     }
 
     //Visibilidad FABS SORT
@@ -381,6 +378,6 @@ class AllPlaces : Fragment() {
      * @param place Places
      */
     private fun eventoClicFila(place: PlaceFB) {
-        //initDetailsPlaceFragment(false, place, null, false)
+        initDetailsPlaceFragment(false, place, null, false)
     }
 }

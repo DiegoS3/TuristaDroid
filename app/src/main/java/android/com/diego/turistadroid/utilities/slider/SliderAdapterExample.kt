@@ -64,12 +64,10 @@ class SliderAdapterExample(private val context: Context) : SliderViewAdapter<Sli
         }
 
         viewHolder.itemView.setOnClickListener {
-            Toast.makeText(
-                context,
-                "This is item in position $position",
-                Toast.LENGTH_SHORT
-            ).show()
+            
         }
+
+
     }
 
     override fun getCount(): Int {
