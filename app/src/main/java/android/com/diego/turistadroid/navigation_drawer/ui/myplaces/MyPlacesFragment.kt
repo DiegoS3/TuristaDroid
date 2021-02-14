@@ -35,6 +35,7 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
@@ -82,7 +83,7 @@ class MyPlacesFragment : Fragment() {
     private lateinit var storage_ref: StorageReference
 
 
-    companion object{
+    companion object {
 
         lateinit var myContext: Context
         lateinit var idUser: String
@@ -110,19 +111,14 @@ class MyPlacesFragment : Fragment() {
         initUI()
     }
 
-    override fun onResume() {
-        super.onResume()
-        cargarLugares()
-    }
-
     private fun initUI() {
         initFirebase()
         initFloatingButtons()
         iniciarSwipeRecarga()
-        cargarLugares()
-        iniciarSwipeHorizontal()
         // Mostramos las vistas de listas y adaptador asociado
         placeRecycler_MyPlaces.layoutManager = LinearLayoutManager(context)
+        cargarLugares()
+        iniciarSwipeHorizontal()
         orderSites()
     }
 
@@ -139,7 +135,7 @@ class MyPlacesFragment : Fragment() {
         placeSwipe_MyPlaces.setColorSchemeResources(R.color.colorPrimaryDark)
         placeSwipe_MyPlaces.setProgressBackgroundColorSchemeResource(R.color.colorDialog)
         placeSwipe_MyPlaces.setOnRefreshListener {
-            //cargarDatos()
+            cargarLugares()
             //getDatosFromBD()
         }
     }
@@ -210,27 +206,62 @@ class MyPlacesFragment : Fragment() {
 
 
     //Eliminamos la imagen del lugar
-    private fun deleteImgPlace(id : String) {
+    private fun deleteImgPlace(id: String) {
         val foto_ref = storage_ref.child("/imagenes/${id}")
         foto_ref.listAll().addOnCompleteListener { task ->
-            if (task.isSuccessful){
+            if (task.isSuccessful) {
                 for (img in task.result.items)
                     img.delete()
                 Log.i("deleteimage", "ok")
-            }else
+            } else
                 Log.i("deleteimage", "no ok")
         }
     }
 
     //Eliminamos el lugar
     private fun deletePlaceBD(place: PlaceFB) {
+        eliminarImagesPlace(place)
+        eliminarVotosPlace(place)
+
         FireStore.collection("places")
             .document(place.id!!)
             .delete()
             .addOnCompleteListener { task ->
-            if (task.isSuccessful)
-                deleteImgPlace(place.id)
-        }
+                if (task.isSuccessful)
+                    deleteImgPlace(place.id)
+            }
+    }
+
+    private fun eliminarImagesPlace(place: PlaceFB) {
+        FireStore.collection("places")
+            .document(place.id!!)
+            .collection("images")
+            .get()
+            .addOnSuccessListener { task ->
+                for (ima in task.documents) {
+                    val image = Mappers.dtoToImage(ima.data!!)
+                    FireStore.collection("places")
+                        .document(place.id)
+                        .collection("images")
+                        .document(image.id!!).delete()
+                }
+            }
+    }
+
+    private fun eliminarVotosPlace(place: PlaceFB) {
+        FireStore.collection("places")
+            .document(place.id!!)
+            .collection("votos")
+            .get()
+            .addOnSuccessListener { task ->
+                for (votos in task.documents) {
+                    val voto = Mappers.dtoToVoto(votos.data!!)
+                    FireStore.collection("places")
+                        .document(place.id)
+                        .collection("votos")
+                        .document(voto.idUser!!).delete()
+                }
+            }
     }
 
     //Borramos elemento del adaptador
@@ -250,13 +281,13 @@ class MyPlacesFragment : Fragment() {
     }
 
     //Insertamos lugar nuevo en el adaptador
-    fun insertarPlaceAdapter(place: PlaceFB){
+    fun insertarPlaceAdapter(place: PlaceFB) {
         adapter.addItem(place)
         adapter.notifyDataSetChanged()
     }
 
     //inciamos fragment details en modo edicion
-    private fun editarElemento(pos: Int){
+    private fun editarElemento(pos: Int) {
         //initDetailsPlaceFragment(true, places[pos], pos, false)
     }
 
@@ -395,14 +426,14 @@ class MyPlacesFragment : Fragment() {
      *
      */
     private fun initDetailsPlaceFragment(editable: Boolean, place: Places, pos: Int?, import: Boolean) {
-    /*
-        val newFragment: Fragment = MyPlaceDetailFragment(editable, place, pos, this, import, userApi)
-        val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
-        transaction.replace(R.id.nav_host_fragment, newFragment)
-        transaction.addToBackStack(null)
-        transaction.commit()
+        /*
+            val newFragment: Fragment = MyPlaceDetailFragment(editable, place, pos, this, import, userApi)
+            val transaction: FragmentTransaction = fragmentManager!!.beginTransaction()
+            transaction.replace(R.id.nav_host_fragment, newFragment)
+            transaction.addToBackStack(null)
+            transaction.commit()
 
-     */
+         */
     }
 
     //Modificar visibilidad FABS ADD
@@ -552,38 +583,42 @@ class MyPlacesFragment : Fragment() {
     private fun orderSites() {
 
         btnSortNamePlace.setOnClickListener { // Order by NAME
-            ascName = if (ascName){
+            ascName = if (ascName) {
                 btnSortNamePlace.setImageResource(R.drawable.ic_short_name_desc_btn)
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_name_asc_btn)
                 this.places.sortWith { lugar1: PlaceFB, lugar2: PlaceFB ->
-                    lugar1.name!!.toLowerCase().compareTo(lugar2.name!!.toLowerCase()) }
+                    lugar1.name!!.toLowerCase().compareTo(lugar2.name!!.toLowerCase())
+                }
                 false
-            }else{
+            } else {
                 btnSortNamePlace.setImageResource(R.drawable.ic_short_name_asc_btn)
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_name_desc_btn)
                 this.places.sortWith { lugar1: PlaceFB, lugar2: PlaceFB ->
-                    lugar2.name!!.toLowerCase().compareTo(lugar1.name!!.toLowerCase()) }
+                    lugar2.name!!.toLowerCase().compareTo(lugar1.name!!.toLowerCase())
+                }
                 true
             }
             adapter.notifyDataSetChanged()
         }
 
         btnSortDatePlace.setOnClickListener { // Order by DATE
-            ascDate = if (ascDate){
+            ascDate = if (ascDate) {
                 btnSortDatePlace.setImageResource(R.drawable.ic_short_date_desc_btn)
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_date_asc_btn)
                 this.places.sortWith { lugar1: PlaceFB, lugar2: PlaceFB ->
                     val fecha1 = Utilities.stringToDate(lugar1.fecha!!)
                     val fecha2 = Utilities.stringToDate(lugar2.fecha!!)
-                    fecha1!!.compareTo(fecha2!!) }
+                    fecha1!!.compareTo(fecha2!!)
+                }
                 false
-            }else{
+            } else {
                 btnSortDatePlace.setImageResource(R.drawable.ic_short_date_asc_btn)
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_date_desc_btn)
                 this.places.sortWith { lugar1: PlaceFB, lugar2: PlaceFB ->
                     val fecha1 = Utilities.stringToDate(lugar1.fecha!!)
                     val fecha2 = Utilities.stringToDate(lugar2.fecha!!)
-                    fecha2!!.compareTo(fecha1!!) }
+                    fecha2!!.compareTo(fecha1!!)
+                }
                 true
             }
             adapter.notifyDataSetChanged()
@@ -594,105 +629,113 @@ class MyPlacesFragment : Fragment() {
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_mark_asc_btn)
                 btnSortMarkPlace.setImageResource(R.drawable.ic_short_mark_desc_btn)
                 this.places.sortWith { lugar1: PlaceFB, lugar2: PlaceFB ->
-                    lugar2.votos!!.toInt().compareTo(lugar1.votos!!.toInt()) }
+                    lugar2.votos!!.toInt().compareTo(lugar1.votos!!.toInt())
+                }
                 false
-            }else{
+            } else {
                 btnSortPlaces_MyPlaces.setImageResource(R.drawable.ic_short_mark_asc_btn)
                 btnSortMarkPlace.setImageResource(R.drawable.ic_short_mark_desc_btn)
                 this.places.sortWith { lugar1: PlaceFB, lugar2: PlaceFB ->
-                    lugar1.votos!!.toInt().compareTo(lugar2.votos!!.toInt()) }
+                    lugar1.votos!!.toInt().compareTo(lugar2.votos!!.toInt())
+                }
                 true
             }
             adapter.notifyDataSetChanged()
         }
-
-
     }
 
     private fun getDatosFromBD() {
-        //placeSwipe_MyPlaces.isRefreshing = true
+
         // Seleccionamos los lugares
-        FireStore.collection("places").whereEqualTo("idUser",userFB.uid)
+        FireStore.collection("places").whereEqualTo("idUser", idUser)
             .addSnapshotListener { value, e ->
                 if (e != null) {
-                    Toast.makeText(context,
+                    Toast.makeText(
+                        context,
                         "Error al acceder al servicio: " + e.localizedMessage,
-                        Toast.LENGTH_LONG)
+                        Toast.LENGTH_LONG
+                    )
                         .show()
                     return@addSnapshotListener
                 }
-                // LUGARES.clear()
                 //placeSwipe_MyPlaces.isRefreshing  = false
                 for (doc in value!!.documentChanges) {
                     when (doc.type) {
                         DocumentChange.Type.ADDED -> {
-                            Log.i("", "ADDED  ${doc.document.data}")
-                            insertarDocumento(doc.document.data)
+                            placeInserted(doc.document.data)
                         }
                         DocumentChange.Type.MODIFIED -> {
-                            Log.i("TAG", "MODIFIED: ${doc.document.data}")
-                            //modificarDocumento(doc.document.data)
+                            Log.i("lugarMod", "modificado")
+                            placeModified(doc.document.data)
                         }
                         DocumentChange.Type.REMOVED -> {
-                            Log.i("TAG", "REMOVED: ${doc.document.data}")
-                            eliminarDocumento(doc.document.data)
+                            placeDeleted(doc.document.data)
                         }
                     }
                 }
             }
     }
 
-    private fun v(ds: DocumentSnapshot){
-        ds.toObject(PlaceFB::class.java)
+    /**
+     * Modifica el documento de la lista y llama al adapter del fragment
+     * @param data: Map<String, Any>
+     */
+    private fun placeModified(data: Map<String, Any>) {
+        val place = Mappers.dtoToPlace(data)
+        if (places.indexOf(place) >= 0) {
+            actualizarPlaceAdapter(place, places.indexOf(place))
+        }
     }
 
     /**
-     * Inserta el dato en una lista
-     * @param doc MutableMap<String, Any>
+     * Inserta el documento en una lista y llama al adapter del fragment
+     * @param data MutableMap<String, Any>
      */
-    private fun insertarDocumento(doc: MutableMap<String, Any>) {
-        val place = Mappers.dtoToPlace(doc)
+    private fun placeInserted(data: MutableMap<String, Any>) {
+        val place = Mappers.dtoToPlace(data)
         val existe = places.any { lugar -> lugar.id == place.id }
         if (!existe)
             insertarPlaceAdapter(place)
+        Log.i("lugarinsertado", place.toString())
     }
 
     /**
-     * Elimina el dato en una lista
-     * @param doc MutableMap<String, Any>
+     * Elimina el documento de la lista y llama al adapter del fragment
+     * @param data: Map<String, Any>
      */
-    private fun eliminarDocumento(doc: MutableMap<String, Any>) {
-        val place = Mappers.dtoToPlace(doc)
-        if (places.indexOf(place)>=0){
+    private fun placeDeleted(data: Map<String, Any>) {
+        val place = Mappers.dtoToPlace(data)
+        val x = places.indexOf(place)
+        Log.i("lugarMod", x.toString())
+        if (places.indexOf(place) >= 0) {
             borrarElemento(places.indexOf(place))
         }
-
     }
 
-
-
-
     /**
-     * cargamos los lugares y notificamos 
+     * cargamos los lugares y notificamos
      */
     private fun cargarLugares() {
+        places.clear()
+        placeSwipe_MyPlaces.isRefreshing = true
         adapter = MyPlacesViewModel(places) {
-            //eventoClicFila(it)
+            eventoClicFila(it)
         }
         placeRecycler_MyPlaces.adapter = adapter
         // Avismos que ha cambiado
-        adapter.notifyDataSetChanged()
-        placeRecycler_MyPlaces.setHasFixedSize(true)
-        placeSwipe_MyPlaces.isRefreshing = false
+        //adapter.notifyDataSetChanged()
+        //placeRecycler_MyPlaces.setHasFixedSize(true)
+        //placeSwipe_MyPlaces.isRefreshing = false
         getDatosFromBD()
+        placeSwipe_MyPlaces.isRefreshing = false
     }
 
     /**
      * Evento click asociado a una fila
      * @param place Places
      */
-    private fun eventoClicFila(place: Places) {
-        initDetailsPlaceFragment(false, place, null, false)
+    private fun eventoClicFila(place: PlaceFB) {
+        //initDetailsPlaceFragment(false, place, null, false)
     }
 
 }

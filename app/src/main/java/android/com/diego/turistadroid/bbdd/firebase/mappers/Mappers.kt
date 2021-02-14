@@ -1,7 +1,9 @@
 package android.com.diego.turistadroid.bbdd.firebase.mappers
 
+import android.com.diego.turistadroid.bbdd.firebase.entities.ImageFB
 import android.com.diego.turistadroid.bbdd.firebase.entities.PlaceFB
 import android.com.diego.turistadroid.bbdd.firebase.entities.UserFB
+import android.com.diego.turistadroid.bbdd.firebase.entities.VotoFB
 
 object Mappers {
 
@@ -32,5 +34,14 @@ object Mappers {
         longitude = doc["longitude"].toString(),
         votos = doc["votos"].toString(),
         city = doc["city"].toString()
+    )
+
+    fun dtoToImage(doc: Map<String, Any>) = ImageFB(
+        id = doc["id"].toString(),
+        url = doc["url"].toString()
+    )
+
+    fun dtoToVoto(doc: Map<String, Any>) = VotoFB(
+        idUser = doc["idUser"].toString()
     )
 }

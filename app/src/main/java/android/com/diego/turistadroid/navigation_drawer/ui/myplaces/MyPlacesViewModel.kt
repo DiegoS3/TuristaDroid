@@ -10,6 +10,8 @@ import android.com.diego.turistadroid.bbdd.apibbdd.entities.votes.Votes
 import android.com.diego.turistadroid.bbdd.apibbdd.entities.votes.VotesDTO
 import android.com.diego.turistadroid.bbdd.apibbdd.services.retrofit.BBDDApi
 import android.com.diego.turistadroid.bbdd.firebase.entities.PlaceFB
+import android.com.diego.turistadroid.bbdd.firebase.entities.VotoFB
+import android.com.diego.turistadroid.bbdd.firebase.mappers.Mappers
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -38,6 +40,7 @@ class MyPlacesViewModel(
 
     private val context = MyPlacesFragment.myContext
     private val idUser = MyPlacesFragment.idUser
+    private var votado = false
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlaceViewHolder {
 
@@ -55,18 +58,34 @@ class MyPlacesViewModel(
             .document(item.id!!)
             .collection("images")
             .get()
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    if(task.result.documents.size>0){
-                        val image = task.result.documents[0].data?.get("url")
-                        Glide.with(context)
-                            .load(image)
-                            .fitCenter()
-                            .into(holder.imgItemPlace)
-                    }
-
+            .addOnSuccessListener { document ->
+                if (!document.isEmpty) {
+                    val image = document.documents[0].data?.get("url")
+                    Glide.with(context)
+                        .load(image)
+                        .fitCenter()
+                        .into(holder.imgItemPlace)
                 }
+
             }
+            .addOnFailureListener { e ->
+                Log.i("cargarImage", e.localizedMessage!!)
+            }
+        /*
+    .addOnCompleteListener { task ->
+        if (task.isSuccessful) {
+            if(task.result.documents.size>0){
+                val image = task.result.documents[0].data?.get("url")
+                Glide.with(context)
+                    .load(image)
+                    .fitCenter()
+                    .into(holder.imgItemPlace)
+            }
+
+        }
+    }
+
+         */
     }
 
     /**
@@ -102,6 +121,7 @@ class MyPlacesViewModel(
         listPlaces[position] = item
         notifyItemInserted(position)
         notifyItemRangeChanged(position, listPlaces.size)
+        Log.i("lugared", item.toString())
     }
 
 
@@ -113,16 +133,10 @@ class MyPlacesViewModel(
         holder.txtTitleItemPlace.text = item.name
         holder.txtCityItemPlace.text = item.city
         holder.txtDateItemPlace.text = fecha
+        holder.txtMarkItemPlace.text = listPlaces[position].votos
         //checkNumVotos(listPlaces[position], holder)
 
-        /*
-        if (!yaVotado(listPlaces[position])) {
-            holder.btnFavPlace.drawable.setTint(R.color.colorPrimary)
-        } else {
-            holder.btnFavPlace.drawable.setTintList(null)
-        }
-
-         */
+        yaVotado(listPlaces[position], holder, false)
 
         holder.itemView
             .setOnClickListener {
@@ -134,45 +148,105 @@ class MyPlacesViewModel(
     }
 
     private fun doFavPlace(position: Int, holder: PlaceViewHolder) {
-        Log.i("votos", "votado")
-        //actualizarPlace(listPlaces[position], holder)
+        yaVotado(listPlaces[position], holder, true)
+        actualizarPlace(listPlaces[position], holder)
         //checkNumVotos(listPlaces[position], holder)
     }
 
-    private fun yaVotado(places: Places): Boolean {
-        var votado = false
-        for (id in places.votos!!) {
-            if (id == idUser) {
-                votado = true
+    private fun yaVotado(place: PlaceFB, holder: PlaceViewHolder, click: Boolean) {
+        val Firestore = FirebaseFirestore.getInstance()
+        Firestore.collection("places")
+            .document(place.id!!)
+            .collection("votos")
+            .get().addOnSuccessListener { documents ->
+                if (documents.isEmpty) {
+                    Log.i("votos", "vacio")
+                    holder.btnFavPlace.drawable.setTint(R.color.colorPrimary)//NO AMARILLO
+                    if (click) {
+                        Log.i("votos", "vacio y click")
+                        setVotado(false)
+                        holder.btnFavPlace.drawable.setTintList(null)//AMARILLO
+                    }
+
+                } else {
+                    Log.i("votos", "voto/votos")
+                    holder.btnFavPlace.drawable.setTint(R.color.colorPrimary)//NO AMARILLO
+                    //setVotado(false)
+                    var existe = false
+                    var i = 0
+                    do {
+                        val voto = Mappers.dtoToVoto(documents.documents[i].data!!)
+                        if (voto.idUser == idUser) {
+                            existe = true
+                            Log.i("votos", "existe voto de usuario")
+                            holder.btnFavPlace.drawable.setTintList(null)//AMARILLO
+                            if (click) {
+                                Log.i("votos", "existe voto de usuario y click")
+                                setVotado(true)
+                            } else {
+                                Log.i("votos", "existe voto de usuario y no click")
+                            }
+                        }
+                        i++
+                    } while (!existe && i < documents.size())
+
+                    if (!existe)
+                        setVotado(false)
+                        Log.i("votos", "no existe este usuario")
+                }
             }
-        }
-        return votado
+
     }
 
-    private fun actualizarPlace(place: Places, holder: PlaceViewHolder) {
+    private fun setVotado(votado: Boolean) {
+        this.votado = votado
+    }
 
-        val bbddRest = BBDDApi.service
-        val listaVotos: ArrayList<String>
-        if (yaVotado(place)) {
-            place.votos!!.remove(idUser)
-            listaVotos = place.votos
+    private fun actualizarPlace(place: PlaceFB, holder: PlaceViewHolder) {
+        var votos = place.votos!!.toInt()
+        if (votado) {
+            eliminarVoto(place)
             holder.btnFavPlace.drawable.setTint(R.color.colorPrimary)
+            votos--
         } else {
-            place.votos!!.add(idUser)
-            checkSizeVotos(place)
-            listaVotos = place.votos
+            crearVoto(place)
             holder.btnFavPlace.drawable.setTintList(null)
+            votos++
         }
-        val call = bbddRest.updateVotesPlace(place.id!!, listaVotos)
-        call.enqueue(object : Callback<PlacesDTO> {
-            override fun onResponse(call: Call<PlacesDTO>, response: Response<PlacesDTO>) {
+        updatePlaceFirebase(votos, place)
+    }
 
-            }
+    private fun updatePlaceFirebase(votos: Int, place: PlaceFB) {
+        val Firestore = FirebaseFirestore.getInstance()
+        Firestore.collection("places")
+            .document(place.id!!)
+            .update("votos", votos)
+            .addOnSuccessListener { Log.d("TAG", "DocumentSnapshot successfully updated!") }
+            .addOnFailureListener { e -> Log.w("TAG", "Error updating document", e) }
+    }
 
-            override fun onFailure(call: Call<PlacesDTO>, t: Throwable) {
 
-            }
-        })
+    private fun crearVoto(place: PlaceFB) {
+        val Firestore = FirebaseFirestore.getInstance()
+        val voto = VotoFB(idUser)
+        Firestore.collection("places")
+            .document(place.id!!)
+            .collection("votos")
+            .document(idUser)
+            .set(voto)
+            .addOnSuccessListener { Log.d("TAG", "DocumentSnapshot successfully updated!") }
+            .addOnFailureListener { e -> Log.w("TAG", "Error updating document", e) }
+    }
+
+    private fun eliminarVoto(place: PlaceFB) {
+        val Firestore = FirebaseFirestore.getInstance()
+        Firestore.collection("places")
+            .document(place.id!!)
+            .collection("votos")
+            .document(idUser)
+            .delete()
+            .addOnSuccessListener { Log.d("TAG", "DocumentSnapshot successfully updated!") }
+            .addOnFailureListener { e -> Log.w("TAG", "Error updating document", e) }
     }
 
     private fun checkSizeVotos(place: Places) {

@@ -125,15 +125,15 @@ class LogInActivity : AppCompatActivity() {
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     Log.i("login", task.exception.toString())
+                    user = Auth.currentUser!!
                     initNavigation()
                 }
                 else{
-                    if (task.exception is FirebaseAuthUserCollisionException)
-                        txtUser_Login.error = getString(R.string.errorLoginEmail)
-                    else if (task.exception is FirebaseAuthInvalidCredentialsException)
-                        txtPwd_Login.error = getString(R.string.errorLoginPWD)
-                    else
-                        applicationContext.toast(R.string.errorService)
+                    when (task.exception) {
+                        is FirebaseAuthUserCollisionException -> txtUser_Login.error = getString(R.string.errorLoginEmail)
+                        is FirebaseAuthInvalidCredentialsException -> txtPwd_Login.error = getString(R.string.errorLoginPWD)
+                        else -> applicationContext.toast(R.string.errorService)
+                    }
                 }
             }
     }
@@ -164,11 +164,11 @@ class LogInActivity : AppCompatActivity() {
             }
         }
 
-        google_button.setOnClickListener {
+        google_button!!.setOnClickListener {
             signInGoogle()
         }
 
-        twitter_button.callback = object : Callback<TwitterSession>() {
+        twitter_button!!.callback = object : Callback<TwitterSession>() {
             override fun success(result: Result<TwitterSession>?) {
 
                 val session = TwitterCore.getInstance().sessionManager.activeSession
@@ -204,8 +204,8 @@ class LogInActivity : AppCompatActivity() {
             if (task.isSuccessful) {
                 // Sign in success, update UI with the signed-in user's information
                 Log.d("", "signInWithCredential:success")
-                val user = Auth.currentUser
-                insertarUser(user!!)
+                user = Auth.currentUser!!
+                insertarUser(user)
                 initNavigation()
             } else {
                 // If sign in fails, display a message to the user.
