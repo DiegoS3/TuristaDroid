@@ -108,7 +108,6 @@ class MyPlacesViewModel(
         Log.i("lugared", item.toString())
     }
 
-
     override fun onBindViewHolder(holder: PlaceViewHolder, position: Int) {
         val item = listPlaces[position]
         val fecha = item.fecha!!.format("dd/M/yyyy")
@@ -118,7 +117,6 @@ class MyPlacesViewModel(
         holder.txtCityItemPlace.text = item.city
         holder.txtDateItemPlace.text = fecha
         holder.txtMarkItemPlace.text = listPlaces[position].votos
-        //checkNumVotos(listPlaces[position], holder)
 
         yaVotado(listPlaces[position], holder, false)
 
@@ -133,12 +131,11 @@ class MyPlacesViewModel(
 
     private fun doFavPlace(position: Int, holder: PlaceViewHolder) {
         yaVotado(listPlaces[position], holder, true)
-        actualizarPlace(listPlaces[position], holder)
-        //checkNumVotos(listPlaces[position], holder)
     }
 
     private fun yaVotado(place: PlaceFB, holder: PlaceViewHolder, click: Boolean) {
         val Firestore = FirebaseFirestore.getInstance()
+        var votos = place.votos!!.toInt()
         Firestore.collection("places")
             .document(place.id!!)
             .collection("votos")
@@ -147,15 +144,14 @@ class MyPlacesViewModel(
                     Log.i("votos", "vacio")
                     holder.btnFavPlace.drawable.setTint(R.color.colorPrimary)//NO AMARILLO
                     if (click) {
+                        crearVoto(place)//crear voto
+                        votos++
                         Log.i("votos", "vacio y click")
-                        setVotado(false)
                         holder.btnFavPlace.drawable.setTintList(null)//AMARILLO
                     }
-
                 } else {
                     Log.i("votos", "voto/votos")
                     holder.btnFavPlace.drawable.setTint(R.color.colorPrimary)//NO AMARILLO
-                    //setVotado(false)
                     var existe = false
                     var i = 0
                     do {
@@ -165,8 +161,9 @@ class MyPlacesViewModel(
                             Log.i("votos", "existe voto de usuario")
                             holder.btnFavPlace.drawable.setTintList(null)//AMARILLO
                             if (click) {
+                                eliminarVoto(place)//eliminamos el voto
+                                votos--
                                 Log.i("votos", "existe voto de usuario y click")
-                                setVotado(true)
                             } else {
                                 Log.i("votos", "existe voto de usuario y no click")
                             }
@@ -174,30 +171,15 @@ class MyPlacesViewModel(
                         i++
                     } while (!existe && i < documents.size())
 
-                    if (!existe)
-                        setVotado(false)
+                    if (!existe && click) {
+                        crearVoto(place)//crear voto
+                        votos++
                         Log.i("votos", "no existe este usuario")
+                    }
                 }
+                if (place.votos != votos.toString())
+                updatePlaceFirebase(votos, place)
             }
-
-    }
-
-    private fun setVotado(votado: Boolean) {
-        this.votado = votado
-    }
-
-    private fun actualizarPlace(place: PlaceFB, holder: PlaceViewHolder) {
-        var votos = place.votos!!.toInt()
-        if (votado) {
-            eliminarVoto(place)
-            holder.btnFavPlace.drawable.setTint(R.color.colorPrimary)
-            votos--
-        } else {
-            crearVoto(place)
-            holder.btnFavPlace.drawable.setTintList(null)
-            votos++
-        }
-        updatePlaceFirebase(votos, place)
     }
 
     private fun updatePlaceFirebase(votos: Int, place: PlaceFB) {
@@ -208,7 +190,6 @@ class MyPlacesViewModel(
             .addOnSuccessListener { Log.d("TAG", "DocumentSnapshot successfully updated!") }
             .addOnFailureListener { e -> Log.w("TAG", "Error updating document", e) }
     }
-
 
     private fun crearVoto(place: PlaceFB) {
         val Firestore = FirebaseFirestore.getInstance()
@@ -233,20 +214,6 @@ class MyPlacesViewModel(
             .addOnFailureListener { e -> Log.w("TAG", "Error updating document", e) }
     }
 
-    private fun checkSizeVotos(place: Places) {
-        if (place.votos!!.size == 1) {
-            place.votos.add("a")
-        }
-    }
-
-    private fun checkNumVotos(place: Places, holder: PlaceViewHolder) {
-        if (place.votos!!.size < 2) {
-            holder.txtMarkItemPlace.text = "0"
-        } else if (place.votos.size >= 2) {
-            holder.txtMarkItemPlace.text = (place.votos.size - 1).toString()
-        }
-    }
-
     override fun getItemCount(): Int {
         return listPlaces.size
     }
@@ -263,5 +230,4 @@ class MyPlacesViewModel(
         var txtMarkItemPlace = itemView.txtMark_Place!!
         var btnFavPlace = itemView.imgStar_Place!!
     }
-
 }
