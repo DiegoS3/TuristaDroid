@@ -2,9 +2,9 @@
 
 ## Tu aplicación para compartir lugares y momentos 🎉
 
-- 📸 Haz una foto, dale un título y súbela 
-- ❤️ Observa como crecen los me gusta de tu publicación
-- 👯 Convierte las publicaciones de otros en tus favoritas
+- 📸 Haz fotos a tus lugares favoritos, dale un título, una ubicación y compartelos. 
+- ❤️ Observa como crecen los me gusta de tu publicación.
+- 👯 Convierte los lugares de otros en tus favoritos.
 - 🔥 Y mucho más...
 
 ## Workflow del proyecto 🕑
