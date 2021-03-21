@@ -15,14 +15,6 @@ Git tree del proyecto utilizando GitFlow:
 <img align="left" alt="gittree" width="1000px" src="https://i.ibb.co/whskWPT/Captura-Git-Tree.png"  />
 <br />
 
-## Herramientas y tecnologías utilizadas 🔨
-
-[<img align="left" alt="Kotlin" width="26px" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Kotlin_Icon.svg/512px-Kotlin_Icon.svg.png" />][kotlin]
-[<img align="left" alt="Firebase" width="26px" src="https://www.gstatic.com/devrel-devsite/prod/veaa02889f0c07424beaa31d9bac1e874b6464e7ed7987fde4c94a59ace9487fa/firebase/images/touchicon-180.png" />][firebase]
-[<img align="left" alt="IntelliJ" width="26px" src="https://i.ibb.co/kSDXzDv/58480910cef1014c0b5e48f7.png" />][intellij]
-<br />
-<br />
-
 ### Capturas
 
 <p align="center">
@@ -44,6 +36,14 @@ Git tree del proyecto utilizando GitFlow:
        <img src="https://cdn.discordapp.com/attachments/780848426556325920/805468261596528691/unknown.png" 
         height="325">
  </p>
+<br />
+<br />
+
+## Herramientas y tecnologías utilizadas 🔨
+
+[<img align="left" alt="Kotlin" width="26px" src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/06/Kotlin_Icon.svg/512px-Kotlin_Icon.svg.png" />][kotlin]
+[<img align="left" alt="Firebase" width="26px" src="https://www.gstatic.com/devrel-devsite/prod/veaa02889f0c07424beaa31d9bac1e874b6464e7ed7987fde4c94a59ace9487fa/firebase/images/touchicon-180.png" />][firebase]
+[<img align="left" alt="IntelliJ" width="26px" src="https://i.ibb.co/kSDXzDv/58480910cef1014c0b5e48f7.png" />][intellij]
 <br />
 <br />
 
