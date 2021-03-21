@@ -23,6 +23,30 @@ Git tree del proyecto utilizando GitFlow:
 <br />
 <br />
 
+### Capturas
+
+<p align="center">
+    <img src="https://cdn.discordapp.com/attachments/780848426556325920/805468418336620586/unknown.png" 
+      height="325">
+   <img src="https://cdn.discordapp.com/attachments/780848426556325920/810624616312602674/unknown.png" 
+    height="325">
+    <img src="https://cdn.discordapp.com/attachments/780848426556325920/805472911854534746/unknown.png" 
+    height="325">
+     <img src="https://cdn.discordapp.com/attachments/780848426556325920/805469077237661716/unknown.png" 
+      height="325">
+  
+ </p>
+ <p align="center">
+      <img src="https://cdn.discordapp.com/attachments/780848426556325920/805468326423560232/unknown.png" 
+        height="325">
+      <img src="https://cdn.discordapp.com/attachments/780848426556325920/805468922190757908/unknown.png" 
+      height="325">
+       <img src="https://cdn.discordapp.com/attachments/780848426556325920/805468261596528691/unknown.png" 
+        height="325">
+ </p>
+<br />
+<br />
+
 <details>
   <summary>:zap: GitHub Stats</summary>
 
