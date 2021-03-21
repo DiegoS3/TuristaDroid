@@ -16,7 +16,7 @@ Git tree del proyecto utilizando GitFlow:
 <br />
 <br />
 
-### Capturas 🤓
+## Capturas 🤓
 
 <p align="center">
     <img src="https://cdn.discordapp.com/attachments/780848426556325920/805468418336620586/unknown.png" 
